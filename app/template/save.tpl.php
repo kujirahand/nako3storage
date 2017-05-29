@@ -5,9 +5,14 @@ include dirname(__FILE__).'/parts_html_header.tpl.php';
 
 <?php
 // saveform
+$msg = '';
 $is_private_chk = $is_private ? 'checked="checked"' : '';
+if ($rewrite === 'yes') {
+  $msg = '<p class="info">必要ならタイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>';
+}
 echo <<< EOS
 <div class="saveform">
+  {$msg}
   <form method="POST" action="index.php?{$app_id}&save">
     <p>
       <label>プログラム本体:<br />

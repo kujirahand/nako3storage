@@ -16,12 +16,14 @@ function n3s_check_config() {
   global $n3s_config;
   $root = dirname(dirname(__FILE__));
   $def_values = array(
-    "dir_data"        => "{$root}/data",
-    "dir_app"         => "{$root}/app",
-    "dir_template"    => "{$root}/app/template",
-    "dir_action"      => "{$root}/app/action",
-    "file_database"   => "{$root}/data/n3s_main.sqlite",
-    "admin_password"  => "hoge",
+    "dir_data"          => "{$root}/data",
+    "dir_app"           => "{$root}/app",
+    "dir_template"      => "{$root}/app/template",
+    "dir_action"        => "{$root}/app/action",
+    "dir_sql"           => "{$root}/app/sql",
+    "file_db_main"     => "sqlite:{$root}/data/n3s_main.sqlite",
+    "file_db_material"  => "sqlite:{$root}/data/n3s_material.sqlite",
+    "admin_password"    => "hoge",
   );
   foreach ($def_values as $key => $def) {
     if (empty($n3s_config[$key])) $n3s_config[$key] = $def;
@@ -33,7 +35,8 @@ function n3s_action() {
   $action = $_GET['action'];
   $action = preg_replace('/([a-zA-Z0-9_]+)/', '$1', $action);
   $file_action = $n3s_config['dir_action']."/$action.inc.php";
-  $func_action = "n3s_action_$action";
+  $agent = $n3s_config['agent'];
+  $func_action = "n3s_{$agent}_{$action}";
   if (file_exists($file_action)) {
     include_once $file_action;
     if (function_exists($func_action)) {

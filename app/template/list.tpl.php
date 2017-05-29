@@ -25,7 +25,7 @@ foreach ($list as $row) {
   $date_h = date("Y/m/d", $row['mtime']);
   echo <<< EOS
 <tr>
-<td><a href="index.php?$app_id&show">{$title_h}</a></td>
+<td><a href="index.php?{$app_id}&show">{$app_id}: {$title_h}</a></td>
 <td>{$author_h}</td>
 <td>{$memo_h}</td>
 <td>{$date_h}</td>
@@ -34,8 +34,9 @@ EOS;
 }
 ?>
 </table>
-<div><?php echo $next ?></div>
-</div>
+<div><?php
+  if ($next_url) echo "<a href='$next_url'>次へ←</a>";
+?></div>
 <?php else: ?>
   <div>ありません。</div>
 <?php endif; ?>

@@ -1,5 +1,6 @@
 # n3s
-data/n3s_main.sqlite
+data/*.sqlite
+data/*.conf
 
 
 # mac

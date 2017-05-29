@@ -1,7 +1,19 @@
 <?php
 define("NAKO_DEFAULT_VERSION", "0.0.6");
 
-function n3s_action_save() {
+function n3s_api_save() {
+  // post?
+  if (!isset($_POST['body'])) {
+    n3s_api_output(false, array(
+      "msg" => 'データがありません。POSTメソッドで送信してください。')
+    );
+    exit;
+  }
+  n3s_action_save_data($_POST, 'api');
+  return;
+}
+
+function n3s_web_save() {
   // agent?
   $agent = isset($_GET['agent']) ? $_GET['agent'] : 'browser';
   // save?
@@ -46,10 +58,13 @@ EOS;
       exit;
     }
   }
-  if (!$a) {
-    n3s_action_save_check_param($a);
-  }
+  n3s_action_save_check_param($a);
   $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
+  // load material
+  if ($a['rewrite'] === 'no') {
+    n3s_action_save_load_body($a);
+  }
+  //
   n3s_template('save', $a);
 }
 
@@ -57,7 +72,18 @@ function n3s_action_save_post_by_web() {
   n3s_action_save_data($_POST);
 }
 
+function n3s_action_save_load_body(&$a) {
+  $material_id = $a['material_id'];
+  $material_db = n3s_get_db('material');
+  $m = $material_db->query("SELECT * FROM materials WHERE material_id=$material_id")->fetch();
+  $a['body'] = $m['body'];
+}
+
 function n3s_action_save_check_param(&$a) {
+  global $n3s_config;
+  foreach ($a as $k => &$v) {
+    if (isset($v) && is_string($v)) $v = trim($v);
+  }
   $a['app_id'] = isset($a['app_id']) ? intval($a['app_id']) : 0;
   $a['title'] = empty($a['title']) ? '(無題)' : $a['title'];
   $a['author'] = empty($a['author']) ? '(匿名)' : $a['author'];
@@ -69,6 +95,7 @@ function n3s_action_save_check_param(&$a) {
   $a['body'] = isset($a['body']) ? $a['body'] : '';
   $a['version'] = isset($a['version']) ? $a['version'] : NAKO_DEFAULT_VERSION;
   $a['editkey'] = isset($a['editkey']) ? $a['editkey'] : '';
+  $a['ip'] = isset($a['ip']) ? $a['ip'] : '';
   $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
 }
@@ -79,16 +106,21 @@ function n3s_action_save_data($data, $agent = 'browser') {
   try {
     $app_id = n3s_action_save_data_raw($data, $agent);
     if ($browser === 'api') {
-      echo json_encode(array(
-        "result" => true
-      ));
+      n3s_api_output(true, array("msg"=>"ok", "app_id"=>$app_id));
+      return;
     } else {
       $url = $n3s_config['baseurl']."/index.php?{$app_id}&show";
       header("location: $url");
     }
   } catch(Exception $e) {
     throw $e;
-    echo $e->getMessage();
+    if ($agent == "api") {
+      n3s_api_output(false, array("msg"=>$e->getMessage()));
+      return;
+    }
+    // throw $e;
+    n3s_error("保存に失敗", $e->getMessage());
+    return;
   }
 }
 
@@ -96,6 +128,7 @@ function n3s_action_save_data_raw($data, $agent) {
   $db = n3s_get_db();
   $app_id = intval($_GET['page']);
   $a = $data;
+  $b = array();
   $a['app_id'] = $app_id;
   n3s_action_save_check_param($a);
   $a['ip'] = $_SERVER['REMOTE_ADDR'];
@@ -106,8 +139,6 @@ function n3s_action_save_data_raw($data, $agent) {
     $a_editkey = n3s_hash_editkey($a['editkey']);
     $b_editkey = $b['editkey'];
     if ($a_editkey !== $b_editkey) {
-      var_dump($a);
-      var_dump($b);
       throw new Exception('編集キーが違います。');
     }
   }
@@ -116,15 +147,21 @@ function n3s_action_save_data_raw($data, $agent) {
   $ph = null;
   if ($app_id == 0) {
     $a['ctime'] = time();
+    // save material
+    $db_material = n3s_get_db('material');
+    $mp = $db_material->prepare(
+      'INSERT INTO materials (body) VALUES (?)');
+    $mp->execute(array($a['body']));
+    $material_id = $db_material->lastInsertId();
     $sql = <<< EOS
 INSERT INTO apps (
   title, author, email, url, memo,
-  body, version, nakotype, tag,
+  material_id, version, nakotype, tag,
   editkey, is_private,
   ref_id, ip, ctime, mtime
 ) VALUES (
   :title, :author, :email, :url, :memo,
-  :body, :version, :nakotype, :tag,
+  :material_id, :version, :nakotype, :tag,
   :editkey, :is_private,
   :ref_id, :ip, :ctime, :mtime
 )
@@ -136,9 +173,8 @@ EOS;
       ":url"        => $a['url'],
       ":email"      => $a['email'],
       ":memo"       => $a['memo'],
-      ":body"       => $a['body'],
+      ":material_id" => $material_id,
       ":version"    => $a['version'],
-      ":body"       => $a['body'],
       ":nakotype"   => $a['nakotype'],
       ":tag"        => $a['tag'],
       ":editkey"    => $a['editkey'],
@@ -149,11 +185,15 @@ EOS;
       ":mtime"      => $a['mtime'],
     ));
     $app_id = $db->lastInsertId();
+    // update material_id
+    $mp = $db_material->prepare(
+      'UPDATE materials SET  app_id=? WHERE material_id=?');
+    $mp->execute(array($a['body'], $material_id));
   } else {
     $sql = <<< EOS
 UPDATE apps SET
   title=:title, author=:author, email=:email, url=:url, memo=:memo,
-  body=:body, version=:version, editkey=:editkey, is_private=:is_private,
+  version=:version, editkey=:editkey, is_private=:is_private,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
@@ -164,7 +204,6 @@ EOS;
       ":url"        => $a['url'],
       ":email"      => $a['email'],
       ":memo"       => $a['memo'],
-      ":body"       => $a['body'],
       ":version"    => $a['version'],
       ":editkey"    => $a['editkey'],
       ":is_private" => $a['is_private'],
@@ -173,6 +212,11 @@ EOS;
       ":mtime"      => $a['mtime'],
       ":app_id"     => $a['app_id']
     ));
+    // update body
+    $db_material = n3s_get_db('material');
+    $mp = $db_material->prepare(
+      'UPDATE materials SET body=? WHERE material_id=?');
+    $mp->execute(array($a['body'], $b['material_id']));
   }
   // saved
   return $app_id;

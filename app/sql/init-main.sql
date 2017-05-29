@@ -1,4 +1,4 @@
-/* nako3storage database */
+/* nako3storage main database */
 CREATE TABLE info (
   info_id     INTEGER PRIMARY KEY,
   key         TEXT,
@@ -13,25 +13,14 @@ CREATE TABLE apps (
   email       TEXT DEFAULT '',
   url         TEXT DEFAULT '',
   memo        TEXT DEFAULT '',
-  body        TEXT DEFAULT '',
+  material_id INTEGER DEFAULT 0,
   version     TEXT DEFAULT '',
   nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako */
   tag         TEXT DEFAULT '',
   editkey     TEXT DEFAULT '',
   is_private  INTEGER DEFAULT 0, /* 0:public 1:private */
-  ref_id      INTEGER DEFAULT -1,
+  ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
-  ctime       INTEGER DEFAULT 0,
-  mtime       INTEGER DEFAULT 0
-);
-
-CREATE TABLE items (
-  item_id     INTEGER PRIMARY KEY,
-  app_id      INTEGER DEFAULT -1,
-  item_name   TEXT DEFAULT '',
-  item_type   TEXT DEFAULT '',
-  data        TEXT DEFAULT '',
-  value       INTEGER DEFAULT 0,
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
@@ -46,4 +35,3 @@ CREATE TABLE comments (
   ctime         INTEGER DEFAULT 0,
   mtime         INTEGER DEFAULT 0
 );
-
