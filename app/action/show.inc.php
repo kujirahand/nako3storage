@@ -8,6 +8,7 @@ function n3s_web_show() {
 
 function n3s_api_show() {
   $a = n3s_show_get();
+  unset($a['access_key']);
   unset($a['editkey']);
   unset($a['material_id']);
   n3s_api_output($a['result'], $a);

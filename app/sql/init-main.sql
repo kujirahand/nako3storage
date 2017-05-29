@@ -15,9 +15,11 @@ CREATE TABLE apps (
   memo        TEXT DEFAULT '',
   material_id INTEGER DEFAULT 0,
   version     TEXT DEFAULT '',
-  nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako */
+  nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako/text/json/base64 */
   tag         TEXT DEFAULT '',
-  editkey     TEXT DEFAULT '',
+  editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されて保存される) */
+  need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
+  access_key  TEXT DEFAULT '', /* 閲覧用のキー(ハッシュ化されない) */
   is_private  INTEGER DEFAULT 0, /* 0:public 1:private */
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
