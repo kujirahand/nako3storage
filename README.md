@@ -1,6 +1,17 @@
 # nako3storage
 
-Online storage for nadesiko3
+## これは何？
+
+- なでしこ３のプログラムとリソースを保存するためのストレージ。
+- Webインターフェイスもあるが、APIからも自由に操作できるもの。
+- なでしこ3のプログラムやリソースの保存・読込を手軽に行うためのWebサービス
+
+## インストール
+
+- Gitでこのリポジトリをcloneする
+- dataディレクトリに書き込み権限を与える
+- /n3s_config.ini.php というファイルを作る
+  - 内容に「$n3s_config['admin_password'] = '***';」と書く
 
 # APIの使い方
 
