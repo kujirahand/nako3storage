@@ -21,7 +21,12 @@ echo <<< EOS
     </p>
     <p>
       <label>タイトル(任意):<br />
-      <input name="title" value="{$title}" placeholder="タイトル" />
+      <input name="title" value="{$title}" placeholder="タイトル" autocomplete="off" />
+      </label>
+    </p>
+    <p>
+      <label>プログラムの説明(任意):<br />
+      <input name="memo" value="{$memo}" placeholder="説明" autocomplete="off" />
       </label>
     </p>
     <p>
@@ -40,13 +45,8 @@ echo <<< EOS
       </label>
     </p>
     <p>
-      <label>プログラムの説明(任意):<br />
-      <input name="memo" value="{$memo}" placeholder="説明" />
-      </label>
-    </p>
-    <p>
       <label>編集キー(閲覧キー):<br />
-      <input id="editkey" name="editkey" type="password" />
+      <input id="editkey" name="editkey" type="password" value='' autocomplete="off" />
       </label>
     </p>
     <p>
@@ -80,20 +80,16 @@ for (k of savekeys) {
 }
 
 // load field
-setTimeout(() => {
-  for (k of savekeys) {
-    if (elem[k].value !== '') continue
-    const v = localStorage['n3s_save_' + k]
-    if (v) elem[k].value = v
-  }
-  // rewrite
-  const rewriteMode = '$rewrite'
-  if (rewriteMode === 'yes') {
-    const body = document.getElementById('body')
-    body.value = localStorage['n3s_save_body']
-  }
-}, 1)
-
+for (k of savekeys) {
+  const v = localStorage['n3s_save_' + k]
+  if (v) elem[k].value = v
+}
+// rewrite
+const rewriteMode = '$rewrite'
+if (rewriteMode === 'yes') {
+  const body = document.getElementById('body')
+  body.value = localStorage['n3s_save_body']
+}
 </script>
 EOS;
 ?>

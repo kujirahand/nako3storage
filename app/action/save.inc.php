@@ -19,42 +19,12 @@ function n3s_web_save() {
     n3s_action_save_data($_POST, 'web');
     return;
   }
+
   // show form
   $app_id = intval($_GET['page']);
   $a = array();
   if ($app_id > 0) {
-    $db = n3s_get_db();
-    $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
-    if (!$a) {
-      n3s_jump(0, 'save');
-      exit;
-    }
-    $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
-    $postkey_hash = n3s_hash_editkey($postkey);
-    if ($a['editkey'] !== $postkey_hash) {
-      $opt = array();
-      if (isset($_GET['rewrite'])) {
-        $opt['rewrite'] = $_GET['rewrite'];
-      }
-      $url = n3s_getURL($app_id, 'save', $opt);
-      $msg = ($postkey !== '') ? '<span class="error">キーが違います。</span>' : '';
-      $inputkey = <<< EOS
-        <p>編集キーを入力してください。</p>
-        <form action='$url' method='post'>
-          <input type='password' name='editkey' id="editkey" />
-          <input type='submit' value='編集' />
-          <p>{$msg}</p>
-        </form>
-        <script>
-          const key = 'n3s_save_editkey'
-          if (localStorage[key]) {
-            document.getElementById('editkey').value = localStorage[key]
-          }
-        </script>
-EOS;
-      n3s_template('basic', array('contents' => $inputkey));
-      exit;
-    }
+    n3s_web_save_check($app_id, $a);
   }
   n3s_action_save_check_param($a);
   $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
@@ -64,6 +34,44 @@ EOS;
   }
   //
   n3s_template('save', $a);
+}
+
+function n3s_web_save_check($app_id, &$a) {
+  global $n3s_config;
+  $db = n3s_get_db();
+  $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
+  if (!$a) {
+    n3s_jump(0, 'save');
+    exit;
+  }
+  $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
+  $postkey_hash = n3s_hash_editkey($postkey);
+  if ($a['editkey'] === $postkey_hash || $postkey === $n3s_config['admin_password']) {
+    // ok
+  } else {
+    $opt = array();
+    if (isset($_GET['rewrite'])) {
+      $opt['rewrite'] = $_GET['rewrite'];
+    }
+    $url = n3s_getURL($app_id, 'save', $opt);
+    $msg = ($postkey !== '') ? '<span class="error">キーが違います。</span>' : '';
+    $inputkey = <<< EOS
+      <p>編集キーを入力してください。</p>
+      <form action='$url' method='post'>
+        <input type='password' name='editkey' id="editkey" />
+        <input type='submit' value='編集' />
+        <p>{$msg}</p>
+      </form>
+      <script>
+        const key = 'n3s_save_editkey'
+        if (localStorage[key]) {
+          document.getElementById('editkey').value = localStorage[key]
+        }
+      </script>
+EOS;
+    n3s_template('basic', array('contents' => $inputkey));
+    exit;
+  }
 }
 
 function n3s_action_save_post_by_web() {
@@ -111,8 +119,8 @@ function n3s_action_save_check_param(&$a) {
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
 }
 
-// save (agent=brower/api)
-function n3s_action_save_data($data, $agent = 'browser') {
+// save
+function n3s_action_save_data($data, $agent = 'web') {
   global $n3s_config;
   try {
     $app_id = n3s_action_save_data_raw($data, $agent);
@@ -135,6 +143,8 @@ function n3s_action_save_data($data, $agent = 'browser') {
 }
 
 function n3s_action_save_data_raw($data, $agent) {
+  global $n3s_config;
+
   $db = n3s_get_db();
   $app_id = intval($_GET['page']);
   $a = $data;
@@ -148,7 +158,13 @@ function n3s_action_save_data_raw($data, $agent) {
     if (!$b) throw new Exception('app_idが不正です。');
     $a_editkey = n3s_hash_editkey($a['editkey']);
     $b_editkey = $b['editkey'];
-    if ($a_editkey !== $b_editkey) {
+    // admin?
+    if ($n3s_config['admin_password'] === $a['editkey']) {
+      // ok
+    }
+    else if ($a_editkey === $b_editkey) {
+      // ok
+    } else {
       throw new Exception('編集キーが違います。');
     }
   }
@@ -203,7 +219,7 @@ EOS;
     $sql = <<< EOS
 UPDATE apps SET
   title=:title, author=:author, email=:email, url=:url, memo=:memo,
-  version=:version, editkey=:editkey, is_private=:is_private,
+  version=:version, is_private=:is_private,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
@@ -215,12 +231,12 @@ EOS;
       ":email"      => $a['email'],
       ":memo"       => $a['memo'],
       ":version"    => $a['version'],
-      ":editkey"    => $a['editkey'],
       ":is_private" => $a['is_private'],
       ":ref_id"     => $a['ref_id'],
       ":ip"         => $a['ip'],
       ":mtime"      => $a['mtime'],
       ":app_id"     => $a['app_id']
+      // editkey は更新しない
     ));
     // update body
     $db_material = n3s_get_db('material');
