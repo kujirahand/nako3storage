@@ -25,3 +25,5 @@ data/*.conf
 /logs/*
 !/logs/empty
 
+n3s_config.ini.php
+.idea/
