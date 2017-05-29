@@ -73,7 +73,7 @@ function n3s_action_save_post_by_web() {
 }
 
 function n3s_action_save_load_body(&$a) {
-  $material_id = intval($a['material_id']);
+  $material_id = intval(isset($a['material_id']) ? $a['material_id'] : 0);
   if ($material_id > 0) {
     $material_db = n3s_get_db('material');
     $m = $material_db->query("SELECT * FROM materials WHERE material_id=$material_id")->fetch();

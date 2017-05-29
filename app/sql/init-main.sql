@@ -23,6 +23,8 @@ CREATE TABLE apps (
   is_private  INTEGER DEFAULT 0, /* 0:public 1:private */
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
+  fav         INTEGER DEFAULT 0, /* いいね */
+  view        INTEGER DEFAULT 0, /* 閲覧数 */
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );

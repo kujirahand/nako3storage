@@ -1,6 +1,7 @@
 <?php
 
 include_once dirname(__FILE__).'/n3s_lib.inc.php';
+define("N3S_DB_VERSION", 2);
 
 n3s_main();
 
@@ -46,5 +47,38 @@ function n3s_action() {
   }
   echo $file_action;
   echo 'action error';
+  exit;
+}
+
+function n3s_init_db() {
+  global $n3s_config;
+  $file_db_version = $n3s_config['dir_data'].'/db_version.conf';
+  $flag_init = !file_exists($file_db_version);
+  if (!$flag_init) {
+    // Check version
+    $ver = file_get_contents($file_db_version);
+    if ($ver != N3S_DB_VERSION) {
+      throw new Exception('Sorry, nako3storage.db version not match.');
+    }
+    return;
+  }
+  // Initialize Database
+  $dblist = array("main", "material");
+  foreach ($dblist as $type) {
+    $db = n3s_get_db($type);
+    $file_init_sql = $n3s_config['dir_sql']."/init-{$type}.sql";
+    $init_sql = file_get_contents($file_init_sql);
+    $sqls = explode(';', $init_sql);
+    foreach ($sqls as $sql) {
+      try {
+        $db->exec($sql);
+      } catch (PDOException $e) {
+        echo "[DB ERROR] ".$e->getMessage();
+        exit;
+      }
+    }
+  }
+  file_put_contents($file_db_version, N3S_DB_VERSION);
+  echo "Initialized database ... please reload page.";
   exit;
 }

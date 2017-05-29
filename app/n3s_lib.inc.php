@@ -71,32 +71,6 @@ function n3s_parseURI() {
   );
 }
 
-function n3s_init_db() {
-  global $n3s_config;
-  $file_db_version = $n3s_config['dir_data'].'/db_version.conf';
-  $flag_init = !file_exists($file_db_version);
-  if ($flag_init) {
-    $dblist = array("main", "material");
-    foreach ($dblist as $type) {
-      $db = n3s_get_db($type);
-      $file_init_sql = $n3s_config['dir_sql']."/init-{$type}.sql";
-      $init_sql = file_get_contents($file_init_sql);
-      $sqls = explode(';', $init_sql);
-      foreach ($sqls as $sql) {
-        try {
-          $db->exec($sql);
-        } catch (PDOException $e) {
-          echo "[DB ERROR] ".$e->getMessage();
-          exit;
-        }
-      }
-      file_put_contents($file_db_version, "1");
-    }
-    echo "Initialized database ... please reload page.";
-    exit;
-  }
-}
-
 function n3s_get_db($type = 'main') {
   global $n3s_config;
   global $n3s_db_handle;
