@@ -8,11 +8,9 @@
 
 ## インストール
 
-- Gitでこのリポジトリをcloneする
-- dataディレクトリに書き込み権限を与える
-- /n3s_config.ini.php というファイルを作る
-  - 内容に「$n3s_config['admin_password'] = pass;」と書く
-
+1. `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
+1. `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
+1. `bash setup.sh`コマンドを実行する
 
 # 外部のプログラムとの連携
 
