@@ -13,6 +13,15 @@
 - /n3s_config.ini.php というファイルを作る
   - 内容に「$n3s_config['admin_password'] = pass;」と書く
 
+
+# 外部のプログラムとの連携
+
+formを使う場合、以下のURLに body=xxx&version=0.0.6 をポストすれば良い。
+
+```
+<設置url>/index.php?0&presave
+```
+
 # APIの使い方
 
 ### プログラムの保存
