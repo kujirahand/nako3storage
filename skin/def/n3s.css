@@ -1,0 +1,81 @@
+/* n3s.css */
+
+#n3s_header {
+  margin: 0;
+  padding: 4px;
+  background-color: #f0f0f0;
+  font-size: 0.8em;
+}
+
+h1 {
+  font-size: 1em;
+}
+
+.list table {
+  border-top: 1px solid silver;
+  border-left: 1px solid silver;
+}
+.list table td {
+  border-right: 1px solid silver;
+  border-bottom: 1px solid silver;
+  padding: 4px;
+}
+.list table th {
+  border-right: 1px solid silver;
+  border-bottom: 1px solid silver;
+  background-color: #f0f0f0;
+  padding: 4px;
+}
+
+.saveform { }
+.saveform label {
+  color: #707090;
+  font-size: 0.8em;
+}
+
+.saveform input {
+  width: 300px;
+  margin: 8px;
+}
+.saveform input[type=checkbox] {
+  width: 2em;
+}
+
+.saveform textarea {
+  width: 300px;
+  height: 150px;
+  margin: 8px;
+}
+
+.showblock { }
+.showblock .memo {
+  color: gray;
+  font-size: 0.8em;
+}
+.showblock label {
+  color: gray;
+  font-size: 0.8em;
+}
+.showblock textarea {
+  width: 300px;
+  height: 150px;
+  background-color: #f0f0f0;
+}
+
+.showinfo {
+  font-size: 0.8em;
+  color: gray;
+}
+
+.error {
+  color: red;
+}
+
+#runbox {
+}
+.nako3info {
+  border: 1px solid silver;
+  background-color: #f0f0f0;
+  margin: 4px;
+  padding: 8px;
+}

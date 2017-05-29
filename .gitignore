@@ -1,3 +1,10 @@
+# n3s
+data/n3s_main.sqlite
+
+
+# mac
+.DS_Store
+
 # CakePHP 3
 
 /vendor/*
@@ -17,9 +24,3 @@
 /logs/*
 !/logs/empty
 
-# CakePHP 2
-
-/app/tmp/*
-/app/Config/core.php
-/app/Config/database.php
-/vendors/*
