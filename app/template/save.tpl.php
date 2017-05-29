@@ -35,6 +35,11 @@ echo <<< EOS
       </label>
     </p>
     <p>
+      <label>編集キー(閲覧キー):<br />
+      <input id="editkey" name="editkey" type="password" value='' autocomplete="off" />
+      </label>
+    </p>
+    <p>
       <label>連絡先Eメール(任意):<br />
       <input id="email" name="email" value="{$email}" placeholder="メール" />
       </label>
@@ -42,11 +47,6 @@ echo <<< EOS
     <p>
       <label>URL(任意):<br />
       <input id="url" name="url" value="{$url}" placeholder="関連URL" />
-      </label>
-    </p>
-    <p>
-      <label>編集キー(閲覧キー):<br />
-      <input id="editkey" name="editkey" type="password" value='' autocomplete="off" />
       </label>
     </p>
     <p>
