@@ -23,6 +23,9 @@ foreach ($list as $row) {
   $author_h = htmlentities(mb_strimwidth($row['author'], 0, 12, '..'));
   $memo_h = htmlentities(mb_strimwidth($row['memo'], 0, 14, '..'));
   $date_h = date("Y/m/d", $row['mtime']);
+  // 空白をチェック
+  if (!$title_h) $title_h = '(無題)';
+  if (!$author_h) $author_h = '(匿名)';
   echo <<< EOS
 <tr>
 <td><a href="index.php?{$app_id}&show">{$app_id}: {$title_h}</a></td>

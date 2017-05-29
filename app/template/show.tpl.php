@@ -4,6 +4,10 @@ include dirname(__FILE__).'/parts_html_header.tpl.php';
 ?>
 
 <?php
+// 空白をチェック
+if (!$title) $title = '(無題)';
+if (!$author) $author = '(匿名)';
+// HTML化
 $title = htmlentities($title);
 $author = htmlentities($author);
 if ($url == '') $url = '';

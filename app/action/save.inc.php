@@ -14,11 +14,9 @@ function n3s_api_save() {
 }
 
 function n3s_web_save() {
-  // agent?
-  $agent = isset($_GET['agent']) ? $_GET['agent'] : 'browser';
   // save?
   if (isset($_POST['body'])) {
-    n3s_action_save_data($_POST, $agent);
+    n3s_action_save_data($_POST, 'web');
     return;
   }
   // show form
@@ -98,8 +96,8 @@ function n3s_action_save_check_param(&$a) {
     }
   }
   $a['app_id'] = isset($a['app_id']) ? intval($a['app_id']) : 0;
-  $a['title'] = empty($a['title']) ? '(無題)' : $a['title'];
-  $a['author'] = empty($a['author']) ? '(匿名)' : $a['author'];
+  $a['title'] = empty($a['title']) ? '' : $a['title'];
+  $a['author'] = empty($a['author']) ? '' : $a['author'];
   $a['email'] = isset($a['email']) ? $a['email'] : '';
   $a['url'] = isset($a['url']) ? $a['url'] : '';
   $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';

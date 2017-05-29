@@ -8,7 +8,7 @@ include dirname(__FILE__).'/parts_html_header.tpl.php';
 $msg = '';
 $is_private_chk = $is_private ? 'checked="checked"' : '';
 if ($rewrite === 'yes') {
-  $msg = '<p class="info">必要ならタイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>';
+  $msg = '<p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>';
 }
 echo <<< EOS
 <div class="saveform">
