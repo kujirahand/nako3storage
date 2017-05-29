@@ -7,6 +7,6 @@ function n3s_web_presave() {
     $a = $_POST;
   }
   n3s_action_save_check_param($a);
-  $a["rewrite"] = 'yes';
+  $a["rewrite"] = 'no';
   n3s_template('save', $a);
 }
