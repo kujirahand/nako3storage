@@ -85,8 +85,17 @@ function n3s_action_save_load_body(&$a) {
 
 function n3s_action_save_check_param(&$a) {
   global $n3s_config;
+  // check size & trim data
   foreach ($a as $k => &$v) {
-    if (isset($v) && is_string($v)) $v = trim($v);
+    if (isset($v) && is_string($v)) {
+      $v = trim($v);
+      if ($k == 'body' && strlen($v) > $n3s_config['size_source_max']) {
+        throw new Exception('プログラムが最大文字数を超えています。');
+      }
+      else if (strlen($v) > $n3s_config['size_field_max']) {
+        throw new Exception('フィールドが最大文字数を超えています。');
+      }
+    }
   }
   $a['app_id'] = isset($a['app_id']) ? intval($a['app_id']) : 0;
   $a['title'] = empty($a['title']) ? '(無題)' : $a['title'];
@@ -117,7 +126,6 @@ function n3s_action_save_data($data, $agent = 'browser') {
       header("location: $url");
     }
   } catch(Exception $e) {
-    throw $e;
     if ($agent == "api") {
       n3s_api_output(false, array("msg"=>$e->getMessage()));
       return;

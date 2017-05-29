@@ -11,7 +11,7 @@
 - Gitでこのリポジトリをcloneする
 - dataディレクトリに書き込み権限を与える
 - /n3s_config.ini.php というファイルを作る
-  - 内容に「$n3s_config['admin_password'] = '***';」と書く
+  - 内容に「$n3s_config['admin_password'] = pass;」と書く
 
 # APIの使い方
 
