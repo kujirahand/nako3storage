@@ -85,3 +85,8 @@ h1 {
   margin: 4px;
   padding: 8px;
 }
+
+#nako3_canvas {
+  width: 300px;
+  height: 300px;
+}

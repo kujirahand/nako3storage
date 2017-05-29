@@ -73,7 +73,7 @@ const savekeys = ['author', 'url', 'email', 'editkey']
 const elem = {}
 for (k of savekeys) {
   elem[k] = document.getElementById(k)
-  elem[k].onchange = function(e) {
+  elem[k].onkeyup = function(e) {
     const id = e.target.id
     localStorage['n3s_save_' + id] = e.target.value
   }
