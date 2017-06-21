@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# プロジェクトルートへ
+ROOT=$(cd $(dirname $0)/..;pwd)
+cd $ROOT
 #dataディレクトリに書き込み権限を与える
 chmod +w data
 

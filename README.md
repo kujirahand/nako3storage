@@ -10,7 +10,7 @@
 
 1. `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
 1. `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
-1. `bash setup.sh`コマンドを実行する
+1. `bash scripts/setup.sh`コマンドを実行する
 
 # 外部のプログラムとの連携
 
