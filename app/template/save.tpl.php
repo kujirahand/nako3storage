@@ -13,7 +13,7 @@ if ($rewrite === 'yes') {
 echo <<< EOS
 <div class="saveform">
   {$msg}
-  <form method="POST" action="index.php?{$app_id}&save">
+  <form method="POST" action="index.php?page={$app_id}&action=save">
     <p>
       <label>プログラム本体:<br />
       <textarea id="body" name="body">{$body}</textarea>

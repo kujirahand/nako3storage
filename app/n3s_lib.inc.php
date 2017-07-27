@@ -8,7 +8,7 @@ function n3s_getURL($page, $action, $params = array())
 {
     global $n3s_config;
     $baseurl = $n3s_config['baseurl'];
-    $url = "{$baseurl}/index.php?$page&$action";
+    $url = "{$baseurl}/index.php?page=$page&action=$action";
     foreach ($params as $k => $v) {
         $url .= '&' . urlencode($k) . '=' . urlencode($v);
     }
@@ -31,40 +31,15 @@ function n3s_parseURI()
 {
     global $n3s_config;
     $uri = $_SERVER['REQUEST_URI'];
-    $params = array();
-    $path_args = array();
-    list($script_path, $paramStr) = explode('?', $uri . '?');
-    $a = explode('&', $paramStr);
-    foreach ($a as $p) {
-        if (strpos($p, '=') !== false) {
-            list($key, $val) = explode('=', $p, 2);
-        } else {
-            $key = $p;
-            $val = '';
-        }
-        $key = urldecode($key);
-        $val = urldecode($val);
-        $params[$key] = $val;
-        if ($val === '') {
-            $path_args[] = $key;
-        }
+    $script_path = explode('?', $uri)[0];
+    $n3s_config['page'] = 'all';
+    $n3s_config['action'] = 'list';
+    foreach ($_GET as $k => $v) {
+        $n3s_config[$k] = $v;
     }
-    array_push($path_args, NULL, NULL, NULL);
-    // page
-    $page = array_shift($path_args);
-    if (isset($params['page'])) $page = $params['page'];
-    if ($page == "") $page = 'all';
-    // action
-    $action = array_shift($path_args);
-    if (isset($params['action'])) $action = $params['action'];
-    if ($action == "") $action = "list";
-    // status
-    $status = array_shift($path_args);
-    if (isset($params['status'])) $action = $params['status'];
-    // set to conf
-    $n3s_config['page'] = $_GET['page'] = $page;
-    $n3s_config['action'] = $_GET['action'] = $action;
-    $n3s_config['status'] = $_GET['status'] = $status;
+    if (isset($n3s_config['status'])) {
+        $n3s_config['action'] = $n3s_config['status'];
+    }
     // set baseurl
     $script = $kona3conf['scriptname'] = basename($_SERVER['SCRIPT_NAME']);
     $script_dir = preg_replace("#/{$script}$#", "", $script_path);

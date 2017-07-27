@@ -16,6 +16,7 @@ function n3s_api_save()
 
 function n3s_web_save()
 {
+    global $n3s_config;
     // save?
     if (isset($_POST['body'])) {
         n3s_action_save_data($_POST, 'web');
@@ -23,13 +24,13 @@ function n3s_web_save()
     }
 
     // show form
-    $app_id = intval($_GET['page']);
+    $app_id = intval($n3s_config['page']);
     $a = array();
     if ($app_id > 0) {
         n3s_web_save_check($app_id, $a);
     }
     n3s_action_save_check_param($a);
-    $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
+    $a['rewrite'] = empty($n3s_config['rewrite']) ? 'no' : 'yes';
     // load material
     if ($a['rewrite'] === 'no') {
         n3s_action_save_load_body($a);
@@ -53,8 +54,8 @@ function n3s_web_save_check($app_id, &$a)
         // ok
     } else {
         $opt = array();
-        if (isset($_GET['rewrite'])) {
-            $opt['rewrite'] = $_GET['rewrite'];
+        if (isset($n3s_config['rewrite'])) {
+            $opt['rewrite'] = $n3s_config['rewrite'];
         }
         $url = n3s_getURL($app_id, 'save', $opt);
         $msg = ($postkey !== '') ? '<span class="error">キーが違います。</span>' : '';
@@ -134,7 +135,7 @@ function n3s_action_save_data($data, $agent = 'web')
             n3s_api_output(true, array("msg" => "ok", "app_id" => $app_id));
             return;
         } else {
-            $url = $n3s_config['baseurl'] . "/index.php?{$app_id}&show";
+            $url = $n3s_config['baseurl'] . "/index.php?page={$app_id}&action=show";
             header("location: $url");
         }
     } catch (Exception $e) {
@@ -153,7 +154,7 @@ function n3s_action_save_data_raw($data, $agent)
     global $n3s_config;
 
     $db = n3s_get_db();
-    $app_id = intval($_GET['page']);
+    $app_id = intval($n3s_config['page']);
     $a = $data;
     $b = array();
     $a['app_id'] = $app_id;

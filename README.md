@@ -17,7 +17,7 @@
 formを使う場合、以下のURLに body=xxx&version=0.0.6 をポストすれば良い。
 
 ```
-<設置url>/index.php?0&presave
+<設置url>/index.php?page=0&action=presave
 ```
 
 # APIの使い方
@@ -25,7 +25,7 @@ formを使う場合、以下のURLに body=xxx&version=0.0.6 をポストすれ�
 ### プログラムの保存
 
 ```
-<設置url>/api.php?(app_id)&save
+<設置url>/api.php?page=(app_id)&action=save
 ```
 
 POST メソッドで以下のデータを送信すると、プログラムを保存できる。

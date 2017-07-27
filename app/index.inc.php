@@ -38,7 +38,7 @@ function n3s_check_config()
 function n3s_action()
 {
     global $n3s_config;
-    $action = $_GET['action'];
+    $action = $n3s_config['action'];
     $action = preg_replace('/([a-zA-Z0-9_]+)/', '$1', $action);
     $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $agent = $n3s_config['agent'];

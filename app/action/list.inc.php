@@ -29,16 +29,23 @@ function n3s_api_list()
 
 function n3s_list_get()
 {
+    global $n3s_config;
     $db = n3s_get_db();
     // list
-    $app_id = intval(empty($_GET['app_id']) ? 0 : $_GET['app_id']);
+    $app_id = intval(empty($n3s_config['app_id']) ? 0 : $n3s_config['app_id']);
     if ($app_id <= 0) $app_id = PHP_INT_MAX;
-    $h = $db->prepare(
-        'SELECT app_id,title,author,memo,mtime FROM apps ' .
-        ' WHERE app_id <= ? ' .
-        ' AND is_private = 0' .
+    $wheres = array('app_id <= ?');
+    $statements = array($app_id);
+    if (!empty($n3s_config['search_word'])) {
+        $wheres[] = 'author = ?';
+        $statements[] = $n3s_config['search_word'];
+    }
+    $wheres[] = 'is_private = 0';
+    $statements[] = MAX_APP;
+    $h = $db->prepare('SELECT app_id,title,author,memo,mtime FROM apps ' .
+        ' WHERE ' . implode(' AND ', $wheres) .
         ' ORDER BY app_id DESC LIMIT ?');
-    $h->execute(array($app_id, MAX_APP));
+    $h->execute($statements);
     $list = $h->fetchAll();
     // next
     $min_id = PHP_INT_MAX;

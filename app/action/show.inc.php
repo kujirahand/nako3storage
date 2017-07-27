@@ -19,7 +19,7 @@ function n3s_api_show()
 function n3s_show_get()
 {
     global $n3s_config;
-    $app_id = intval($_GET['page']);
+    $app_id = intval($n3s_config['page']);
     $db = n3s_get_db();
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
