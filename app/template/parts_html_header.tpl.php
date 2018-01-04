@@ -1,6 +1,7 @@
 <?php
 global $n3s_config;
 if (empty($page_title)) $page_title = "nako3storage";
+if (empty($n3s_config['search_word'])) $n3s_config['search_word'] = "";
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,7 +19,7 @@ if (empty($page_title)) $page_title = "nako3storage";
     <span>[<a href="index.php?page=new&amp;action=show">新規</a>]</span>
     <form action="index.php">
         <input type="hidden" name="action" value="list">
-        <input title="search word" name="search_word" value="<?php echo $n3s_config['search_word'] ?>">
-        <input type="submit">
+        <input title="search word" name="search_word" placeholder="作者かタイトル(一部分)を入力" value="<?php echo $n3s_config['search_word'] ?>">
+        <input type="submit" value="検索">
     </form>
 </div>

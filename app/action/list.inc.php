@@ -37,8 +37,9 @@ function n3s_list_get()
     $wheres = array('app_id <= ?');
     $statements = array($app_id);
     if (!empty($n3s_config['search_word'])) {
-        $wheres[] = 'author = ?';
+        $wheres[] = 'author = ? OR title LIKE ?';
         $statements[] = $n3s_config['search_word'];
+        $statements[] = "%".$n3s_config['search_word']."%";
     }
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
