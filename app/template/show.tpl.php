@@ -116,7 +116,7 @@ function nako3_run() {
   var code = code_e.value;
   code =
     "「#nako3_canvas」へ描画開始;" +
-    "カメ描画先=「#nako3_canvas」;" +
+    "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
     "カメ画像URL=「" + baseurl + "/demo/turtle.png」;" + code;
   try {
