@@ -3,6 +3,7 @@
 // n3s_lib.inc.php
 // library for n3s
 // --------------------------------------------------------
+define("N3S_DB_VERSION", 2);
 
 function n3s_getURL($page, $action, $params = array())
 {

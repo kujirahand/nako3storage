@@ -7,6 +7,7 @@ include dirname(__FILE__).'/parts_html_header.tpl.php';
 // 空白をチェック
 if (!$title) $title = '(無題)';
 if (!$author) $author = '(匿名)';
+if (!isset($app_id)) $app_id = 0;
 // HTML化
 $title = htmlentities($title);
 $author = htmlentities($author);
@@ -105,6 +106,7 @@ function nako3_run() {
   if (!code_e) return;
   var code = code_e.value;
   code =
+    "「nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
     "カメ画像URL=「" + baseurl + "/demo/turtle.png」;" + code;
