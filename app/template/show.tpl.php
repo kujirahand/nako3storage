@@ -100,8 +100,17 @@ function to_html(s) {
           .replace(/\\n/g, '<br>')
 }
 function nako3_run() {
-  navigator.nako3.setFunc("表示", nako3_print)
-  navigator.nako3.setFunc("表示ログクリア", nako3_clear)
+  var ver = "$version" + ".0.0.0"
+  var va = ver.split(".")
+  var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
+  console.log('nako.version=' + verInt)
+  if (verInt >= 3021) {
+    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
+    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
+  } else {
+    navigator.nako3.setFunc("表示", nako3_print)
+    navigator.nako3.setFunc("表示ログクリア", nako3_clear)
+  }
   var code_e = document.getElementById("nako3code");
   if (!code_e) return;
   var code = code_e.value;

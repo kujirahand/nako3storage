@@ -1,6 +1,6 @@
 <?php
 global $n3s_config;
-if (empty($page_title)) $page_title = "nako3storage";
+if (empty($page_title)) $page_title = "nako3storage.v".$n3s_config['version'];
 if (empty($n3s_config['search_word'])) $n3s_config['search_word'] = "";
 ?>
 <!DOCTYPE html>

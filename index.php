@@ -4,6 +4,7 @@ global $n3s_config;
 // read config file
 $root = dirname(__FILE__);
 $n3s_config = array(
+  'version' => 0.5,
   'agent' => 'web',
   'dir_app' => $root.'/app'
 );

@@ -28,7 +28,7 @@ include dirname(__FILE__) . '/parts_html_header.tpl.php';
             if (!$author_h) $author_h = '(匿名)';
             echo <<< EOS
 <tr>
-<td><a href="index.php?app_id={$app_id}&action=show">{$app_id}: {$title_h}</a></td>
+<td><a href="show.php?app_id={$app_id}">{$app_id}: {$title_h}</a></td>
 <td>{$author_h}</td>
 <td>{$memo_h}</td>
 <td>{$date_h}</td>
