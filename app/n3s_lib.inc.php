@@ -3,7 +3,11 @@
 // n3s_lib.inc.php
 // library for n3s
 // --------------------------------------------------------
+global $n3s_config;
 define("N3S_DB_VERSION", 2);
+define("NAKO_DEFAULT_VERSION", "3.0.37");
+$n3s_config['version'] = 0.6;
+
 
 function n3s_getURL($page, $action, $params = array())
 {

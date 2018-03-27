@@ -1,5 +1,4 @@
 <?php
-define("NAKO_DEFAULT_VERSION", "3.0.19");
 
 function n3s_api_save() {
   // post?

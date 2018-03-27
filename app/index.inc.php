@@ -1,7 +1,6 @@
 <?php
 
 include_once dirname(__FILE__) . '/n3s_lib.inc.php';
-define("N3S_DB_VERSION", 2);
 
 n3s_main();
 
@@ -27,8 +26,8 @@ function n3s_check_config()
         "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
         "file_db_material" => "sqlite:{$root}/data/n3s_material.sqlite",
         "admin_password" => "hoge",
-        "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
-        "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
+        "size_source_max" => 1024 * 1024 * 5, // 最大保存サイズ3MB
+        "size_field_max" => 1024 * 5,        // 最大フィールドサイズ3KB
     );
     foreach ($def_values as $key => $def) {
         if (empty($n3s_config[$key])) $n3s_config[$key] = $def;
