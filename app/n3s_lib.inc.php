@@ -5,9 +5,8 @@
 // --------------------------------------------------------
 global $n3s_config;
 define("N3S_DB_VERSION", 2);
-define("NAKO_DEFAULT_VERSION", "3.0.37");
-$n3s_config['version'] = 0.6;
-
+define("NAKO_DEFAULT_VERSION", "3.0.38");
+$n3s_config['version'] = 0.38;
 
 function n3s_getURL($page, $action, $params = array())
 {

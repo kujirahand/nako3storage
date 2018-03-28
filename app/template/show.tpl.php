@@ -30,6 +30,21 @@ if ($nakotype === "wnako") {
     "<script type='text/javascript' src='$src_turtle'></script>";
 }
 $form = <<< EOS
+<style>
+.nako3_div {
+  font-size: 1em;
+  line-height: 1.1em;
+}
+.nako3_div > button {
+  margin: 4px;
+  padding: 4px;
+  font-size: 0.9em;
+}
+.nako3_div input[type=checkbox] {
+  padding: 4px;
+  margin: 4px;
+}
+</style>
 <div class="showblock">
   <p>
     <h3>{$title}</h3>
@@ -44,6 +59,7 @@ $form = <<< EOS
     <div id="runbox">
       <div class="nako3row nako3info" id="nako3_info"></div>
       <canvas id='nako3_canvas' width='300' height='300'></canvas>
+      <div id='nako3_div' class='nako3_div'></div>
     </div>
   </p>
   <ul class="showinfo">
@@ -111,10 +127,13 @@ function nako3_run() {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
-  var code_e = document.getElementById("nako3code");
-  if (!code_e) return;
-  var code = code_e.value;
+  var code_e = document.getElementById("nako3code")
+  if (!code_e) return
+  var code = code_e.value
+  var div_name = '#nako3_div'
   code =
+    "「" + div_name + "」へDOM親要素設定;" +
+    "「" + div_name + "」に「」をHTML設定;" +
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
