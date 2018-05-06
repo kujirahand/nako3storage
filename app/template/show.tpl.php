@@ -132,8 +132,11 @@ function nako3_run() {
   var code = code_e.value
   var div_name = '#nako3_div'
   code =
-    "「" + div_name + "」へDOM親要素設定;" +
-    "「" + div_name + "」に「」をHTML設定;" +
+    "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
+    "もし、F=「function」ならば;" + 
+    "  『「" + div_name + "」へDOM親要素設定;" +
+    "    「" + div_name + "」に「」をHTML設定;』をナデシコ続;" +
+    "ここまで。;" + 
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
