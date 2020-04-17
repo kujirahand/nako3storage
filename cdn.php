@@ -13,12 +13,13 @@ function get($key, $def = '') {
 
 $ver = get('v', $DEF_VERSION);
 $file = get('f', 'release/wnako3.js');
+$run = isset($_GET['run']) ? '?run' : '';
 
 // 先頭に/があれば削る
 if (substr($file, 0, 1) == '/') {
   $file = substr($file, 1);
 }
 
-$url = "{$CDN}@{$ver}/{$file}";
-header("location: $url");
+$url = "{$CDN}@{$ver}/{$file}{$run}";
+header("location: $url", TRUE, 307);
 
