@@ -123,7 +123,7 @@ function n3s_action_save_data($data, $agent = 'web') {
   global $n3s_config;
   try {
     $app_id = n3s_action_save_data_raw($data, $agent);
-    if ($browser === 'api') {
+    if ($agent === 'api') {
       n3s_api_output(true, array("msg"=>"ok", "app_id"=>$app_id));
       return;
     } else {
