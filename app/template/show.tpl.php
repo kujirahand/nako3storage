@@ -22,7 +22,7 @@ $editlink = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
 $import_nako = "";
 if ($nakotype === "wnako") {
   $version = preg_replace("/[^0-9.]/", "", $version);
-  $baseurl = "https://nadesi.com/v3/$version";
+  $baseurl = "https://nadesi.com/v3/cdn.php?v=$version&f=";
   $src = "$baseurl/release/wnako3.js";
   $src_turtle = "$baseurl/release/plugin_turtle.js";
   $import_nako =
