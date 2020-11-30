@@ -6,6 +6,10 @@
 - Webインターフェイスもあるが、APIからも自由に操作できるもの。
 - なでしこ3のプログラムやリソースの保存・読込を手軽に行うためのWebサービス
 
+# 現在運用中のnako3storage
+
+[URL] https://nadesi.com/v3/storage/
+
 ## インストール
 
 1. `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
