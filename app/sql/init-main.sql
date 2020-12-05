@@ -25,9 +25,15 @@ CREATE TABLE apps (
   ip          TEXT DEFAULT '',
   fav         INTEGER DEFAULT 0, /* いいね */
   view        INTEGER DEFAULT 0, /* 閲覧数 */
+  canvas_w    INTEGER DEFAULT 300,
+  canvas_h    INTEGER DEFAULT 300,
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
+/* 2020/12/05
+ALTER TABLE apps ADD COLUMN canvas_w INTEGER DEFAULT 300;
+ALTER TABLE apps ADD COLUMN canvas_h INTEGER DEFAULT 300;
+*/
 
 CREATE TABLE comments (
   comment_id    INTEGER PRIMARY KEY,
