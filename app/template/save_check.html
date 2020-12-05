@@ -1,0 +1,17 @@
+{{ include parts_html_header.html }}
+
+<p>編集キーを入力してください。</p>
+<form action='{{ $url }}' method='post'>
+  <input type='password' name='editkey' id="editkey" />
+  <input type='submit' value='編集' />
+  <p>{{ $msg }}</p>
+</form>
+
+<script>
+  const key = 'n3s_save_editkey'
+  if (localStorage[key]) {
+    document.getElementById('editkey').value = localStorage[key]
+  }
+</script>
+
+{{ include parts_html_footer.html }}
