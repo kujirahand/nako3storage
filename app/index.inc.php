@@ -31,6 +31,7 @@ function n3s_check_config()
         "size_field_max" => 1024 * 5,        // 最大フィールドサイズ3KB
         "page_title" => "nako3storage v".$n3s_config['version'],
         "search_word" => "",
+        "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
     );
     foreach ($def_values as $key => $def) {
         if (empty($n3s_config[$key])) $n3s_config[$key] = $def;

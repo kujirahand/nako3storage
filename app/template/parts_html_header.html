@@ -5,16 +5,21 @@
     <title>{{ $page_title }}</title>
     <meta name="description" content="nako3storage">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="skin/def/n3s.css">
+    <link rel="stylesheet" href="skin/def/pure-min.css">
+    <link rel="stylesheet" href="skin/def/n3s.css?m={{ $n3s_css_mtime }}">
 </head>
 <body>
 <div id="n3s_header">
-    <span>{{ $page_title }}</span>
-    <span>[<a href="index.php?page=all&amp;action=list">一覧</a>]</span>
-    <span>[<a href="index.php?page=new&amp;action=show">新規</a>]</span>
-    <form action="index.php">
-        <input type="hidden" name="action" value="list">
-        <input title="search word" name="search_word" placeholder="作者かタイトル(一部分)を入力" value="{{ $search_word }}">
-        <input type="submit" value="検索">
-    </form>
+    <h1 class="title">{{ $page_title }}</h1>
+    <div class="header-right">
+        <form action="index.php">
+            <span><a href="index.php?page=all&amp;action=list" class="pure-button">一覧</a></span>
+            <span><a href="index.php?page=new&amp;action=show" class="pure-button">新規</a></span>
+            <span class="search_box">
+                <input type="hidden" name="action" value="list">
+                <input title="search word" name="search_word" placeholder="作者かタイトル" value="{{ $search_word }}">
+                <input class="pure-button" type="submit" value="検索">
+            </span>
+        </form>
+        </div>
 </div>

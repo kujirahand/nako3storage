@@ -18,15 +18,15 @@
 
 <div class="showblock">
   <div>
-    <h3>{{ $title | check_mudai }}</h3>
+    <h1>{{ $title | check_mudai }}</h1>
     <p class="memo">{{ $memo }}</p>
   </div>
   <div>
     <label>プログラム:<br />
     <textarea id="nako3code" name="body">{{ $body }}</textarea>
     </label><br />
-    <button id="runButton">実　行</button>
-    <button id="clearButton">クリア</button>
+    <button id="runButton" class="pure-button pure-button-primary">▶　実 行</button>
+    <button id="clearButton" class="pure-button">クリア</button>
     <div id="runbox">
       <div class="nako3row nako3info" id="nako3_info"></div>
       <canvas id='nako3_canvas' width='300' height='300'></canvas>
@@ -38,8 +38,8 @@
     <li>利用バージョン: {{ $version }}</li>
   </ul>
 </div>
-<div>
-  <p><button onclick="saveClick()">保　存</button></p>
+<div class="ctrl_block">
+  <p><button onclick="saveClick()" class="pure-button">保　存</button></p>
 </div>
 
 <script type="text/javascript">
