@@ -46,7 +46,7 @@ function n3s_list_get()
     }
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
-    $h = $db->prepare('SELECT app_id,title,author,memo,mtime FROM apps ' .
+    $h = $db->prepare('SELECT app_id,title,author,memo,mtime,fav FROM apps ' .
         ' WHERE ' . implode(' AND ', $wheres) .
         ' ORDER BY app_id DESC LIMIT ?');
     $h->execute($statements);
