@@ -85,7 +85,7 @@ function n3s_template_fw($name, $params)
 
 function n3s_error($title, $msg)
 {
-    n3s_template_fw('basic.html', array(
+    n3s_template_fw('error.html', array(
         "title" => $title,
         "msg" => $msg
     ));

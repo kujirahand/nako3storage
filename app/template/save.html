@@ -7,7 +7,7 @@
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
   {{ endif }}
 
-  <form method="POST" action="index.php?action=save&page={{$app_id}}">
+  <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=edit">
     <p>
       <label>プログラム本体:<br />
       <textarea id="body" name="body">{{ $body }}</textarea>
@@ -56,11 +56,28 @@
       </label>
     </p>
     <p>
+      <input name="mode" type="hidden" value="edit" />
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
-      <input class="pure-button" type="submit" value="保存" />
+      <input class="pure-button pure-button-primary" type="submit" value="保存" />
     </p>
   </form>
+
+  <div class="ctrl_block">
+    <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=delete">
+      <div>プログラムを削除したい場合、以下のボタンを押してください。</div>
+      <div>
+        <label>編集キー(閲覧キー):<br />
+          <input id="editkey2" name="editkey" type="password" value='' autocomplete="off" />
+        </label>
+      </div>
+      <input name="ref_id" type="hidden" value="{{$ref_id}}" />
+      <div>
+        <input class="pure-button" type="submit" value="プログラムを削除">
+      </div>
+    </form>
+  </div>
 </div>
+
 <script type="text/javascript">
 
 // save field
@@ -79,6 +96,7 @@ for (k of savekeys) {
   const v = localStorage['n3s_save_' + k]
   if (v) elem[k].value = v
 }
+
 // rewrite
 const rewriteMode = '{{$rewrite}}'
 if (rewriteMode === 'yes') {
