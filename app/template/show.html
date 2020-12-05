@@ -1,21 +1,5 @@
 {{ include parts_html_header.html }}
 
-<style>
-.nako3_div {
-  font-size: 1em;
-  line-height: 1.1em;
-}
-.nako3_div > button {
-  margin: 4px;
-  padding: 4px;
-  font-size: 0.9em;
-}
-.nako3_div input[type=checkbox] {
-  padding: 4px;
-  margin: 4px;
-}
-</style>
-
 <div class="showblock">
   <div>
     <h1>{{ $title | check_mudai }}</h1>
@@ -46,103 +30,17 @@
   <p><button onclick="saveClick()" class="pure-button">編集</button></p>
 </div>
 
-<script type="text/javascript">
-const baseurl = "{{ $baseurl }}"
-const app_id = {{ $app_id }}
-//--------------------------
-// for nako3
-var nako3_get_info = function () {
-  return document.getElementById("nako3_info")
-}
-var nako3_get_canvas = function () {
-  return document.getElementById("nako3_canvas")
-}
-var nako3_print = function (s) {
-  var info = nako3_get_info();
-  if (!info) {
-    console.log(s)
-    return
-  }
-  s = "" + s; // 文字列に変換
-  if (s.substr(0, 5) == "[err]") {
-    s = s.substr(5)
-    s = "<span style='color:red'>" + to_html(s) + "</span>"
-    info.innerHTML = s
-  } else {
-    info.innerHTML += to_html(s) + "<br>"
-  }
-}
-var nako3_clear = function (s) {
-  var info = nako3_get_info()
-  if (!info) return
-  info.innerHTML = ''
-  var canvas = nako3_get_canvas()
-  if (!canvas) return
-  var ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-}
-function to_html(s) {
-  s = '' + s
-  return s.replace(/\&/g, '&amp;')
-          .replace(/\</g, '&lt;')
-          .replace(/\>/g, '&gt;')
-          .replace(/\\n/g, '<br>')
-}
-function nako3_run() {
-  var ver = "{{$version}}" + ".0.0.0"
-  var va = ver.split(".")
-  var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
-  console.log('nako.version=' + verInt)
-  if (verInt >= 3021) {
-    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
-    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
-  } else {
-    navigator.nako3.setFunc("表示", nako3_print)
-    navigator.nako3.setFunc("表示ログクリア", nako3_clear)
-  }
-  var code_e = document.getElementById("nako3code")
-  if (!code_e) return
-  var code = code_e.value
-  var div_name = '#nako3_div'
-  code =
-    "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
-    "もし、F=「function」ならば;" + 
-    "  『「" + div_name + "」へDOM親要素設定;" +
-    "    「" + div_name + "」に「」をHTML設定;』をナデシコ続;" +
-    "ここまで。;" + 
-    "「#nako3_canvas」へ描画開始;" +
-    "カメ描画先=「nako3_canvas」;" +
-    "カメ全消去;" +
-    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;" + code;
-  try {
-    runbox.style.display = 'block'
-    nako3_clear();
-    navigator.nako3.run(code);
-  } catch (e) {
-    nako3_print("[err]" + e.message + "");
-    console.log(e);
-  }
-}
-//--------------------------
-// run and clear
-const runButton = document.getElementById("runButton")
-const clearButton = document.getElementById("clearButton")
-const runbox = document.getElementById('runbox')
-runButton.onclick = nako3_run;
-clearButton.onclick = nako3_clear;
-runbox.style.display = 'none'
-//--------------------------
-// save button
-function saveClick() {
-  const code_e = document.getElementById("nako3code");
-  localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = code_e.value
-  localStorage["n3s_action_time"] = (new Date()).getTime()
-  location.href = "{{$editlink | raw}}"
-}
-</script>
-
 <!-- script for nadesiko3 -->
 {{ $import_nako | raw }}
+
+<!-- script for nako3storage-->
+<script type="text/javascript">
+  // nako3storage info
+  const baseurl = "{{ $baseurl | safe }}";
+  // nako3 program info
+  const app_id = {{ $app_id }};
+  const nako_version = "{{ $version }}" + ".0.0.0"
+</script>
+<script defer type="text/javascript" src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
 {{ include parts_html_footer.html }}
