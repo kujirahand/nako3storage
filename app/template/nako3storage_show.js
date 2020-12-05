@@ -87,5 +87,5 @@ function saveClick() {
   localStorage["n3s_save_id"] = app_id
   localStorage["n3s_save_body"] = code_e.value
   localStorage["n3s_action_time"] = (new Date()).getTime()
-  location.href = "{{$editlink | raw}}"
+  location.href = editlink
 }
