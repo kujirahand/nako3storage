@@ -80,6 +80,7 @@ const runbox = document.getElementById('runbox')
 runButton.onclick = nako3_run;
 clearButton.onclick = nako3_clear;
 runbox.style.display = 'none'
+
 //--------------------------
 // save button
 function saveClick() {
@@ -88,4 +89,34 @@ function saveClick() {
   localStorage["n3s_save_body"] = code_e.value
   localStorage["n3s_action_time"] = (new Date()).getTime()
   location.href = editlink
+}
+
+//--------------------------
+// fav
+const fav_button = document.getElementById('fav_button')
+const fav = document.getElementById('fav')
+fav_button.onclick = function () {
+  fav_button.disabled = true
+  ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
+    fav.innerHTML = txt
+  })
+
+}
+setTimeout(function(){
+  ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
+    fav.innerHTML = txt
+  })
+}, 1000)
+
+function ajax(url, callback) {
+  const req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) { // 通信の完了時
+      if (req.status == 200) { // 通信の成功時
+        callback(req.responseText, req)
+      }
+    }
+  }
+  req.open('GET', url)
+  req.send()
 }

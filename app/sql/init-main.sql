@@ -24,6 +24,7 @@ CREATE TABLE apps (
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
   fav         INTEGER DEFAULT 0, /* いいね */
+  fav_lastip  TEXT DEFAULT '', /* 最後にいいねした人のIP */
   view        INTEGER DEFAULT 0, /* 閲覧数 */
   canvas_w    INTEGER DEFAULT 300,
   canvas_h    INTEGER DEFAULT 300,
@@ -33,6 +34,7 @@ CREATE TABLE apps (
 /* 2020/12/05
 ALTER TABLE apps ADD COLUMN canvas_w INTEGER DEFAULT 300;
 ALTER TABLE apps ADD COLUMN canvas_h INTEGER DEFAULT 300;
+ALTER TABLE apps ADD COLUMN fav_lastip TEXT DEFAULT '';
 */
 
 CREATE TABLE comments (
