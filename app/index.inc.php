@@ -21,6 +21,7 @@ function n3s_check_config()
         "dir_data" => "{$root}/data",
         "dir_app" => "{$root}/app",
         "dir_template" => "{$root}/app/template",
+        'dir_cache' => $root.'/cache',
         "dir_action" => "{$root}/app/action",
         "dir_sql" => "{$root}/app/sql",
         "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
@@ -28,6 +29,8 @@ function n3s_check_config()
         "admin_password" => "hoge",
         "size_source_max" => 1024 * 1024 * 5, // 最大保存サイズ3MB
         "size_field_max" => 1024 * 5,        // 最大フィールドサイズ3KB
+        "page_title" => "nako3storage v".$n3s_config['version'],
+        "search_word" => "",
     );
     foreach ($def_values as $key => $def) {
         if (empty($n3s_config[$key])) $n3s_config[$key] = $def;

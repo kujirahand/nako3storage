@@ -32,7 +32,7 @@ function n3s_web_save() {
     n3s_action_save_load_body($a);
   }
   //
-  n3s_template('save', $a);
+  n3s_template_fw('save.html', $a);
 }
 
 function n3s_web_save_check($app_id, &$a) {
