@@ -16,7 +16,7 @@ function t_check_mudai($v) {
   return t_echo($v);
 }
 function t_check_nanasi($v) {
-  if (empty($v)) { $v = '(名無し)'; }
+  if (empty($v)) { $v = '名無し'; }
   $v = mb_strimwidth($v, 0, 100, '...');
   return t_echo($v);
 }
