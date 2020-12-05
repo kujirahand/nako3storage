@@ -1,11 +1,11 @@
 <?php
 global $n3s_config;
 
-// read config file
+// read config file (差分のみ ... 主に app/index.inc.php で指定)
 $root = dirname(__FILE__);
 $n3s_config = array(
   'agent' => 'web',
-  'dir_app' => $root.'/app'
+  'dir_app' => $root.'/app',
 );
 
 // config parameters see lib/index.inc.php

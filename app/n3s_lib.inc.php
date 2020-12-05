@@ -5,8 +5,11 @@
 // --------------------------------------------------------
 global $n3s_config;
 define("N3S_DB_VERSION", 2);
-define("NAKO_DEFAULT_VERSION", "3.1.3");
-$n3s_config['version'] = 0.39;
+define("NAKO_DEFAULT_VERSION", "3.1.7");
+$n3s_config['version'] = 0.40;
+
+// fw_template_engine
+require_once __DIR__ . '/fw_template_engine.lib.php';
 
 function n3s_getURL($page, $action, $params = array())
 {
@@ -75,6 +78,17 @@ function n3s_template($name, $params)
     extract($params);
     $dir_template = $n3s_config['dir_template'] . "/$name.tpl.php";
     include $dir_template;
+}
+
+function n3s_template_fw($name, $params)
+{
+    global $n3s_config;
+    global $DIR_TEMPLATE_CACHE, $DIR_TEMPLATE, $FW_TEMPLATE_PARAMS;
+    $DIR_TEMPLATE = $n3s_config['dir_template'];
+    $DIR_TEMPLATE_CACHE = $n3s_config['dir_cache'];
+    $p = $params + $n3s_config;
+    $FW_TEMPLATE_PARAMS = $p;
+    template_render($name, []);
 }
 
 function n3s_error($title, $msg)

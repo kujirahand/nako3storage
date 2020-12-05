@@ -6,7 +6,7 @@ const MAX_APP = 50; // 何件まで表示するか
 function n3s_web_list()
 {
     $r = n3s_list_get();
-    n3s_template('list', $r);
+    n3s_template_fw('list.html', $r);
 }
 
 function n3s_api_list()
@@ -30,6 +30,9 @@ function n3s_api_list()
 function n3s_list_get()
 {
     global $n3s_config;
+    // get parameters
+    $n3s_config['search_word'] = isset($_GET['search_word']) ? $_GET['search_word'] : '';
+    // get db
     $db = n3s_get_db();
     // list
     $app_id = intval(empty($n3s_config['app_id']) ? 0 : $n3s_config['app_id']);

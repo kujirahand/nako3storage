@@ -1,35 +1,5 @@
-<?php
-// header
-include dirname(__FILE__).'/parts_html_header.tpl.php';
-?>
+{{ include parts_html_header.html }}
 
-<?php
-// 空白をチェック
-if (!$title) $title = '(無題)';
-if (!$author) $author = '(匿名)';
-if (!isset($app_id)) $app_id = 0;
-// HTML化
-$title = htmlentities($title);
-$author = htmlentities($author);
-if ($url == '') $url = '';
-if (!preg_match('/^https?:\/\//', $url)) $url = '';
-if ($url !== '') {
-  $author = "<a href='{$url}'>{$author}</a>";
-}
-$memo = htmlentities($memo);
-$body = htmlentities($body);
-$editlink = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
-$import_nako = "";
-if ($nakotype === "wnako") {
-  $version = preg_replace("/[^0-9.]/", "", $version);
-  $baseurl = "https://nadesi.com/v3/cdn.php?v=$version&f=";
-  $src = "$baseurl/release/wnako3.js";
-  $src_turtle = "$baseurl/release/plugin_turtle.js";
-  $import_nako =
-    "<script type='text/javascript' src='$src'></script>".
-    "<script type='text/javascript' src='$src_turtle'></script>";
-}
-$form = <<< EOS
 <style>
 .nako3_div {
   font-size: 1em;
@@ -45,14 +15,15 @@ $form = <<< EOS
   margin: 4px;
 }
 </style>
+
 <div class="showblock">
-  <p>
-    <h3>{$title}</h3>
-    <p class="memo">{$memo}</p>
-  </p>
-  <p>
+  <div>
+    <h3>{{ $title | check_mudai }}</h3>
+    <p class="memo">{{ $memo }}</p>
+  </div>
+  <div>
     <label>プログラム:<br />
-    <textarea id="nako3code" name="body">{$body}</textarea>
+    <textarea id="nako3code" name="body">{{ $body }}</textarea>
     </label><br />
     <button id="runButton">実　行</button>
     <button id="clearButton">クリア</button>
@@ -61,21 +32,19 @@ $form = <<< EOS
       <canvas id='nako3_canvas' width='300' height='300'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
     </div>
-  </p>
+  </div>
   <ul class="showinfo">
-    <li>制作者: <span>{$author}</span></li>
-    <li>利用バージョン: {$version}</li>
+    <li>制作者: <span>{{ $author }}</span></li>
+    <li>利用バージョン: {{ $version }}</li>
   </ul>
 </div>
 <div>
   <p><button onclick="saveClick()">保　存</button></p>
 </div>
-EOS;
 
-$js = <<< EOS
 <script type="text/javascript">
-const baseurl = "$baseurl"
-const app_id = $app_id
+const baseurl = "{{ $baseurl }}"
+const app_id = {{ $app_id }}
 //--------------------------
 // for nako3
 var nako3_get_info = function () {
@@ -116,7 +85,7 @@ function to_html(s) {
           .replace(/\\n/g, '<br>')
 }
 function nako3_run() {
-  var ver = "$version" + ".0.0.0"
+  var ver = "{{$version}}" + ".0.0.0"
   var va = ver.split(".")
   var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
   console.log('nako.version=' + verInt)
@@ -165,15 +134,11 @@ function saveClick() {
   localStorage["n3s_save_id"] = app_id
   localStorage["n3s_save_body"] = code_e.value
   localStorage["n3s_action_time"] = (new Date()).getTime()
-  location.href = "$editlink"
+  location.href = "{{$editlink | raw}}"
 }
 </script>
-{$import_nako}
-EOS;
 
-echo $form . "\n" . $js;
-?>
+<!-- script for nadesiko3 -->
+{{ $import_nako | raw }}
 
-<?php
-// footer
-include dirname(__FILE__).'/parts_html_footer.tpl.php';
+{{ include parts_html_footer.html }}
