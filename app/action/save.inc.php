@@ -54,7 +54,7 @@ function n3s_web_save_check($app_id, &$a) {
       $opt['rewrite'] = $_GET['rewrite'];
     }
     $url = n3s_getURL($app_id, 'save', $opt);
-    $msg = ($postkey !== '') ? '<span class="error">キーが違います。</span>' : '';
+    $msg = ($postkey !== '') ? 'キーが違います。' : '';
     n3s_template_fw('save_check.html', array('url' => $url, 'msg' => $msg));
     exit;
   }

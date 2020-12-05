@@ -34,7 +34,11 @@
     </div>
   </div>
   <ul class="showinfo">
-    <li>制作者: <span>{{ $author }}</span></li>
+    <li>制作者: <span>{{ $author }}
+      {{ if $url }}
+        (<a href="{{$url}}">web</a>)
+      {{ endif }}
+    </span></li>
     <li>利用バージョン: {{ $version }}</li>
   </ul>
 </div>
