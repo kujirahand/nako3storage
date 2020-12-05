@@ -14,6 +14,12 @@
   padding: 1em;
   background-color: #fff0f0;
 }
+
+#n3s_header h1.title a {
+  text-decoration: none;
+  color: black;
+}
+
 #n3s_header .search_box {
   padding-left: 1em;
 }
@@ -148,4 +154,13 @@ h1 {
 .nako3_div input[type=checkbox] {
   padding: 4px;
   margin: 4px;
+}
+
+.fav_block {
+  padding: 1em;
+}
+
+.fav_block #fav {
+  font-size: 1.5em;
+  color: gray;
 }

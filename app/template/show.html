@@ -25,6 +25,10 @@
     </span></li>
     <li>利用バージョン: {{ $version }}</li>
   </ul>
+  <div class="fav_block">
+    <button id="fav_button" class="pure-button">気に入った😋</button>
+    &nbsp;<span id="fav">-</span>
+  </div>
 </div>
 <div class="ctrl_block">
   <p><button onclick="saveClick()" class="pure-button">編集</button></p>
@@ -42,6 +46,7 @@
   const app_id = {{ $app_id }};
   const nako_version = "{{ $version }}" + ".0.0.0"
 </script>
-<script defer type="text/javascript" src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+<script defer type="text/javascript"
+  src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
 {{ include parts_html_footer.html }}
