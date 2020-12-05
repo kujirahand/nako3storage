@@ -1,33 +1,40 @@
 {{ include parts_html_header.html }}
 
+{{ if $list }}
+<div class="list">
 <h1>プログラムの一覧</h1>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>タイトル</th>
+        <th>制作者</th>
+        <th>メモ</th>
+        <th>日付</th>
+    </tr>
+    {{ for $list as $r }}
+    <tr>
+        <td>
+            <a href="show.php?app_id={{$r.app_id}}" class="pure-button">
+                {{$r.app_id}}</a>
+        </td>
+        <td>
+            <a href="show.php?app_id={{$r.app_id}}">{{$r.title | check_mudai }}</a>
+        </td>
+        <td>{{$r.author | check_nanasi }}</td>
+        <td>{{$r.memo | trim100 }}</td>
+        <td>{{$r.mtime | datetime}}</td>
+    </tr>
+    {{ endfor }}
+</table>
 
-{{ if ($list) }}
-    <div class="list">
-    <table>
-        <tr>
-            <th>タイトル</th>
-            <th>制作者</th>
-            <th>メモ</th>
-            <th>日付</th>
-        </tr>
-        {{ for $list as $r }}
-        <tr>
-            <td>
-                <a href="show.php?app_id={{$r.app_id}}">
-                    {{$r.app_id}}: {{$r.title | check_mudai }}</a>
-            </td>
-            <td>{{$r.author | check_nanasi }}</td>
-            <td>{{$r.memo | trim100 }}</td>
-            <td>{{$r.mtime | datetime}}</td>
-        </tr>
-        {{ endfor }}
-    </table>
-    {{ if $next_url }}
-    <div><a href='{{$next_url}}'>次へ←</a></div>
-    {{ endif }}
+{{ if $next_url }}
+<div class="next_button_div">
+    <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
+</div>
+{{ endif }}
+
 {{ else }}
-    <div>ありません。</div>
+<div>見つかりませんでした。</div>
 {{ endif }}
 
 {{ include parts_html_footer.html }}

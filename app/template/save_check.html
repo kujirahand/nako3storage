@@ -1,11 +1,13 @@
 {{ include parts_html_header.html }}
 
-<p>編集キーを入力してください。</p>
+<div class="showblock">
+<h1>編集キーを入力してください。</h1>
 <form action='{{ $url }}' method='post'>
   <input type='password' name='editkey' id="editkey" />
-  <input type='submit' value='編集' />
+  <input type='submit' value='編集' class="pure-button" />
   <p>{{ $msg }}</p>
 </form>
+</div>
 
 <script>
   const key = 'n3s_save_editkey'
