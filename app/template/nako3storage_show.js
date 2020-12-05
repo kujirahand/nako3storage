@@ -62,7 +62,7 @@ function nako3_run() {
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
-    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;" + code;
+    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;‰;\n" + code;
   try {
     runbox.style.display = 'block'
     nako3_clear();
