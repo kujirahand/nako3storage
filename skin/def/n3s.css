@@ -89,6 +89,7 @@ h1 {
 }
 
 .ctrl_block {
+  border-top: 1px dotted gray;
   padding: 1em;
 }
 
@@ -124,4 +125,13 @@ h1 {
 
 .next_button_div {
   padding: 1em;
+}
+
+#n3s_footer {
+  border-top: 1px dotted gray;
+  padding: 1em;
+}
+#n3s_footer .applink {
+  text-align: center;
+  font-size: 0.8em;
 }
