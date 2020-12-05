@@ -1,4 +1,4 @@
-{{e (empty($contents)) $contents = 'no contents'; }}
+{{e if (empty($contents)) { $contents = 'no contents';} }}
 
 {{ include parts_html_header.html }}
 
