@@ -53,7 +53,7 @@ function nako3_run() {
   if (!code_e) return
   var code = code_e.value
   var div_name = '#nako3_div'
-  code =
+  const head =
     "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
     "もし、F=「function」ならば;" + 
     "  『「" + div_name + "」へDOM親要素設定;" +
@@ -62,7 +62,12 @@ function nako3_run() {
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
     "カメ全消去;" +
-    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;‰;\n" + code;
+    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;"
+  if (verInt >= 3108) {
+    code = head + "‰\n" + code
+  } else {
+    code = head + ";" + code
+  }
   try {
     runbox.style.display = 'block'
     nako3_clear();
