@@ -13,9 +13,17 @@ function n3s_api_save() {
 }
 
 function n3s_web_save() {
+  // params
+  $mode = empty($_GET['mode']) ? 'edit' : $_GET['mode'];
+  // === mode check ===
   // save?
-  if (isset($_POST['body'])) {
+  if (isset($_POST['body']) && $mode == 'edit') {
     n3s_action_save_data($_POST, 'web');
+    return;
+  }
+  // delete?
+  if ($mode == 'delete') {
+    n3s_action_save_delete($_POST, 'web');
     return;
   }
 
@@ -41,7 +49,7 @@ function n3s_web_save_check($app_id, &$a) {
   $msg = '';
   $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
   if (!$a) {
-    n3s_jump(0, 'save');
+    n3s_jump(0, 'save'); // 新規保存のページを表示
     exit;
   }
   $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
@@ -232,4 +240,34 @@ EOS;
   }
   // saved
   return $app_id;
+}
+
+function n3s_action_save_delete($params) {
+  global $n3s_config;
+  $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
+  if ($app_id <= 0) {
+    n3s_error('IDの不正', 'IDのエラー');
+    exit;
+  }
+
+  $db = n3s_get_db();
+  $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
+  if (!$a) {
+    n3s_error('指定のIDのアプリがありません', 'IDのエラー');
+    exit;
+  }
+  $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
+  $postkey_hash = n3s_hash_editkey($postkey);
+  if ($a['editkey'] === $postkey_hash || $postkey === $n3s_config['admin_password']) {
+    // ok
+  } else {
+    n3s_error('削除失敗', '編集キーが間違っていました。');
+    exit;
+  }
+  // 削除
+  $db->query("DELETE FROM apps WHERE app_id=$app_id");
+  // 情報
+  n3s_template_fw('basic.html', [
+    'contents' => "{$app_id} を削除しました。",
+  ]);
 }
