@@ -119,8 +119,8 @@ h1 {
 }
 
 #nako3_canvas {
-  width: 300px;
-  height: 300px;
+  margin: 4px;
+  border: 1px dotted silver;
 }
 
 .next_button_div {

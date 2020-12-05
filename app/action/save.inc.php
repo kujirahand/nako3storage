@@ -111,6 +111,8 @@ function n3s_action_save_check_param(&$a) {
   $a['ip'] = isset($a['ip']) ? $a['ip'] : '';
   $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
+  $a['canvas_w'] = isset($a['canvas_w']) ? intval($a['canvas_w']) : 300;
+  $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
 }
 
 // save
@@ -176,11 +178,13 @@ function n3s_action_save_data_raw($data, $agent) {
     $sql = <<< EOS
 INSERT INTO apps (
   title, author, email, url, memo,
+  canvas_w, canvas_h,
   material_id, version, nakotype, tag,
   editkey, is_private,
   ref_id, ip, ctime, mtime
 ) VALUES (
   :title, :author, :email, :url, :memo,
+  :canvas_w, :canvas_h,
   :material_id, :version, :nakotype, :tag,
   :editkey, :is_private,
   :ref_id, :ip, :ctime, :mtime
@@ -200,6 +204,8 @@ EOS;
       ":editkey"    => $a['editkey'],
       ":is_private" => $a['is_private'],
       ":ref_id"     => $a['ref_id'],
+      ":canvas_w"   => $a['canvas_w'],
+      ":canvas_h"   => $a['canvas_h'],
       ":ip"         => $a['ip'],
       ":ctime"      => $a['ctime'],
       ":mtime"      => $a['mtime'],
@@ -213,6 +219,7 @@ EOS;
     $sql = <<< EOS
 UPDATE apps SET
   title=:title, author=:author, email=:email, url=:url, memo=:memo,
+  canvas_w=:canvas_w, canvas_h=:canvas_h,
   version=:version, is_private=:is_private,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
@@ -224,9 +231,13 @@ EOS;
       ":url"        => $a['url'],
       ":email"      => $a['email'],
       ":memo"       => $a['memo'],
+      ":canvas_w"   => $a['canvas_w'],
+      ":canvas_h"   => $a['canvas_h'],
       ":version"    => $a['version'],
       ":is_private" => $a['is_private'],
       ":ref_id"     => $a['ref_id'],
+      ":canvas_w"   => $a['canvas_w'],
+      ":canvas_h"   => $a['canvas_h'],
       ":ip"         => $a['ip'],
       ":mtime"      => $a['mtime'],
       ":app_id"     => $a['app_id']
