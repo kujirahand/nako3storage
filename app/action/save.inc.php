@@ -38,6 +38,7 @@ function n3s_web_save() {
 function n3s_web_save_check($app_id, &$a) {
   global $n3s_config;
   $db = n3s_get_db();
+  $msg = '';
   $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
   if (!$a) {
     n3s_jump(0, 'save');
@@ -54,21 +55,7 @@ function n3s_web_save_check($app_id, &$a) {
     }
     $url = n3s_getURL($app_id, 'save', $opt);
     $msg = ($postkey !== '') ? '<span class="error">キーが違います。</span>' : '';
-    $inputkey = <<< EOS
-      <p>編集キーを入力してください。</p>
-      <form action='$url' method='post'>
-        <input type='password' name='editkey' id="editkey" />
-        <input type='submit' value='編集' />
-        <p>{$msg}</p>
-      </form>
-      <script>
-        const key = 'n3s_save_editkey'
-        if (localStorage[key]) {
-          document.getElementById('editkey').value = localStorage[key]
-        }
-      </script>
-EOS;
-    n3s_template('basic', array('contents' => $inputkey));
+    n3s_template_fw('save_check.html', array('url' => $url, 'msg' => $msg));
     exit;
   }
 }

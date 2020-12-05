@@ -72,14 +72,6 @@ function n3s_get_db($type = 'main')
     return $db;
 }
 
-function n3s_template($name, $params)
-{
-    global $n3s_config;
-    extract($params);
-    $dir_template = $n3s_config['dir_template'] . "/$name.tpl.php";
-    include $dir_template;
-}
-
 function n3s_template_fw($name, $params)
 {
     global $n3s_config;
@@ -93,12 +85,9 @@ function n3s_template_fw($name, $params)
 
 function n3s_error($title, $msg)
 {
-    $html = <<< EOS
-<h3 class="error">$title</h3>
-<div>{$msg}</div>
-EOS;
-    n3s_template('basic', array(
-        "contents" => $html
+    n3s_template_fw('basic.html', array(
+        "title" => $title,
+        "msg" => $msg
     ));
 }
 
