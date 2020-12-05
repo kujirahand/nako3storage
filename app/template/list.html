@@ -7,24 +7,24 @@
     <tr>
         <th>ID</th>
         <th>タイトル</th>
-        <th>制作者</th>
-        <th>メモ</th>
-        <th>日付</th>
+        <th>説明</th>
     </tr>
     {{ for $list as $r }}
     <tr>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}" class="pure-button">
-                {{$r.app_id}}</a>
+            <a href="show.php?app_id={{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
         </td>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}">{{$r.title | check_mudai }}</a>
+            <a href="show.php?app_id={{$r.app_id}}">{{$r.title | check_mudai }}</a><br>
+                <span class="dev">by {{$r.author | check_nanasi }}</span>
         </td>
-        <td>{{$r.author | check_nanasi }}</td>
-        <td>{{$r.memo | trim100 }}</td>
-        <td>{{$r.mtime | datetime}}</td>
+        <td>
+            <span>{{$r.memo | trim100 }}</span><br>
+            <span class="date">({{$r.mtime | datetime}})</span>
+        </td>
     </tr>
     {{ endfor }}
+
 </table>
 
 {{ if $next_url }}

@@ -5,7 +5,7 @@
   padding: 4px;
   background-color: white;
   font-size: 0.8em;
-  border: 1px dotted gray;
+  border-bottom: 1px dotted gray;
 }
 
 #n3s_header h1.title {
@@ -52,6 +52,22 @@ h1 {
   border-bottom: 1px solid silver;
   background-color: #f0f0f0;
   padding: 0.9em;
+}
+.list ul {
+  padding: 0;
+  list-style-type: none;
+}
+.list ul > li {
+  padding: 1em;
+  border-bottom: 1px solid silver;
+}
+.list .date {
+  font-size: 0.8em;
+  color:silver;
+}
+.list .dev {
+  font-size: 0.8em;
+  color:silver;
 }
 
 .saveform {
