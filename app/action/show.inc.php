@@ -68,6 +68,7 @@ function n3s_show_get()
     $a['url'] = $url;
     // edit link
     $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
+    $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
 
     // params
     n3s_action_save_check_param($a);
