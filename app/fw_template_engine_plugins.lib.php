@@ -12,17 +12,29 @@ function t_multiline($v) {
 }
 function t_check_mudai($v) {
   if (empty($v)) { $v = '(無題)'; }
-  $v = mb_strimwidth($v, 0, 100, '...');
+  $v = trim_url($v);
+  $v = mb_strimwidth($v, 0, 100, ' ... ');
   return t_echo($v);
 }
 function t_check_nanasi($v) {
   if (empty($v)) { $v = '名無し'; }
-  $v = mb_strimwidth($v, 0, 100, '...');
+  $v = trim_url($v);
+  $v = mb_strimwidth($v, 0, 100, ' ... ');
   return t_echo($v);
 }
 function t_trim100($v) {
   if (empty($v)) { $v = '(なし)'; }
-  return t_echo(mb_strimwidth($v, 0, 100, '...'));
+  $v = trim_url($v);
+  $v = mb_strimwidth($v, 0, 100, ' ... ');
+  return t_echo($v);
+}
+function trim_url($url) {
+  $url = preg_replace_callback('#([a-zA-Z0-9_\-\/\:\.]{11,})#', function($m) {
+    $s = $m[1];
+    $s = preg_replace('#(http://|https://)#', '', $s);
+    return substr($s, 0, 10).' ... ';
+  }, $url);
+  return $url;
 }
 // raw
 function t_raw($v) {
