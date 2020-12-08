@@ -38,7 +38,11 @@ function n3s_web_save() {
   if ($app_id > 0) {
     n3s_web_save_check($app_id, $a);
   }
-  n3s_action_save_check_param($a);
+  try {
+    n3s_action_save_check_param($a, FALSE);
+  } catch (Exception $e) {
+    // no check error here
+  }
   $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
   // load material
   if ($a['rewrite'] === 'no') {
@@ -88,17 +92,19 @@ function n3s_action_save_load_body(&$a) {
   }
 }
 
-function n3s_action_save_check_param(&$a) {
+function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   global $n3s_config;
   // check size & trim data
   foreach ($a as $k => &$v) {
     if (isset($v) && is_string($v)) {
       $v = trim($v);
-      if ($k == 'body' && strlen($v) > $n3s_config['size_source_max']) {
-        throw new Exception('プログラムが最大文字数を超えています。');
-      }
-      else if (strlen($v) > $n3s_config['size_field_max']) {
-        throw new Exception('フィールドが最大文字数を超えています。');
+      if ($check_error) {
+        if ($k == 'body' && strlen($v) > $n3s_config['size_source_max']) {
+          throw new Exception('プログラムが最大文字数を超えています。');
+        }
+        else if (strlen($v) > $n3s_config['size_field_max']) {
+          throw new Exception('フィールドが最大文字数を超えています。');
+        }
       }
     }
   }
@@ -119,8 +125,12 @@ function n3s_action_save_check_param(&$a) {
   $a['canvas_w'] = isset($a['canvas_w']) ? intval($a['canvas_w']) : 300;
   $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
   // check params
+  if (!$check_error) { return; }
   if ($a['body'] == '') {
       throw new Exception('本文が空です。');
+  }
+  if (strlen($a['body']) < 8) {
+      throw new Exception('本文が8文字以下です');
   }
 }
 
@@ -155,7 +165,7 @@ function n3s_action_save_data_raw($data, $agent) {
   $a = $data;
   $b = array();
   $a['app_id'] = $app_id;
-  n3s_action_save_check_param($a);
+  n3s_action_save_check_param($a, TRUE);
   $a['ip'] = $_SERVER['REMOTE_ADDR'];
   if ($app_id > 0) {
     // check editkey

@@ -1,6 +1,4 @@
 <?php
-include_once dirname(__FILE__) . '/save.inc.php';
-
 const MAX_APP = 30; // 何件まで表示するか
 
 function n3s_web_list()
@@ -58,7 +56,6 @@ function n3s_list_get()
     // next
     $min_id = PHP_INT_MAX;
     foreach ($list as &$row) {
-        n3s_action_save_check_param($row);
         $id = $row['app_id'];
         if ($min_id >= $id) $min_id = $id - 1;
     }
