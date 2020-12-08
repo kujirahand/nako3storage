@@ -17,12 +17,23 @@
       <div id='nako3_div' class='nako3_div'></div>
     </div>
   </div>
-  <ul class="showinfo">
-    <li>制作者: <span>{{ $author }}
-      {{ if $url }}
-        (<a href="{{$url}}">web</a>)
-      {{ endif }}
+  <ul class="devblock">
+    {{if $app_id gt 0}}
+    <li>
+      <span>
+        {{if $user_id gt 0}}
+          <a href="index.php?action=list&user_id={{$user_id}}">
+            <img src="{{$profile_url}}" width="48" height="48">
+            {{ $author }} 作
+          </a>
+        {{else}}
+          {{ $author }} 作
+        {{endif}}
+        {{ if $url }}
+          (<a href="{{$url}}">関連URL</a>)
+        {{ endif }}
     </span></li>
+    {{endif}}
     <li>利用バージョン: {{ $version }}</li>
   </ul>
   {{if $app_id gt 0}}
