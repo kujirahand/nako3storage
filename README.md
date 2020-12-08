@@ -12,13 +12,14 @@
 
 ## インストール
 
-1. `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
-1. `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
-1. `bash scripts/setup.sh`コマンドを実行する
+- `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
+- `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
+- `bash scripts/setup.sh`コマンドを実行する
+- 必要ライブラリのインストール `cd app` そして `composer install`
 
 # 外部のプログラムとの連携
 
-formを使う場合、以下のURLに body=xxx&version=0.0.6 をポストすれば良い。
+Webの<form>を使う場合、以下のURLに body=xxx&version=(なでしこバージョン) をポストすれば良い。
 
 ```
 <設置url>/index.php?page=0&action=presave
