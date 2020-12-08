@@ -113,6 +113,23 @@ setTimeout(function(){
   })
 }, 1000)
 
+//--------------------------
+// 通報(bad)
+const bad_button = document.getElementById('bad_button')
+const bad = document.getElementById('bad')
+bad_button.onclick = function () {
+  bad_button.disabled = true
+  ajax(`api.php?page=${app_id}&action=bad&q=up`, function(txt, r){
+    bad.innerHTML = txt
+  })
+
+}
+setTimeout(function(){
+  ajax(`api.php?page=${app_id}&action=bad`, function(txt, r){
+    bad.innerHTML = txt
+  })
+}, 2000)
+
 function ajax(url, callback) {
   const req = new XMLHttpRequest();
   req.onreadystatechange = function() {
