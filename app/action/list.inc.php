@@ -1,7 +1,7 @@
 <?php
 include_once dirname(__FILE__) . '/save.inc.php';
 
-const MAX_APP = 5; // 何件まで表示するか
+const MAX_APP = 30; // 何件まで表示するか
 
 function n3s_web_list()
 {
