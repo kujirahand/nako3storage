@@ -43,9 +43,28 @@ function t_raw($v) {
 function t_safe($v) {
   return $v;
 }
+
+function t_star($v) {
+  $mi = $ni = intval($v);
+  if ($mi > 3) {
+    $mi = 3;
+  }
+  $s = "";
+  for ($i = 0; $i < $mi; $i++) {
+    $s .= '⭐';
+  }
+  if ($ni > 5) {
+    $s .= '..';
+  }
+  return $s;
+}
+
 // date
 function t_date($v) {
   return date('Y年m月d日', $v);
+}
+function t_date2($v) {
+  return date('Y-m-d', $v);
 }
 function t_datetime($v) {
   return date('Y/m/d H:i', $v);

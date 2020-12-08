@@ -11,7 +11,6 @@
     <tr>
         <th>ID</th>
         <th>タイトル</th>
-        <th>作者</th>
         <th>説明</th>
     </tr>
     {{ for $list as $r }}
@@ -21,19 +20,21 @@
         </td>
         <td>
             <a href="p.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+            {{if $r.fav > 0}}
+            <br><span class='memo'>{{$r.fav | star}}</span>
+            {{endif}}
         </td>
         <td>
             {{if $r.user_id gt 0}}
             <span class="dev">
-                <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }}</a>
+                <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
             </span>
             {{else}}
-            <span class="dev">{{$r.author | check_nanasi }}</span>
+            <span class="dev">{{$r.author | check_nanasi }} 作</span>
             {{endif}}
-        </td>
-        <td>
-            <span>{{$r.memo | trim100 }}</span><br>
-            <span class="date">★{{$r.fav}} ({{$r.mtime | datetime}})</span>
+            <br>
+            <span>{{$r.memo | trim100 }}</span>
+            <span class="date">({{$r.mtime | date2}})</span><br>
         </td>
     </tr>
     {{ endfor }}
