@@ -29,21 +29,19 @@
       <input name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
       </label>
     </p>
+    {{if n3s_is_login() }}
+      <!-- 自動で設定されるので -->
+      <input id="author" name="author" type="hidden" value='{{$author}}' />
+      <p>
+        <label>制作者: {{ $author }}</label>
+      </p>
+    {{else}}
     <p>
       <label>制作者名(任意):<br />
       <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前" />
       </label>
     </p>
-    <p>
-      <label>編集キー(閲覧キー):<br />
-      <input id="editkey" name="editkey" type="password" value='' autocomplete="off" />
-      </label>
-    </p>
-    <p>
-      <label>連絡先Eメール(任意):<br />
-      <input id="email" name="email" value="{{$email}}" placeholder="メール" />
-      </label>
-    </p>
+    {{endif}}
     <p>
       <label>URL(任意):<br />
       <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
@@ -52,7 +50,7 @@
     <p>
       <label>プライベート:<br />
       {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
-      <input name="is_private" type="checkbox" value="1" $is_private_chk />
+      <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
       非公開にする
       </label>
     </p>
@@ -68,12 +66,15 @@
     </p>
   </form>
 
+  {{if $user_id gt 0}}
   <div class="ctrl_block">
+    <h2>プログラムの削除</h2>
     <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=delete">
-      <div>プログラムを削除したい場合、以下のボタンを押してください。</div>
+      <div>チェックをつけて削除ボタンを押してください。</div>
       <div>
-        <label>編集キー(閲覧キー):<br />
-          <input id="editkey2" name="editkey" type="password" value='' autocomplete="off" />
+        <label>
+          <input name="yesno" type="checkbox" value='yes' />
+          完全に削除する
         </label>
       </div>
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
@@ -82,46 +83,27 @@
       </div>
     </form>
   </div>
+  {{endif}}
 
+  {{if n3s_is_admin() }}
   <div class="ctrl_block">
+    <h2>管理者</h2>
     <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=reset_bad">
-      <div>【管理用】通報を解除したい場合：</div>
-      <div>
-        <label>管理者キー:<br />
-          <input id="adminkey" name="adminkey" type="password" value='' autocomplete="off" />
-        </label>
-      </div>
+      <div style="color:red;">【管理用】通報を解除したい場合：</div>
       <div>
         <label>設定する値(2以上でリスト非表示):<br />
           <input id="bad_value" name="bad_value" type="text" value="0" />
         </label>
       </div>
       <div>
-        <input class="pure-button" type="submit" value="通報解除">
+        <input class="pure-button" type="submit" value="通報値変更">
       </div>
     </form>
   </div>
+  {{endif}}
 </div>
 
 <script type="text/javascript">
-
-// save field
-const savekeys = ['author', 'url', 'email', 'editkey']
-const elem = {}
-for (k of savekeys) {
-  elem[k] = document.getElementById(k)
-  elem[k].onkeyup = function(e) {
-    const id = e.target.id
-    localStorage['n3s_save_' + id] = e.target.value
-  }
-}
-
-// load field
-for (k of savekeys) {
-  const v = localStorage['n3s_save_' + k]
-  if (v) elem[k].value = v
-}
-
 // rewrite
 const rewriteMode = '{{$rewrite}}'
 if (rewriteMode === 'yes') {

@@ -138,3 +138,48 @@ function n3s_api_output($result, $data)
     header('content-type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
 }
+
+function n3s_is_login() {
+    // @see action/login.inc.php
+    if (empty($_SESSION['n3s_login'])) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+function n3s_get_user_id() {
+    if (!n3s_is_login()) { return 0; }
+    return empty($_SESSION['user_id']) ? 0 : intval($_SESSION['user_id']);
+}
+
+function n3s_get_login_info() {
+    if (!n3s_is_login()) {
+        return [
+            'user_id' => 0,
+            'name' => '?',
+            'screen_name' => '?',
+            'profile_url' => 'skin/def/user-icon.png',
+        ];
+    }
+    return [
+        'user_id' => $_SESSION['user_id'],
+        'name' => $_SESSION['name'],
+        'screen_name' => $_SESSION['screen_name'],
+        'profile_url' => $_SESSION['profile_url'],
+    ];
+}
+
+function n3s_is_admin() {
+    $user_id = n3s_get_user_id();
+    $admin_users = n3s_get_config('admin_users', [1]);
+    foreach ($admin_users as $id) {
+        if ($id === $user_id) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+
+
+

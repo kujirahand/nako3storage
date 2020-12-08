@@ -10,6 +10,7 @@ CREATE TABLE apps (
   app_id      INTEGER PRIMARY KEY,
   title       TEXT DEFAULT '(no title)',
   author      TEXT DEFAULT '(no name)',
+  user_id     INTEGER DEFAULT 0, /* 0:ユーザー登録なし */
   email       TEXT DEFAULT '',
   url         TEXT DEFAULT '',
   memo        TEXT DEFAULT '',
@@ -32,17 +33,35 @@ CREATE TABLE apps (
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
-/* 2020/12/05
+/*
+2020/12/05
 ALTER TABLE apps ADD COLUMN canvas_w INTEGER DEFAULT 300
 ALTER TABLE apps ADD COLUMN canvas_h INTEGER DEFAULT 300
 ALTER TABLE apps ADD COLUMN fav_lastip TEXT DEFAULT '' 
 ALTER TABLE apps ADD COLUMN bad INTEGER DEFAULT 0
 ALTER TABLE apps ADD COLUMN body TEXT DEFAULT ''
+
+2020/12/08
+ALTER TABLE apps ADD COLUMN user_id INTEGER DEFAULT 0
+ALTER TABLE comments ADD COLUMN user_id INTEGER DEFAULT 0
 */
+
+CREATE TABLE users (
+  user_id     INTEGER PRIMARY KEY,
+  name        TEXT DEFAULT '',
+  screen_name TEXT DEFAULT '',
+  description TEXT DEFAULT '',
+  twitter_id  INTEGER DEFAULT 0,
+  profile_url TEXT DEFAULT '',
+  ctime       INTEGER DEFAULT 0,
+  mtime       INTEGER DEFAULT 0
+);
+
 
 CREATE TABLE comments (
   comment_id    INTEGER PRIMARY KEY,
-  app_id       INTEGER DEFAULT -1,
+  user_id       INTEGER DEFAULT 0,
+  app_id        INTEGER DEFAULT -1,
   name          TEXT DEFAULT '',
   body          TEXT DEFAULT '',
   ip            TEXT DEFAULT '',

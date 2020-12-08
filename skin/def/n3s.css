@@ -34,6 +34,10 @@ h1 {
   font-size: 1em;
   border-left: 1em solid #ffc0c0;
 }
+h2 {
+  padding: 0.3em;
+  font-size: 1em;
+}
 
 .list {
   padding: 1em;
@@ -101,6 +105,11 @@ h1 {
   height: 150px;
   background-color: #f0f0f0;
 }
+
+.showblock ul li {
+  line-height: 1.8em;
+}
+
 
 .ctrl_block {
   border-top: 1px dotted gray;
@@ -183,4 +192,5 @@ h1 {
   font-size: 0.8em;
   line-height: 1.8em;
 }
+
 
