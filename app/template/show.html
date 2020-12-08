@@ -25,15 +25,23 @@
     </span></li>
     <li>利用バージョン: {{ $version }}</li>
   </ul>
+  {{if $app_id gt 0}}
   <div class="fav_block">
     <button id="fav_button" class="pure-button">気に入った 😋</button>
     &nbsp;<span id="fav">-</span>
   </div>
+  {{endif}}
 </div>
-<div class="ctrl_block">
-  <p><button onclick="saveClick()" class="pure-button">
-    {{if ($app_id gt 0)}}編集{{else}}保存{{endif}}</button></p>
-</div>
+{{if n3s_is_login()}}
+  {{if ($my_user_id === $user_id) || n3s_is_admin() }}
+  <div class="ctrl_block">
+    <p><button onclick="saveClick()" class="pure-button">
+      {{if ($app_id gt 0)}}編集{{else}}保存{{endif}}</button></p>
+  </div>
+  {{endif}}
+{{endif}}
+
+{{if $app_id gt 0}}
 <div class="ctrl_block" style="text-align:right;">
   <div>
     <span id="bad">-</span>&nbsp;
@@ -42,6 +50,7 @@
   <div>&nbsp;</div>
   <div class="memo"><a href="{{$badlink}}">通報って何？</a></div>
 </div>
+{{endif}}
 
 <!-- script for nadesiko3 -->
 {{ $import_nako | raw }}

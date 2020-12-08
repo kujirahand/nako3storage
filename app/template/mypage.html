@@ -1,0 +1,28 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>
+        {{$user_id}}: {{$name}} さんのマイページ
+        {{if n3s_is_admin()}}(管理者){{endif}}
+    </h1>
+    <div>
+        <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
+    </div>
+    <div class="memo"></div>
+    <div></div>
+    <h3>投稿したアプリの一覧</h3>
+    {{if $apps }}
+        <div><ul>
+        {{for $apps as $r}}
+            <li><a href="p.php?{{$r.app_id}}">{{$r.mtime | datetime}} - {{$r.title | check_mudai}}</a>
+            ... {{$r.memo}}
+            ★{{$r.fav}}</li>
+        {{endfor}}
+        </ul></div>
+    {{else}}
+    <div>ありません。</div>
+    {{endif}}
+</div>
+
+
+{{ include parts_html_footer.html }}

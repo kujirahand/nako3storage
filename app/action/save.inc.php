@@ -16,7 +16,7 @@ function n3s_web_save() {
   // params
   $mode = empty($_GET['mode']) ? 'edit' : $_GET['mode'];
   // === mode check ===
-  // save?
+  // アプリの保存?
   if (isset($_POST['body']) && $mode == 'edit') {
     n3s_action_save_data($_POST, 'web');
     return;
@@ -38,17 +38,19 @@ function n3s_web_save() {
   if ($app_id > 0) {
     n3s_web_save_check($app_id, $a);
   }
-  try {
-    n3s_action_save_check_param($a, FALSE);
-  } catch (Exception $e) {
-    // no check error here
-  }
+  n3s_action_save_check_param($a, FALSE);
+  // rewrite ... show.html ページで実行したプログラムを保存するか？
   $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
   // load material
   if ($a['rewrite'] === 'no') {
     n3s_action_save_load_body($a);
   }
-  //
+  // ログイン情報を反映させる
+  if ($app_id == 0 && n3s_is_login()) {
+    $user = n3s_get_login_info();
+    $a['user_id'] = $user['user_id'];
+    $a['author'] = $user['name'];
+  }
   n3s_template_fw('save.html', $a);
 }
 
@@ -61,18 +63,14 @@ function n3s_web_save_check($app_id, &$a) {
     n3s_jump(0, 'save'); // 新規保存のページを表示
     exit;
   }
-  $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
-  $postkey_hash = n3s_hash_editkey($postkey);
-  if ($a['editkey'] === $postkey_hash || $postkey === $n3s_config['admin_password']) {
-    // ok
-  } else {
-    $opt = array();
-    if (isset($_GET['rewrite'])) {
-      $opt['rewrite'] = $_GET['rewrite'];
-    }
-    $url = n3s_getURL($app_id, 'save', $opt);
-    $msg = ($postkey !== '') ? 'キーが違います。' : '';
-    n3s_template_fw('save_check.html', array('url' => $url, 'msg' => $msg));
+  if (!n3s_is_login()) {
+    n3s_error('ログインが必要', '編集するにはログインしてください。');
+    exit;
+  }
+  $a_user_id = $a['user_id'];
+  $my_user_id = n3s_get_user_id();
+  if ($a_user_id != $my_user_id) {
+    n3s_error('自分の作品だけ編集できます', '他人の作品は編集できません。');
     exit;
   }
 }
@@ -124,6 +122,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
   $a['canvas_w'] = isset($a['canvas_w']) ? intval($a['canvas_w']) : 300;
   $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
+  $a['user_id'] = isset($a['user_id']) ? intval($a['user_id']) : 0;
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
@@ -160,8 +159,10 @@ function n3s_action_save_data($data, $agent = 'web') {
 function n3s_action_save_data_raw($data, $agent) {
   global $n3s_config;
 
+  $is_admin = n3s_is_admin();
+  $user = n3s_get_login_info();
   $db = n3s_get_db();
-  $app_id = intval($_GET['page']);
+  $app_id = n3s_get_config('page', 0);
   $a = $data;
   $b = array();
   $a['app_id'] = $app_id;
@@ -171,23 +172,35 @@ function n3s_action_save_data_raw($data, $agent) {
     // check editkey
     $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
     if (!$b) throw new Exception('app_idが不正です。');
+    $b_user_id = $b['user_id'];
     $a_editkey = n3s_hash_editkey($a['editkey']);
     $b_editkey = $b['editkey'];
     // admin?
-    if ($n3s_config['admin_password'] === $a['editkey']) {
-      // ok
-    }
-    else if ($a_editkey === $b_editkey) {
-      // ok
-    } else {
-      throw new Exception('編集キーが違います。');
+    if (!$is_admin) {
+      if ($b_user_id > 0) {
+        $user_id = n3s_get_user_id();
+        if ($user_id != $b_user_id) {
+          throw new Exception('他人の投稿です。自分の投稿しか編集できません！');
+        }
+      } else {
+        // ログインなしの場合
+        if ($a_editkey != $b_editkey) {
+          throw new Exception('編集キーが違います。');
+        }
+      }
     }
   }
   $a['editkey'] = n3s_hash_editkey($a['editkey']);
   $a['mtime'] = time();
   $ph = null;
+  // 新規投稿の場合
   if ($app_id == 0) {
     $a['ctime'] = time();
+    // ログインしていれば強制的にuser_idを書き換える
+    if (n3s_is_login()) {
+      $a['user_id'] = n3s_get_user_id();
+      $a['author'] = $user['name'];
+    }
     // save material
     $db_material = n3s_get_db('material');
     $mp = $db_material->prepare(
@@ -199,13 +212,15 @@ INSERT INTO apps (
   title, author, email, url, memo,
   canvas_w, canvas_h,
   material_id, version, nakotype, tag,
-  editkey, is_private,
+  is_private,
+  user_id,
   ref_id, ip, ctime, mtime
 ) VALUES (
   :title, :author, :email, :url, :memo,
   :canvas_w, :canvas_h,
   :material_id, :version, :nakotype, :tag,
-  :editkey, :is_private,
+  :is_private,
+  :user_id,
   :ref_id, :ip, :ctime, :mtime
 )
 EOS;
@@ -220,8 +235,8 @@ EOS;
       ":version"    => $a['version'],
       ":nakotype"   => $a['nakotype'],
       ":tag"        => $a['tag'],
-      ":editkey"    => $a['editkey'],
       ":is_private" => $a['is_private'],
+      ":user_id"    => $a['user_id'],
       ":ref_id"     => $a['ref_id'],
       ":canvas_w"   => $a['canvas_w'],
       ":canvas_h"   => $a['canvas_h'],
@@ -279,6 +294,11 @@ function n3s_action_save_delete($params) {
     n3s_error('IDの不正', 'IDのエラー');
     exit;
   }
+  $yesno = empty($_POST['yesno']) ? 'no' : $_POST['yesno'];
+  if ($yesno != 'yes') {
+    n3s_error('戻ってやり直してください', 'チェックボックスにチェックを入れてください。。');
+    return;
+  }
 
   $db = n3s_get_db();
   $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
@@ -286,13 +306,20 @@ function n3s_action_save_delete($params) {
     n3s_error('指定のIDのアプリがありません', 'IDのエラー');
     exit;
   }
-  $postkey = isset($_POST['editkey']) ? $_POST['editkey'] : '';
-  $postkey_hash = n3s_hash_editkey($postkey);
-  if ($a['editkey'] === $postkey_hash || $postkey === $n3s_config['admin_password']) {
+  $user = n3s_get_login_info();
+  $user_id = $user['user_id'];
+  $a_user_id = $a['user_id'];
+  if (n3s_is_admin()) {
+    // ok
+  } else if ($user_id == $a_user_id && $user_id > 0) {
     // ok
   } else {
-    n3s_error('削除失敗', '編集キーが間違っていました。');
-    exit;
+    if ($a_user_id == 0) {
+      n3s_error('管理者に連絡してください', '削除するには管理者に連絡してください。');
+    } else {
+      n3s_error('自分の作品しか削除できません', '自分のIDでない作品を削除しようとしています。');
+    }
+    return;
   }
   // 削除
   $db->query("DELETE FROM apps WHERE app_id=$app_id");
@@ -320,11 +347,10 @@ function n3s_action_save_reset_bad($params) {
     exit;
   }
   // 管理者キーを確認する
-  $adminkey = isset($_POST['adminkey']) ? $_POST['adminkey'] : '';
-  if ($adminkey === $n3s_config['admin_password']) {
+  if (n3s_is_admin()) {
     // ok
   } else {
-    n3s_error('通報更新失敗', '管理者キーが間違っていました。');
+    n3s_error('通報更新失敗', '管理者のみが更新できます。');
     exit;
   }
   // 通報リセット
