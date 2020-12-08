@@ -197,4 +197,13 @@ h2 {
   line-height: 1.8em;
 }
 
+.devblock {
+  color: gray;
+  padding: 2em;
+  margin: 1em;
+  font-size: 0.8em;
+}
 
+.devblock a {
+  text-decoration: none;
+}

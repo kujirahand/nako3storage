@@ -71,6 +71,13 @@ function n3s_show_get()
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
     $a['my_user_id'] = n3s_get_user_id();
+    if ($a['user_id'] > 0) {
+        // ユーザー情報を取得
+        $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
+        $a['profile_url'] = $user['profile_url'];
+    } else {
+        $a['profile_url'] = 'skin/def/user-icon.png';
+    }
 
     // params
     n3s_action_save_check_param($a);

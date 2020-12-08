@@ -120,7 +120,6 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['memo'] = isset($a['memo']) ? $a['memo'] : '';
   $a['body'] = isset($a['body']) ? $a['body'] : '';
   $a['version'] = isset($a['version']) ? $a['version'] : NAKO_DEFAULT_VERSION;
-  $a['editkey'] = isset($a['editkey']) ? $a['editkey'] : '';
   $a['ip'] = isset($a['ip']) ? $a['ip'] : '';
   $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
@@ -130,10 +129,10 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
-      throw new Exception('本文が空です。');
+      throw new Exception('プログラムが空です。');
   }
   if (strlen($a['body']) < 8) {
-      throw new Exception('本文が8文字以下です');
+      throw new Exception('プログラムが8文字以下です');
   }
 }
 
