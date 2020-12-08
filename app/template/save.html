@@ -1,7 +1,13 @@
 {{ include parts_html_header.html }}
 
 <div class="saveform">
-  <h1>プログラムの保存</h1>
+  <h1>
+    {{if $app_id gt 0}}
+      (id: {{$app_id}}) プログラムの編集
+    {{else}}
+      新規プログラムの保存
+    {{endif}}
+  </h1>
 
   {{ if $rewrite == 'yes' }}
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
@@ -66,7 +72,7 @@
     </p>
   </form>
 
-  {{if $user_id gt 0}}
+  {{if $user_id gt 0 || n3s_is_admin() }}
   <div class="ctrl_block">
     <h2>プログラムの削除</h2>
     <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=delete">

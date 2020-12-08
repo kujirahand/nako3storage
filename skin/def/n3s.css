@@ -49,13 +49,13 @@ h2 {
 .list table td {
   border-right: 1px solid silver;
   border-bottom: 1px solid silver;
-  padding: 0.9em;
+  padding: 0.5em;
 }
 .list table th {
   border-right: 1px solid silver;
   border-bottom: 1px solid silver;
   background-color: #f0f0f0;
-  padding: 0.9em;
+  padding: 0.5em;
 }
 .list .date {
   font-size: 0.8em;
@@ -63,7 +63,11 @@ h2 {
 }
 .list .dev {
   font-size: 0.8em;
-  color:silver;
+  color: gray;
+}
+.list .dev a {
+  font-size: 0.8em;
+  color: gray;
 }
 
 .saveform {
