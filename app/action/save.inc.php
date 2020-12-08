@@ -310,6 +310,8 @@ function n3s_action_save_reset_bad($params) {
     n3s_error('IDの不正', 'IDのエラー');
     exit;
   }
+  // 値を何に変更するか
+  $bad_value = intval(empty($_POST['bad_value']) ? '0' : $_POST['bad_value']);
   // check app_id exists
   $db = n3s_get_db();
   $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
@@ -317,6 +319,7 @@ function n3s_action_save_reset_bad($params) {
     n3s_error('指定のIDのアプリがありません', 'IDのエラー');
     exit;
   }
+  // 管理者キーを確認する
   $adminkey = isset($_POST['adminkey']) ? $_POST['adminkey'] : '';
   if ($adminkey === $n3s_config['admin_password']) {
     // ok
@@ -326,10 +329,10 @@ function n3s_action_save_reset_bad($params) {
   }
   // 通報リセット
   $time = time();
-  $db->query("UPDATE apps SET bad=0,mtime=$time WHERE app_id=$app_id");
+  $db->query("UPDATE apps SET bad=$bad_value,mtime=$time WHERE app_id=$app_id");
   // 情報
   n3s_template_fw('basic.html', [
-    'contents' => "{$app_id} の通報ををリセットしました",
+    'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",
   ]);
 }
 

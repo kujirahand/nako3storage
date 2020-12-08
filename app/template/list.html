@@ -1,7 +1,7 @@
 {{ include parts_html_header.html }}
 
 <div class="showblock">
-  <div class="memo">ここは「<a href="https://nadesi.com/doc3/">なでしこv3</a>」のプログラムを書き込んで共有する場所です。</div>
+  <div class="memo">『nako3storage』は「<a href="https://nadesi.com/doc3/">なでしこv3</a>」のプログラムを書き込んで共有する場所です。</div>
 </div>
 
 {{ if $list }}
@@ -41,8 +41,11 @@
 <div>見つかりませんでした。</div>
 {{ endif }}
 
-<div class="ctrl_block memo">
-  <a href="index.php?action=list&nofilter=1">フィルタせずに投稿を表示</a>
+<div class="addon_block">
+    <ul>
+        <li><a href="index.php?action=list&nofilter=1">→フィルタせずに投稿を表示</a></li>
+        <li><a href="index.php?action=list&onlybad=1">→問題のある投稿のみ表示</a></li>
+    </ul>
 </div>
 
 
