@@ -28,6 +28,7 @@ CREATE TABLE apps (
   view        INTEGER DEFAULT 0, /* 閲覧数 */
   canvas_w    INTEGER DEFAULT 300,
   canvas_h    INTEGER DEFAULT 300,
+  bad         INTEGER DEFAULT 0,
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
@@ -35,6 +36,7 @@ CREATE TABLE apps (
 ALTER TABLE apps ADD COLUMN canvas_w INTEGER DEFAULT 300
 ALTER TABLE apps ADD COLUMN canvas_h INTEGER DEFAULT 300
 ALTER TABLE apps ADD COLUMN fav_lastip TEXT DEFAULT '' 
+ALTER TABLE apps ADD COLUMN bad INTEGER DEFAULT 0
 */
 
 CREATE TABLE comments (
