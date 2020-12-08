@@ -82,6 +82,20 @@
       </div>
     </form>
   </div>
+
+  <div class="ctrl_block">
+    <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=reset_bad">
+      <div>【管理用】通報を解除したい場合：</div>
+      <div>
+        <label>管理者キー:<br />
+          <input id="adminkey" name="adminkey" type="password" value='' autocomplete="off" />
+        </label>
+      </div>
+      <div>
+        <input class="pure-button" type="submit" value="通報解除">
+      </div>
+    </form>
+  </div>
 </div>
 
 <script type="text/javascript">
