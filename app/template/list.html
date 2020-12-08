@@ -12,10 +12,10 @@
     {{ for $list as $r }}
     <tr>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
+            <a href="p.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
         </td>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}">{{$r.title | check_mudai }}</a><br>
+            <a href="p.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a><br>
                 <span class="dev">by {{$r.author | check_nanasi }}</span>
         </td>
         <td>
