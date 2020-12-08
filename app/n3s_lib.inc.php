@@ -10,6 +10,39 @@ define("N3S_APP_VERSION", "0.43");
 
 // fw_template_engine
 require_once __DIR__ . '/fw_template_engine.lib.php';
+require_once __DIR__ . '/fw_database.lib.php';
+
+/**
+ * get config value
+ */
+function n3s_get_config($key, $def) {
+    global $n3s_config;
+    if (isset($n3s_config[$key])) {
+        return $n3s_config[$key];
+    }
+    return $def;
+}
+/**
+ * set config value
+ */
+function n3s_set_config($key, $val) {
+    global $n3s_config;
+    $n3s_config[$key] = $val;
+}
+
+function get_param($name, $def = '') {
+    if (isset($_GET[$name])) {
+      return $_GET[$name];
+    }
+    return $def;
+  }
+  
+  function post_param($name, $def = '') {
+    if (isset($_POST[$name])) {
+      return $_POST[$name];
+    }
+    return $def;
+  }
 
 function n3s_getURL($page, $action, $params = array())
 {
@@ -20,7 +53,7 @@ function n3s_getURL($page, $action, $params = array())
         $url .= '&' . urlencode($k) . '=' . urlencode($v);
     }
     return $url;
-}
+}  
 
 function n3s_jump($page, $action, $params = array())
 {
@@ -48,7 +81,7 @@ function n3s_parseURI()
         $n3s_config['action'] = $n3s_config['status'];
     }
     // set baseurl
-    $script = $kona3conf['scriptname'] = basename($_SERVER['SCRIPT_NAME']);
+    $script = basename($_SERVER['SCRIPT_NAME']);
     $script_dir = preg_replace("#/{$script}$#", "", $script_path);
     $n3s_config['baseurl'] = sprintf(
         "%s://%s%s",
@@ -62,12 +95,20 @@ function n3s_get_db($type = 'main')
 {
     global $n3s_config;
     global $n3s_db_handle;
+    global $FW_DB_INFO;
     if (empty($n3s_db_handle)) $n3s_db_handle = array();
     if (isset($n3s_db_handle[$type])) return $n3s_db_handle[$type];
     // open db
     $file_db = $n3s_config["file_db_{$type}"];
-    $db = new PDO($file_db);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $file_init_sql = $n3s_config['dir_sql'] . "/init-{$type}.sql";
+    if ($type == 'main') {
+        database_set($file_db, $file_init_sql);
+        $db = database_get();
+    } else {
+        $db = new PDO($file_db);
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    }
     $n3s_db_handle[$type] = $db;
     return $db;
 }

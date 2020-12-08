@@ -1,17 +1,16 @@
 <?php
-
 include_once dirname(__FILE__) . '/n3s_lib.inc.php';
 
 n3s_main();
 
 function n3s_main()
 {
-    global $n3s_config;
     n3s_check_config();
     n3s_init_db();
     n3s_parseURI();
     n3s_action();
 }
+
 
 function n3s_check_config()
 {
@@ -34,6 +33,11 @@ function n3s_check_config()
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
         "nako3storage_version" => N3S_APP_VERSION,
+        // for twitter login
+        "twitter_api_key" => "",
+        "twitter_api_secret" => "",
+        "twitter_acc_token" => "",
+        "twitter_acc_secret" => "",
     );
     foreach ($def_values as $key => $def) {
         if (empty($n3s_config[$key])) $n3s_config[$key] = $def;
@@ -48,6 +52,11 @@ function n3s_action()
     $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $agent = $n3s_config['agent'];
     $func_action = "n3s_{$agent}_{$action}";
+
+    // WEBであればセッションを使う
+    if ($agent === 'web') {
+        session_start();
+    }
     if (file_exists($file_action)) {
         include_once $file_action;
         if (function_exists($func_action)) {
@@ -55,6 +64,7 @@ function n3s_action()
             return;
         }
     }
+    // アクションがなければエラーを表示
     echo $file_action;
     echo 'action error';
     exit;
