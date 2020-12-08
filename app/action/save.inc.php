@@ -118,6 +118,10 @@ function n3s_action_save_check_param(&$a) {
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
   $a['canvas_w'] = isset($a['canvas_w']) ? intval($a['canvas_w']) : 300;
   $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
+  // check params
+  if ($a['body'] == '') {
+      throw new Exception('本文が空です。');
+  }
 }
 
 // save
