@@ -1,5 +1,9 @@
 {{ include parts_html_header.html }}
 
+<div class="showblock">
+  <div class="memo">ここは「<a href="https://nadesi.com/doc3/">なでしこv3</a>」のプログラムを書き込んで共有する場所です。</div>
+</div>
+
 {{ if $list }}
 <div class="list">
 <h1>プログラムの一覧</h1>
@@ -12,10 +16,10 @@
     {{ for $list as $r }}
     <tr>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
+            <a href="p.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
         </td>
         <td>
-            <a href="show.php?app_id={{$r.app_id}}">{{$r.title | check_mudai }}</a><br>
+            <a href="p.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a><br>
                 <span class="dev">by {{$r.author | check_nanasi }}</span>
         </td>
         <td>
@@ -36,6 +40,12 @@
 {{ else }}
 <div>見つかりませんでした。</div>
 {{ endif }}
+
+<div class="ctrl_block memo">
+  <a href="index.php?action=list&nofilter=1">フィルタせずに投稿を表示</a>
+</div>
+
+
 
 {{ include parts_html_footer.html }}
 

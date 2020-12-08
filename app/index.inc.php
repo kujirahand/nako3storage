@@ -18,6 +18,7 @@ function n3s_check_config()
     global $n3s_config;
     $root = dirname(dirname(__FILE__));
     $def_values = array(
+        "admin_contact_link" => "(Please set admin_contact_link in config file.)",
         "dir_data" => "{$root}/data",
         "dir_app" => "{$root}/app",
         "dir_template" => "{$root}/app/template",
