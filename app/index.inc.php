@@ -29,9 +29,10 @@ function n3s_check_config()
         "admin_password" => "hoge",
         "size_source_max" => 1024 * 1024 * 5, // 最大保存サイズ3MB
         "size_field_max" => 1024 * 5,        // 最大フィールドサイズ3KB
-        "page_title" => "nako3storage v".N3S_APP_VERSION,
+        "page_title" => "nako3storage",
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
+        "nako3storage_version" => N3S_APP_VERSION,
     );
     foreach ($def_values as $key => $def) {
         if (empty($n3s_config[$key])) $n3s_config[$key] = $def;

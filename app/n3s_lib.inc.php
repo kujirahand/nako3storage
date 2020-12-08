@@ -6,7 +6,7 @@
 global $n3s_config;
 define("N3S_DB_VERSION", 2);
 define("NAKO_DEFAULT_VERSION", "3.1.8");
-define("N3S_APP_VERSION", "0.42");
+define("N3S_APP_VERSION", "0.43");
 
 // fw_template_engine
 require_once __DIR__ . '/fw_template_engine.lib.php';
