@@ -67,11 +67,15 @@ function n3s_web_save_check($app_id, &$a) {
     n3s_error('ログインが必要', '編集するにはログインしてください。');
     exit;
   }
-  $a_user_id = $a['user_id'];
-  $my_user_id = n3s_get_user_id();
-  if ($a_user_id != $my_user_id) {
-    n3s_error('自分の作品だけ編集できます', '他人の作品は編集できません。');
-    exit;
+  if (n3s_is_admin()) {
+    // ok
+  } else {
+    $a_user_id = $a['user_id'];
+    $my_user_id = n3s_get_user_id();
+    if ($a_user_id != $my_user_id) {
+      n3s_error('自分の作品だけ編集できます', '他人の作品は編集できません。');
+      exit;
+    }
   }
 }
 
