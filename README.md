@@ -62,5 +62,22 @@ GETでアクセスすると、プログラムと情報を取得できる。
 
 - `p.php?(id)` にアクセスすると `show.php?app_id=(id)` にリダイレクトする
 
+## Twitterログイン
+
+Twitterでアプリ登録してください。
+設定にキーを指定します。
+
+```
+$n3s_config['twitter_api_key'] = 'xxxx';
+$n3s_config['twitter_api_secret'] = 'xxxx';
+$n3s_config['twitter_acc_token'] = 'xxx-xxxx';
+$n3s_config['twitter_acc_secret'] = 'xxxx';
+```
+
+Twitterのアプリ側でCallback先のURLを指定します。
+
+```
+(設置したURL)/callback.php
+```
 
 

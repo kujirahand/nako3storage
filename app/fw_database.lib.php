@@ -1,13 +1,14 @@
 <?php
 // DATABASE
-global $FW_DB_MAIN; // PDOオブジェクト
+global $FW_DB_MAIN; // PDOオブジェクトの配列
 global $FW_DB_INFO; // 設定
 
 function database_set($file_db, $file_sql) {
   global $FW_DB_INFO;
-  $FW_DB_INFO = [];
-  $FW_DB_INFO['file_db' ] = $file_db;
-  $FW_DB_INFO['file_sql'] = $file_sql;
+  $FW_DB_INFO = [
+    'file_db' => $file_db,
+    'file_sql' => $file_sql,
+  ];
 }
 
 function database_get() {
@@ -22,11 +23,14 @@ function database_get() {
     echo '<h1>[ERROR] Database not set.</h1>'; exit;
   }
   // Open
+  if (substr($file_db, 0, 7) == 'sqlite:') {
+    $file_db = substr($file_db, 7);
+  }
   $need_init = FALSE;
   if (!file_exists($file_db)) {
     $need_init = TRUE;
   }
-  $pdo = $FW_DB_MAIN = new PDO("sqlite:$file_db");
+  $pdo = $FW_DB_MAIN = new PDO('sqlite:'.$file_db);
   // エラーで例外を投げる
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   // 連想配列を返す
