@@ -113,8 +113,19 @@
 // rewrite
 const rewriteMode = '{{$rewrite}}'
 if (rewriteMode === 'yes') {
+  setTimeout(goRewrite, 100)
+}
+function goRewrite() {
+  // body
   const body = document.getElementById('body')
   body.value = localStorage['n3s_save_body']
+  // canvas
+  const clist = ['canvas_w', 'canvas_h']
+  for (let key of clist) {
+    const v = localStorage['n3s_' + key]
+    const e = document.getElementById(key)
+    e.value = v
+  }
 }
 </script>
 
