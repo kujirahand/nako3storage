@@ -87,12 +87,30 @@ clearButton.onclick = nako3_clear;
 runbox.style.display = 'none'
 
 //--------------------------
+// canvas_w * canvas_h
+const canvas_w_txt = document.getElementById("canvas_w")
+const canvas_h_txt = document.getElementById("canvas_h")
+canvas_w_txt.onchange = function () { canvas_size_change() }
+canvas_h_txt.onchange = function () { canvas_size_change() }
+function canvas_size_change() {
+  const w = parseInt(canvas_w_txt.value)
+  const h = parseInt(canvas_h_txt.value)
+  if (w > 0 && h > 0) {
+    const cv = nako3_get_canvas()
+    cv.width = w
+    cv.height = h
+  }
+}
+
+//--------------------------
 // save button
 function saveClick() {
   const code_e = document.getElementById("nako3code");
   localStorage["n3s_save_id"] = app_id
   localStorage["n3s_save_body"] = code_e.value
   localStorage["n3s_action_time"] = (new Date()).getTime()
+  localStorage["n3s_canvas_w"] = canvas_w_txt.value
+  localStorage["n3s_canvas_h"] = canvas_h_txt.value
   location.href = editlink
 }
 

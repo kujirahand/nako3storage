@@ -207,3 +207,13 @@ h2 {
 .devblock a {
   text-decoration: none;
 }
+
+
+#nako3code {
+  padding: 0.5em;
+  font-size: 1em;
+  line-height: 1.4em;
+  width: 90%;
+  height: 150px;
+  background-color: #f0f0f0;
+}

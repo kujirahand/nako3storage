@@ -55,6 +55,9 @@
     <ul>
         <li><a href="index.php?action=list&nofilter=1">→フィルタせずに投稿を表示</a></li>
         <li><a href="index.php?action=list&onlybad=1">→問題のある投稿のみ表示</a></li>
+        {{if n3s_is_login()}}
+            <li><a href="index.php?action=mypage&page=my">→自分の投稿(マイページ)を表示</a></li>
+        {{endif}}
     </ul>
 </div>
 
