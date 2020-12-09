@@ -19,24 +19,36 @@ function n3s_api_show()
 function n3s_show_get()
 {
     global $n3s_config;
-    if (empty($n3s_config['app_id'])) {
-      $app_id = 0;
-    } else {
-      $app_id = intval($n3s_config['app_id']);
-    }
+
     $db = n3s_get_db();
+    $app_id = intval(n3s_get_config('app_id', 0));
+    $a = ['result' => false];
+    $my_user_id = n3s_get_user_id();
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
-        $a = array();
-        $a = $db->query($sql)->fetch(PDO::FETCH_ASSOC);
-        if (!$a) {
-            $a = array('result' => false);
-        } else {
-            $a['result'] = true;
+        $a = db_get1($sql);
+        $a['result'] = isset($a['app_id']);
+        // プライベートな作品であれば他人には見せない
+        $user_id = $a['user_id'];
+        $is_private = $a['is_private'];
+        if ($is_private) {
+            // 管理者は見れる
+            if (n3s_is_admin()) {
+                // ok
+            } else {
+                // 自分なら見れる
+                if ($user_id === $my_user_id) {
+                    // ok
+                } else {
+                    $a = [
+                        "result" => false,
+                        "msg" => '非公開の投稿です。',
+                    ];
+                }
+            }
         }
-    } else {
-        $a = array('result' => false);
     }
+
     // check include url
     $a['baseurl'] = '';
     $nakotype = empty($a['nakotype']) ? 'wnako' : $a['nakotype'];
@@ -66,11 +78,10 @@ function n3s_show_get()
     $url = empty($a['url']) ? '' : $a['url'];
     if (!preg_match('/^https?:\/\//', $url)) $url = '';
     $a['url'] = $url;
-    // edit link
+    // get link url
     $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
-    $a['my_user_id'] = n3s_get_user_id();
     if ($a['user_id'] > 0) {
         // ユーザー情報を取得
         $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
@@ -78,6 +89,7 @@ function n3s_show_get()
     } else {
         $a['profile_url'] = 'skin/def/user-icon.png';
     }
+    $a['my_user_id'] = $my_user_id;
 
     // params
     n3s_action_save_check_param($a);
