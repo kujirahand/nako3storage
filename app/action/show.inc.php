@@ -3,20 +3,20 @@ include_once dirname(__FILE__) . '/save.inc.php';
 
 function n3s_web_show()
 {
-    $a = n3s_show_get();
+    $a = n3s_show_get('web');
     n3s_template_fw('show.html', $a);
 }
 
 function n3s_api_show()
 {
-    $a = n3s_show_get();
+    $a = n3s_show_get('api');
     unset($a['access_key']);
     unset($a['editkey']);
     unset($a['material_id']);
     n3s_api_output($a['result'], $a);
 }
 
-function n3s_show_get()
+function n3s_show_get($agent)
 {
     global $n3s_config;
 
@@ -44,6 +44,12 @@ function n3s_show_get()
                         "result" => false,
                         "msg" => '非公開の投稿です。',
                     ];
+                    if ($agent == 'web') {
+                        n3s_error(
+                            '非公開の投稿',
+                            'この投稿は非公開です。');
+                        exit;
+                    }
                 }
             }
         }
@@ -82,6 +88,9 @@ function n3s_show_get()
     $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
+    if (!isset($a['user_id'])) { $a['user_id'] = 0; }
+    if (!isset($a['ctime'])) { $a['ctime'] = 0; }
+    if (!isset($a['mtime'])) { $a['mtime'] = 0; }
     if ($a['user_id'] > 0) {
         // ユーザー情報を取得
         $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
