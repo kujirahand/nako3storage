@@ -2,7 +2,10 @@
 
 <div class="showblock">
   <div>
-    <h1>{{ $title | check_mudai }}</h1>
+    <h1>
+      {{ $title | check_mudai }}
+      {{if $is_private}}🔒{{endif}}
+    </h1>
     <p class="memo">{{ $memo }}</p>
   </div>
   <div>
@@ -35,6 +38,15 @@
     </span></li>
     {{endif}}
     <li>利用バージョン: {{ $version }}</li>
+    <li>
+      投稿日時: {{ $ctime | datetime }}
+      {{ if $ctime != $mtime }}
+        (編集: {{$mtime | datetime}})
+      {{ endif }}
+    </li>
+    {{if $is_private}}
+    <li>🔒 非公開の投稿</li>
+    {{endif}}
   </ul>
   {{if $app_id gt 0}}
   <div class="fav_block">
