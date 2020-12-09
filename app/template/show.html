@@ -63,7 +63,7 @@
   {{endif}}
 </div>
 {{if n3s_is_login()}}
-  {{if ($my_user_id === $user_id) || n3s_is_admin() }}
+  {{if ($my_user_id === $user_id) || n3s_is_admin() || $app_id == 0}}
   <div class="ctrl_block">
     <p><button onclick="saveClick()" class="pure-button">
       {{if ($app_id gt 0)}}編集{{else}}保存{{endif}}</button></p>
