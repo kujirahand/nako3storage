@@ -1,6 +1,7 @@
 {{ include parts_html_header.html }}
 
 <div class="saveform">
+  
   <h1>
     {{if $app_id gt 0}}
       (id: {{$app_id}}) プログラムの編集
@@ -8,6 +9,18 @@
       新規プログラムの保存
     {{endif}}
   </h1>
+
+  {{ if !n3s_is_login() }}
+    <div class="info_box" style="margin:1em;">
+      <p><b>現在ログインしていません。</b></p>
+      <p>Twitterアカウントでログインすると自分の投稿をまとめて管理できます。
+      また公開せず自分だけのために保存しておくこともできます。</p>
+      <p>
+        <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">
+          ログインする</a>
+      </p>
+    </div>
+  {{ endif }}
 
   {{ if $rewrite == 'yes' }}
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
@@ -127,6 +140,18 @@ function goRewrite() {
     e.value = v
   }
 }
+// presave ?
+const presaveMode = '{{$presave}}'
+if (presaveMode === 'yes') {
+  saveToLocalStorage();
+}
+function saveToLocalStorage() {
+  const body = document.getElementById('body')
+  localStorage['n3s_save_body'] = body.value
+  localStorage['n3s_canvas_w'] = 300
+  localStorage['n3s_canvas_h'] = 300
+}
+
 </script>
 
 {{ include parts_html_footer.html }}

@@ -15,6 +15,15 @@ function n3s_web_mypage()
         header('location:'.$login_url);
         exit;
     }
+    // ログインが完了してこのページが表示されたところ？
+    // そうならばセッションのn3s_on_after_loginをチェック
+    if (!empty($_SESSION['n3s_on_after_login'])) {
+        $url = $_SESSION['n3s_on_after_login'];
+        unset($_SESSION['n3s_on_after_login']);
+        header('location:'.$url);
+        exit;
+    }
+    // ユーザー情報を取得
     $user = n3s_get_login_info();
     $user_id = $user['user_id'];
     // 作品一覧を取得
@@ -25,6 +34,7 @@ function n3s_web_mypage()
         'name' => $user['name'],
         'apps' => $apps,
         'logout_url' => $logout_url,
+        'user' => $user,
     ]);
 }
 
