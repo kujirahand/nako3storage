@@ -94,21 +94,35 @@ function n3s_action_save_load_body(&$a) {
   }
 }
 
-function n3s_action_save_check_param(&$a, $check_error = FALSE) {
-  global $n3s_config;
+function n3s_check_field_size(&$a) {
+  // get max size
+  $size_source_max = n3s_get_config('size_source_max', 1024 * 1024 * 5); // 5MB
+  $size_field_max = n3s_get_config('size_field_max', 1024 * 5); // 5KB
   // check size & trim data
   foreach ($a as $k => &$v) {
-    if (isset($v) && is_string($v)) {
-      $v = trim($v);
-      if ($check_error) {
-        if ($k == 'body' && strlen($v) > $n3s_config['size_source_max']) {
-          throw new Exception('プログラムが最大文字数を超えています。');
-        }
-        else if (strlen($v) > $n3s_config['size_field_max']) {
-          throw new Exception('フィールドが最大文字数を超えています。');
-        }
-      }
+    if (!isset($v) || !is_string($v)) {
+      continue;
     }
+    $v = trim($v);
+    $size = strlen($v);
+    // body ?
+    if ($k == 'body') {
+      if ($size > $size_source_max) {
+        throw new Exception('プログラムが最大文字数を超えています。');
+      }
+      continue;
+    }
+    // other
+    if ($size > $size_field_max) {
+      throw new Exception('フィールドが最大文字数を超えています。');
+    }
+  }
+}
+
+
+function n3s_action_save_check_param(&$a, $check_error = FALSE) {
+  if ($check_error) {
+    n3s_check_field_size($a);
   }
   $a['app_id'] = isset($a['app_id']) ? intval($a['app_id']) : 0;
   $a['title'] = empty($a['title']) ? '' : $a['title'];

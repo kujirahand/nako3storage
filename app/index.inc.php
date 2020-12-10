@@ -10,7 +10,6 @@ function n3s_main()
     n3s_action();
 }
 
-
 function n3s_check_config()
 {
     global $n3s_config;
@@ -26,8 +25,8 @@ function n3s_check_config()
         "dir_sql" => "{$root}/app/sql",
         "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
         "file_db_material" => "sqlite:{$root}/data/n3s_material.sqlite",
-        "size_source_max" => 1024 * 1024 * 5, // 最大保存サイズ3MB
-        "size_field_max" => 1024 * 5,        // 最大フィールドサイズ3KB
+        "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
+        "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
         "page_title" => "nako3storage",
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
