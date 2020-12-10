@@ -65,7 +65,6 @@
   {{endif}}
 </div>
 
-
 <!-- 編集ボタン -->
 <div class="ctrl_block">
   {{if $app_id == 0}}
@@ -79,14 +78,22 @@
   {{endif}}
 </div>
 
+{{ if $app_id gt 0 }}
+<!-- URLを表示 -->
+<div class="showblock">
+  <span class="memo">→この作品のURL: </span><br>
+  <input class="info_link" type="text" value="{{$n3s_baseurl}}/id.php?{{$app_id}}">
+</div>
+{{ endif }}
+
 {{if $app_id gt 0}}
 <div class="ctrl_block" style="text-align:right;">
-  <div>
+  <div class="memo">
+    <a href="{{$badlink}}">通報って何？</a>
     <span id="bad">-</span>&nbsp;
     <button id="bad_button" class="pure-button">通報</button>
   </div>
   <div>&nbsp;</div>
-  <div class="memo"><a href="{{$badlink}}">通報って何？</a></div>
 </div>
 {{endif}}
 
