@@ -122,13 +122,18 @@
   {{endif}}
 </div>
 
-<script type="text/javascript">
+<script>
 // rewrite
-const rewriteMode = '{{$rewrite}}'
-if (rewriteMode === 'yes') {
-  setTimeout(goRewrite, 100)
+switch ('{{$rewrite}}') {
+  //
+  case 'no': break;
+  case 'yes': loadFromLocalStorage(); break;
+  //
+  case 'save': saveToLocalStorage(); break;
+  case 'load': loadFromLocalStorage(); break;
 }
-function goRewrite() {
+function loadFromLocalStorage() {
+  console.log('load from storage')
   // body
   const body = document.getElementById('body')
   body.value = localStorage['n3s_save_body']
@@ -140,18 +145,13 @@ function goRewrite() {
     e.value = v
   }
 }
-// presave ?
-const presaveMode = '{{$presave}}'
-if (presaveMode === 'yes') {
-  saveToLocalStorage();
-}
 function saveToLocalStorage() {
+  console.log('save to storage')
   const body = document.getElementById('body')
   localStorage['n3s_save_body'] = body.value
   localStorage['n3s_canvas_w'] = 300
   localStorage['n3s_canvas_h'] = 300
 }
-
 </script>
 
 {{ include parts_html_footer.html }}
