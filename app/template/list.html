@@ -16,10 +16,10 @@
     {{ for $list as $r }}
     <tr>
         <td>
-            <a href="p.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
+            <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
         </td>
         <td>
-            <a href="p.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+            <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
             {{if $r.fav > 0}}
             <br><span class='memo'>{{$r.fav | star}}</span>
             {{endif}}

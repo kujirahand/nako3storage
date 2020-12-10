@@ -59,7 +59,7 @@ GETでアクセスすると、プログラムと情報を取得できる。
 
 ## 仕様
 
-- `p.php?(id)` にアクセスすると `index.php?action=show&page=(id)` にリダイレクトする
+- `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
 
 ## Twitterログイン
 

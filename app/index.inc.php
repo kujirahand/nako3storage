@@ -66,7 +66,6 @@ function n3s_action()
         }
     }
     // アクションがなければエラーを表示
-    echo $file_action;
-    echo 'action error';
+    n3s_error('不正なページ', 'アクションが見当たりません。');
     exit;
 }
