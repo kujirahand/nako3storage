@@ -84,14 +84,15 @@ const clearButton = document.getElementById("clearButton")
 const runbox = document.getElementById('runbox')
 runButton.onclick = nako3_run;
 clearButton.onclick = nako3_clear;
-runbox.style.display = 'none'
 
 //--------------------------
 // canvas_w * canvas_h
 const canvas_w_txt = document.getElementById("canvas_w")
 const canvas_h_txt = document.getElementById("canvas_h")
-canvas_w_txt.onchange = function () { canvas_size_change() }
-canvas_h_txt.onchange = function () { canvas_size_change() }
+if (canvas_w_txt) {
+  canvas_w_txt.onchange = function () { canvas_size_change() }
+  canvas_h_txt.onchange = function () { canvas_size_change() }
+}
 function canvas_size_change() {
   const w = parseInt(canvas_w_txt.value)
   const h = parseInt(canvas_h_txt.value)

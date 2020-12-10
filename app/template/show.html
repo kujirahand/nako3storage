@@ -82,7 +82,11 @@
 <!-- URLを表示 -->
 <div class="showblock">
   <span class="memo">→この作品のURL: </span><br>
-  <input class="info_link" type="text" value="{{$n3s_baseurl}}/id.php?{{$app_id}}">
+  <input class="info_link" type="text" onclick="this.select()"
+    value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
+  <span class="memo">→ブログパーツのURL: </span><br>
+  <input class="info_link" type="text" onclick="this.select()"
+    value="{{$n3s_baseurl}}/widget.php?{{$app_id}}">
 </div>
 {{ endif }}
 
@@ -108,6 +112,8 @@
   // nako3 program info
   const app_id = {{ $app_id }};
   const nako_version = "{{ $version }}" + ".0.0.0"
+  const runbox_c = document.getElementById('runbox')
+  runbox_c.style.display = 'none'
 </script>
 <script defer type="text/javascript"
   src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
