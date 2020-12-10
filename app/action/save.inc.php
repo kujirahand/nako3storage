@@ -160,7 +160,7 @@ function n3s_action_save_data($data, $agent = 'web') {
       n3s_api_output(true, array("msg"=>"ok", "app_id"=>$app_id));
       return;
     } else {
-      $url = $n3s_config['baseurl']."/show.php?app_id={$app_id}";
+      $url = $n3s_config['baseurl']."/p.php?{$app_id}";
       header("location: $url");
     }
   } catch(Exception $e) {
