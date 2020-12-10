@@ -52,8 +52,12 @@ function n3s_show_get($agent)
 {
     global $n3s_config;
 
+    // check param app_id and page
+    $page = empty($_GET['page']) ? 'new' : $_GET['page'];
+    $app_id = $_GET['app_id'] = intval(empty($_GET['app_id']) ? $page : 0);
+    $n3s_config['app_id'] = $app_id;
+    
     $db = n3s_get_db();
-    $app_id = intval(n3s_get_config('app_id', 0));
     $a = ['result' => false];
     $my_user_id = n3s_get_user_id();
     if ($app_id > 0) {

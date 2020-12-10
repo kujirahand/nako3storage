@@ -19,10 +19,10 @@
         {{for $apps as $r}}
             <li>
                 <!-- button -->
-                <a href="p.php?{{$r.app_id}}" class="pure-button">{{$r.app_id}}</a>
+                <a href="id.php?{{$r.app_id}}" class="pure-button">{{$r.app_id}}</a>
                 {{if $r.is_private}}【非公開】{{else}}【公開中】{{endif}}
                 <!-- title -->
-                <a href="p.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
+                <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
                 <!-- memo -->
                 {{if $r.memo}}→{{$r.memo}}{{endif}}
                 <!-- date -->
