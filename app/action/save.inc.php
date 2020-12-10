@@ -191,8 +191,6 @@ function n3s_action_save_data_raw($data, $agent) {
     $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
     if (!$b) throw new Exception('app_idが不正です。');
     $b_user_id = $b['user_id'];
-    $a_editkey = n3s_hash_editkey($a['editkey']);
-    $b_editkey = $b['editkey'];
     // admin?
     if (!$is_admin) {
       if ($b_user_id > 0) {
@@ -200,15 +198,9 @@ function n3s_action_save_data_raw($data, $agent) {
         if ($user_id != $b_user_id) {
           throw new Exception('他人の投稿です。自分の投稿しか編集できません！');
         }
-      } else {
-        // ログインなしの場合
-        if ($a_editkey != $b_editkey) {
-          throw new Exception('編集キーが違います。');
-        }
       }
     }
   }
-  $a['editkey'] = n3s_hash_editkey($a['editkey']);
   $a['mtime'] = time();
   $ph = null;
   // 新規投稿の場合
