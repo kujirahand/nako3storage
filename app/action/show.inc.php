@@ -110,8 +110,17 @@ function n3s_show_get($agent)
         $a['profile_url'] = 'skin/def/user-icon.png';
     }
     $a['my_user_id'] = $my_user_id;
-    $a['n3s_baseurl'] = $n3s_config['baseurl'];
-
+    $n3s_url = $a['n3s_baseurl'] = $n3s_config['baseurl'];
+    // widget コード
+    $w = $a['canvas_w'];
+    $h = $a['canvas_h'];
+    if ($w < 50) { $w = 400; }
+    if ($h < 50) { $w = 400; }
+    $w += 32;
+    $h += 120; // margin
+    $a['widget_tag'] = <<< EOS
+<iframe width="$w" height="$h" src="$n3s_url/widget.php?$app_id"></iframe>
+EOS;
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);
