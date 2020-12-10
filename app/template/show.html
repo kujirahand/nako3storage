@@ -45,12 +45,14 @@
     </span></li>
     {{endif}}
     <li>利用バージョン: {{ $version }}</li>
+    {{if $app_id gt 0}}
     <li>
       投稿日時: {{ $ctime | datetime }}
       {{ if $ctime != $mtime }}
         (編集: {{$mtime | datetime}})
       {{ endif }}
     </li>
+    {{endif}}
     {{if $is_private}}
     <li>🔒 非公開の投稿</li>
     {{endif}}
