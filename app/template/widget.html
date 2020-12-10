@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{$title | check_mudai}} by {{$author | check_nanasi}} - なでしこv{{ $version }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="skin/def/pure-min.css">
+    <style>
+.fullscreen {
+  position: absolute;
+  height: 100vh;
+  width: 100%;
+  background-size: auto 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: rgba(0,0,0,0.5);
+}
+.msg_top {
+  font-size: 12px;
+  padding: 1em;
+}
+.msg {
+  background-color: rgba(120, 0, 90, 0.8);
+  color: white;
+  margin: 1px;
+  font-size: 16px;
+  text-align: center;
+  padding-top: 2em;
+  padding-bottom: 2em;
+}
+#nako3code {
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: gray;
+  padding: 8px;
+  margin: 1px;
+  font-size: 12px;
+  text-align: left; 
+}
+#nako3_canvas {
+  border: 1px dotted silver;
+}
+#nako3_info {
+  padding: 8px;
+  margin: 0;
+}
+#runbox {
+  text-align: center;
+  padding: 8px;
+}
+#buttons {
+  text-align: center;
+  padding: 4px;
+}
+.memo {
+  color: gray;
+  font-size: 0.8em;
+  text-align: center;
+}
+    </style>
+  </head>
+  <body>
+    <!-- click to start -->
+    <div id="start_screen" class="fullscreen">
+      <div class="msg_top">&nbsp;</div>
+      <div class="msg"><span class="pure-button">▶ 実 行</span></div>
+    </div>
+    <div id="buttons">
+      <button id="runButton" class="pure-button">▶ 実行</button>
+      <button id="clearButton" class="pure-button">クリア</button>
+    </div>
+    <div id="runbox">
+      <div class="nako3row nako3info" id="nako3_info"></div>
+      <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
+      <div id='nako3_div' class='nako3_div'></div>
+    </div>
+    <div class="memo"><a href="id.php?{{$app_id}}">{{$title}}</a> by {{$author}} ({{$mtime | datetime}})</div>
+    <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
+            
+    <!-- script for nadesiko3 -->
+    {{ $import_nako | raw }}
+    
+    <!-- script for nako3storage-->
+    <script type="text/javascript">
+      // nako3storage info
+      const baseurl = "{{ $baseurl | safe }}";
+      // nako3 program info
+      const app_id = {{ $app_id }};
+      const nako_version = "{{ $version }}" + ".0.0.0"
+    </script>
+    <script defer type="text/javascript"
+      src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+    <script>
+      const start_screen = document.getElementById('start_screen')
+      start_screen.onclick = function () {
+        start_screen.style.display = 'none'
+        runButton.click()
+      }
+    </script>
+  </body>
+</html>
