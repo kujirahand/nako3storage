@@ -2,11 +2,14 @@
 
 <div class="showblock">
     <h1>
+        <img src="{{$user.profile_url}}" width="48">&nbsp;
         {{$user_id}}: {{$name}} さんのマイページ
         {{if n3s_is_admin()}}(管理者){{endif}}
     </h1>
     <div style="padding:1em;">
-        <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
+        <div>
+            <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
+        </div>
     </div>
     <div class="memo"></div>
     <div></div>

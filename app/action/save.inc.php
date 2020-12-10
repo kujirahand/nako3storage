@@ -51,6 +51,7 @@ function n3s_web_save() {
     $a['user_id'] = $user['user_id'];
     $a['author'] = $user['name'];
   }
+  $a['presave'] = 'no';
   n3s_template_fw('save.html', $a);
 }
 

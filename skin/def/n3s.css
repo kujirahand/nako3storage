@@ -217,3 +217,11 @@ h2 {
   height: 150px;
   background-color: #f0f0f0;
 }
+
+.info_box {
+  padding: 1em;
+  font-size: 0.8em;
+  color: black;
+  background-color: #ffe0e0;
+  line-height: 1.7em;
+}
