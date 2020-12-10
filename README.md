@@ -17,9 +17,9 @@
 - `bash scripts/setup.sh`コマンドを実行する
 - 必要ライブラリのインストール `cd app` そして `composer install`
 
-# 外部のプログラムとの連携
+# 外部のプログラムから保存したい場合
 
-Webの<form>を使う場合、以下のURLに body=xxx&version=(なでしこバージョン) をポストすれば良い。
+Webフォームから、以下のURLに body=xxx&version=(なでしこバージョン) をポストすれば良い。
 
 ```
 <設置url>/index.php?page=0&action=presave
@@ -42,7 +42,6 @@ POST メソッドで以下のデータを送信すると、プログラムを保
 - email --- 連絡先
 - memo --- プログラムの説明
 - version --- 利用しているなでしこのバージョン
-- editkey --- 編集する時に必要なキー
 - is_private --- 通常は0を。プログラムを非公開にしたいときは1を指定。
 - need_key --- 0:公開 1:access_keyを指定する (まだ未実装)
 - access_key --- need_keyを1にしたい際に必要 (まだ未実装
@@ -53,14 +52,14 @@ POST メソッドで以下のデータを送信すると、プログラムを保
 ### プログラムの読み込み
 
 ```
-<設置url>/api.php?(app_id)&show
+<設置url>/api.php?action=show&page=(app_id)
 ```
 
 GETでアクセスすると、プログラムと情報を取得できる。
 
 ## 仕様
 
-- `p.php?(id)` にアクセスすると `show.php?app_id=(id)` にリダイレクトする
+- `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
 
 ## Twitterログイン
 
