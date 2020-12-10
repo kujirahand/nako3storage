@@ -110,6 +110,7 @@ function n3s_show_get($agent)
         $a['profile_url'] = 'skin/def/user-icon.png';
     }
     $a['my_user_id'] = $my_user_id;
+    $a['n3s_baseurl'] = $n3s_config['baseurl'];
 
     // params
     n3s_action_save_check_param($a);

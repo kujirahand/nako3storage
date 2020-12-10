@@ -226,3 +226,14 @@ h2 {
   background-color: #ffe0e0;
   line-height: 1.7em;
 }
+
+.info_link {
+  background-color:white;
+  color: gray;
+  font-size: 0.8em;
+  width: 100%;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid #ffc0c0;
+}
