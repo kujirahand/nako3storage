@@ -16,6 +16,38 @@ function n3s_api_show()
     n3s_api_output($a['result'], $a);
 }
 
+// check private app
+function n3s_check_private(&$a)
+{
+    if (!$a) { return; }
+    $a['result'] = isset($a['app_id']);
+    // プライベートな作品であれば他人には見せない
+    $user_id = $a['user_id'];
+    $is_private = $a['is_private'];
+    if ($is_private) {
+        // 管理者は見れる
+        if (n3s_is_admin()) {
+            // ok
+        } else {
+            // 自分なら見れる
+            if ($user_id === $my_user_id) {
+                // ok
+            } else {
+                $a = [
+                    "result" => false,
+                    "msg" => '非公開の投稿です。',
+                ];
+                if ($agent == 'web') {
+                    n3s_error(
+                        '非公開の投稿',
+                        'この投稿は非公開です。');
+                    exit;
+                }
+            }
+        }
+    }
+}
+
 function n3s_show_get($agent)
 {
     global $n3s_config;
@@ -27,32 +59,7 @@ function n3s_show_get($agent)
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
         $a = db_get1($sql);
-        $a['result'] = isset($a['app_id']);
-        // プライベートな作品であれば他人には見せない
-        $user_id = $a['user_id'];
-        $is_private = $a['is_private'];
-        if ($is_private) {
-            // 管理者は見れる
-            if (n3s_is_admin()) {
-                // ok
-            } else {
-                // 自分なら見れる
-                if ($user_id === $my_user_id) {
-                    // ok
-                } else {
-                    $a = [
-                        "result" => false,
-                        "msg" => '非公開の投稿です。',
-                    ];
-                    if ($agent == 'web') {
-                        n3s_error(
-                            '非公開の投稿',
-                            'この投稿は非公開です。');
-                        exit;
-                    }
-                }
-            }
-        }
+        n3s_check_private($a);
     }
 
     // check include url
