@@ -117,36 +117,40 @@ function saveClick() {
 //--------------------------
 // fav
 const fav_button = document.getElementById('fav_button')
-const fav = document.getElementById('fav')
-fav_button.onclick = function () {
-  fav_button.disabled = true
-  ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
-    fav.innerHTML = txt
-  })
-
+if (fav_button) { // fav_button が非表示になることがある
+  const fav = document.getElementById('fav')
+  fav_button.onclick = function () {
+    fav_button.disabled = true
+    ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
+      fav.innerHTML = txt
+    })
+  
+  }
+  setTimeout(function(){
+    ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
+      fav.innerHTML = txt
+    })
+  }, 1000)  
 }
-setTimeout(function(){
-  ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
-    fav.innerHTML = txt
-  })
-}, 1000)
 
 //--------------------------
 // 通報(bad)
 const bad_button = document.getElementById('bad_button')
 const bad = document.getElementById('bad')
-bad_button.onclick = function () {
-  bad_button.disabled = true
-  ajax(`api.php?page=${app_id}&action=bad&q=up`, function(txt, r){
-    bad.innerHTML = txt
-  })
-
+if (bad_button) { //  非表示になることがあるので
+  bad_button.onclick = function () {
+    bad_button.disabled = true
+    ajax(`api.php?page=${app_id}&action=bad&q=up`, function(txt, r){
+      bad.innerHTML = txt
+    })
+  
+  }
+  setTimeout(function(){
+    ajax(`api.php?page=${app_id}&action=bad`, function(txt, r){
+      bad.innerHTML = txt
+    })
+  }, 2000)
 }
-setTimeout(function(){
-  ajax(`api.php?page=${app_id}&action=bad`, function(txt, r){
-    bad.innerHTML = txt
-  })
-}, 2000)
 
 function ajax(url, callback) {
   const req = new XMLHttpRequest();
