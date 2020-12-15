@@ -112,8 +112,8 @@ function n3s_show_get($agent)
     $a['my_user_id'] = $my_user_id;
     $n3s_url = $a['n3s_baseurl'] = $n3s_config['baseurl'];
     // widget コード
-    $w = $a['canvas_w'];
-    $h = $a['canvas_h'];
+    $w = isset($a['canvas_w']) ? $a['canvas_w'] : 400;
+    $h = isset($a['canvas_h']) ? $a['canvas_h'] : 400;
     if ($w < 50) { $w = 400; }
     if ($h < 50) { $w = 400; }
     $w += 32;
