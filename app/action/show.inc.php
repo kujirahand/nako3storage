@@ -17,13 +17,14 @@ function n3s_api_show()
 }
 
 // check private app
-function n3s_check_private(&$a)
+function n3s_check_private(&$a, $agent)
 {
     if (!$a) { return; }
     $a['result'] = isset($a['app_id']);
     // プライベートな作品であれば他人には見せない
     $user_id = $a['user_id'];
     $is_private = $a['is_private'];
+    $my_user_id = n3s_get_user_id();
     if ($is_private) {
         // 管理者は見れる
         if (n3s_is_admin()) {
@@ -63,7 +64,7 @@ function n3s_show_get($agent)
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
         $a = db_get1($sql);
-        n3s_check_private($a);
+        n3s_check_private($a, $agent);
     }
 
     // check include url
