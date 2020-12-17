@@ -47,14 +47,14 @@ function t_safe($v) {
 function t_star($v) {
   $mi = $ni = intval($v);
   if ($mi > 3) {
-    $mi = 3;
+    $mi = 5;
   }
   $s = "";
   for ($i = 0; $i < $mi; $i++) {
     $s .= '⭐';
   }
   if ($ni > 5) {
-    $s .= '..';
+    $s = "<span class='crown'>{$s}...👍".$ni."</span>";
   }
   return $s;
 }
