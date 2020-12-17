@@ -60,7 +60,7 @@
   {{if $app_id gt 0}}
   <div class="fav_block">
     <button id="fav_button" class="pure-button">気に入った 😋</button>
-    &nbsp;<span id="fav">-</span>
+    &nbsp;<span id="fav">{{ $fav | star }}</span>
   </div>
   {{endif}}
 </div>
