@@ -127,11 +127,12 @@ if (fav_button) { // fav_button が非表示になることがある
     })
   
   }
-  setTimeout(function(){
+  // favの値を取得する --- 現在不使用
+  function getFavCount(){
     ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
       fav.innerHTML = txt
     })
-  }, 1000)  
+  }
 }
 
 //--------------------------
