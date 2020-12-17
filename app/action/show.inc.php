@@ -31,7 +31,7 @@ function n3s_check_private(&$a, $agent)
             // ok
         } else {
             // 自分なら見れる
-            if ($user_id === $my_user_id) {
+            if ($user_id == $my_user_id) {
                 // ok
             } else {
                 $a = [
