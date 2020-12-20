@@ -67,10 +67,15 @@
       </label>
     </p>
     <p>
-      <label>プライベート:<br />
+      <label>非公開設定:<br />
       {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
       <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
       非公開にする
+      </label>
+    </p>
+    <p>
+      <label>一時アクセスキー(非公開の作品を他人に見せたい時に以下のキーを設定します。空ならアクセス不可。):<br />
+      <input name="access_key" type="text" value="{{$access_key}}" />
       </label>
     </p>
     <p>
