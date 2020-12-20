@@ -227,6 +227,25 @@ h2 {
   line-height: 1.7em;
 }
 
+.crown {
+  color: #ffb0b0;
+}
+
+.blogparts {
+  line-height: 1.3em;
+  margin: 1em;
+  border: 1px dotted #e0e0e0;
+  padding: 1em;
+  background-color: #fffff0;
+}
+
+.blogparts input {
+  background-color: #fffff0;
+  padding: 8px;
+  margin-left: 1em;
+  width: 90%;
+}
+
 .info_link {
   background-color:white;
   color: gray;
@@ -235,9 +254,6 @@ h2 {
   border-top: none;
   border-left: none;
   border-right: none;
-  border-bottom: 1px solid #ffc0c0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.crown {
-  color: #ffb0b0;
-}
