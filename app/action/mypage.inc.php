@@ -28,6 +28,7 @@ function n3s_web_mypage()
     $user_id = $user['user_id'];
     // 作品一覧を取得
     $apps = db_get('SELECT * FROM apps WHERE user_id=? ORDER BY app_id DESC', [$user_id]);
+    $images = db_get('SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC', [$user_id]);
     // ユーザー情報
     n3s_template_fw('mypage.html', [
         'user_id' => $user_id,
@@ -35,6 +36,8 @@ function n3s_web_mypage()
         'apps' => $apps,
         'logout_url' => $logout_url,
         'user' => $user,
+        'images' => $images,
+        'url_images' => n3s_get_config('url_images', '/images'),
     ]);
 }
 

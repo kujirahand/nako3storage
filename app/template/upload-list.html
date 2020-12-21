@@ -1,0 +1,25 @@
+{{ include parts_html_header.html }}
+
+{{ if $images }}
+<div class="showblock">
+  <h1>画像の一覧</h1>
+  <p>以下の素材画像はパブリックドメイン(CC0)のものです。</p>
+  <ul>
+    {{ for $images as $i }}
+    <li><a href="{{$i.info_url}}">タイトル: {{$i.title}}<br>
+      <img src="{{$i.image_url}}" width="400"></a></li>
+    {{ endfor }}
+  </ul>
+</div>
+
+<div class="showblock">
+  <a href="{{$next_url}}" class="pure-button">次へ</a>
+</div>
+{{ else }}
+<div class="showblock">
+  <h1>画像はまだアップロードされていません。</h1>
+</div>
+{{ endif }}
+
+
+{{ include parts_html_footer.html }}
