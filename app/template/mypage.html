@@ -2,17 +2,12 @@
 
 <div class="showblock">
     <h1>
-        <img src="{{$user.profile_url}}" width="48">&nbsp;
         {{$user_id}}: {{$name}} さんのマイページ
         {{if n3s_is_admin()}}(管理者){{endif}}
     </h1>
-    <div style="padding:1em;">
-        <div>
-            <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
-        </div>
-    </div>
-    <div class="memo"></div>
-    <div></div>
+</div>
+
+<div class="showblock">
     <h3>投稿したアプリの一覧</h3>
     {{if $apps }}
         <div><ul>
@@ -36,6 +31,47 @@
     <div>ありません。</div>
     {{endif}}
 </div>
+
+<div class="showblock">
+    <h3>素材のアップロード</h3>
+    <div>
+        <ul>
+            <!-- files -->
+            {{ for $images as $i }}
+            <li>
+                <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
+                {{$i.title}} - 
+                <span class="memo">{{$r.mtime | date2}}</span>
+            </li>
+            {{ endfor }}
+            <!-- button -->
+            <li><a href="index.php?action=upload" class="pure-button">ファイルのアップロード</a></li>
+        </ul>
+    </div>
+</div>
+    
+<div class="showblock" style="border-top: 1px dotted silver;">
+    <div style="padding:1em;">
+        <div>
+            <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
+            <!-- img src="{{$user.profile_url}}" width="48" -->
+        </div>
+    </div>
+</div>
+
+<script>
+function checkDelete(image_id) {
+    const n = confirm('ID:' + image_id + 'のファイルを削除しますが良いですか？')
+    if (!n) {
+        alert('削除しません😃')
+        return
+    }
+    // delete image
+    const tm = Math.floor((new Date()).getTime() / 1000)
+    location.href = "index.php?action=upload&mode=delete&image_id=" + image_id + '&tm=' + tm
+}
+</script>
+
 
 
 {{ include parts_html_footer.html }}

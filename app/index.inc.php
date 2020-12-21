@@ -3,6 +3,7 @@ include_once dirname(__FILE__) . '/n3s_lib.inc.php';
 
 n3s_main();
 
+
 function n3s_main()
 {
     n3s_check_config();
@@ -14,10 +15,13 @@ function n3s_check_config()
 {
     global $n3s_config;
     $root = dirname(dirname(__FILE__));
+    $url_root = dirname($_SERVER['REQUEST_URI']);
     $def_values = array(
         "admin_users" => [1],
         "admin_contact_link" => "(Please set admin_contact_link in config file.)",
         "dir_data" => "{$root}/data",
+        "dir_images" => "{$root}/images",
+        "url_images" => "{$url_root}/images",
         "dir_app" => "{$root}/app",
         "dir_template" => "{$root}/app/template",
         'dir_cache' => $root.'/cache',
@@ -27,6 +31,7 @@ function n3s_check_config()
         "file_db_material" => "sqlite:{$root}/data/n3s_material.sqlite",
         "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
         "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
+        "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
         "page_title" => "nako3storage",
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),

@@ -76,6 +76,9 @@
       {{endif}}
     {{endif}}
   {{endif}}
+  {{ if n3s_is_login() }}
+  <p><a href="index.php?action=upload" class="pure-button">素材アップロード</a></p>
+  {{ endif }}
 </div>
 
 {{ if $app_id gt 0 }}
@@ -121,6 +124,12 @@
   const nako_version = "{{ $version }}" + ".0.0.0"
   const runbox_c = document.getElementById('runbox')
   runbox_c.style.display = 'none'
+  // check modified
+  const nako3code = document.getElementById('nako3code')
+  nako3code.addEventListener("change", (e) => {
+    localStorage["n3s_save_body"] = nako3code.value
+  })
+  
 </script>
 <script defer type="text/javascript"
   src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
