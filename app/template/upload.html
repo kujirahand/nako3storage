@@ -1,0 +1,64 @@
+{{ include parts_html_header.html }}
+
+<div class="saveform">
+  <p>画像のアップロード:</p>
+  <div>
+    <form enctype="multipart/form-data"
+      action="{{$baseurl}}/index.php?action=upload&mode=go"
+      method="POST"
+      onsubmit="return checkForm();">
+      <!-- MAX_FILE_SIZE は、必ず "file" input フィールドより前に。3MBを指定。 -->
+      <input type="hidden" name="MAX_FILE_SIZE" value="3145728" />
+      <div style="padding:6px">
+        <input id="userfile" name="userfile" type="file" accept="image/*" class="pure-button" />
+      </div>
+      <div>
+        <label>
+          タイトル:<br>
+          <input type="text" name="title">
+        </label><br>
+        <label>
+          著作権の同意:<br>
+          <input type="checkbox" name="copyright" id="copyright" value="cc0">このファイルを
+          <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja">パブリックドメイン(CC0)</a>として提供します。
+        </label>
+      </div>
+      <div style="padding:6px;">
+        <input type="submit" value="ファイルを送信" class="pure-button-primary pure-button" />
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function checkForm() {
+    const MAX_FILE_SIZE = 1024 * 1024 * 3
+    const userfile = document.getElementById('userfile')
+    if (!userfile.files || userfile.files.length == 0) {
+      alert('ファイルを指定してください')
+      return false
+    }
+    const file = userfile.files[0]
+    // 拡張子のチェック
+    const fname = file.name.toLowerCase()
+    if (!fname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      alert('アップロードできるのは、JPEG/GIF/PNG画像のみです。')
+      return false
+    }
+    // ファイルサイズのチェック
+    if (file.size > MAX_FILE_SIZE) {
+      alert('ファイルサイズが大きすぎます。リサイズして小さくしてください。')
+      return false
+    }
+    // 著作権のチェック
+    const copyright = document.getElementById('copyright')
+    if (!copyright.checked) {
+      alert('著作権の欄にチェックを入れてください。')
+      return false
+    }
+    return true
+ }
+</script>
+
+
+{{ include parts_html_footer.html }}

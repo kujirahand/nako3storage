@@ -1,0 +1,33 @@
+{{ include parts_html_header.html }}
+
+<div class="saveform">
+  <h1>{{$msg}}</h1>
+  <p>以下のURLをコピーしてプログラムでご利用ください。</p>
+  <ul>
+    <li>ID: {{$image_id}}</li>
+    <li>提供者: <a href="https://twitter.com/{{$user.screen_name}}">
+      <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></li>
+    <li>タイトル: {{$title}}</li>
+    <li>URL: <input type="text" onclick="this.select()" value="{{$image_url}}"></li>
+    <li><a href="{{$image_url}}"><img src="{{$image_url}}" width="400"></a></li>
+  </ul>
+</div>
+
+{{ if n3s_is_login() && $can_edit }}
+<div class="saveform">
+  <h1>ファイルの管理</h1>
+  <div style="border:1px dotted silver;">
+    <form action="index.php?action=upload&mode=delete" method="POST">
+      <input type="hidden" name="image_id" value={{$image_id}} />
+      <input type="hidden" name="acc_token" value={{$acc_token}} />
+      <label id="really">
+        本当にファイル削除しますか？:<br>
+        <input id="really" type="checkbox" name="really" value="delete"> 削除する
+      </label><br>
+      <input type="submit" value="ファイルを削除" class="pure-button">
+    </form>
+  </div>
+</div>
+{{ endif }}
+
+{{ include parts_html_footer.html }}
