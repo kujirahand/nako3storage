@@ -4,6 +4,17 @@
     <title>{{$title | check_mudai}} by {{$author | check_nanasi}} - なでしこv{{ $version }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="skin/def/pure-min.css">
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{$title | check_mudai}}-{{$author | check_nanasi}}作">
+    <meta property="og:type" content="product">
+    <meta property="og:url" 
+       content="{{$widget_url}}">
+    <meta property="og:site_name" content="日本語プログラミング言語「なでしこ」">
+    <meta property="og:description" 
+       content="{{$memo}}">
+    <meta property="og:image" 
+       content="{{$root_url}}/images/0-preview.png">
+
     <style>
 .fullscreen {
   position: absolute;

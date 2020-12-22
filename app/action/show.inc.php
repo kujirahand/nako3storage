@@ -117,11 +117,16 @@ function n3s_show_get($agent)
     $h = isset($a['canvas_h']) ? $a['canvas_h'] : 400;
     if ($w < 50) { $w = 400; }
     if ($h < 50) { $w = 400; }
+    // for widget
     $w += 32;
     $h += 120; // margin
-    $a['widget_tag'] = <<< EOS
-<iframe width="$w" height="$h" src="$n3s_url/widget.php?$app_id"></iframe>
-EOS;
+    $wurl = "$n3s_url/widget.php?$app_id";
+    if ($a['is_private']) {
+        $wurl .= "&access_key=".$a['access_key'];
+    }
+    $a['widget_url'] = $wurl;
+    $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
+    $a['root_url'] = n3s_get_config('baseurl', '');
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);

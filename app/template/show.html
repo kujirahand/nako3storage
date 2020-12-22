@@ -78,6 +78,8 @@
   {{endif}}
   {{ if n3s_is_login() }}
   <p><a href="index.php?action=upload" class="pure-button">素材アップロード</a></p>
+  {{ else }}
+  <p><a href="index.php?action=login">ログイン</a>するとファイルをアップロードできます。</p>
   {{ endif }}
 </div>
 
@@ -86,15 +88,15 @@
 <div class="blogparts">
   {{ if $is_private }}
     {{ if $access_key != "" }}
-    <span class="memo"><a href="{{$n3s_baseurl}}/widget.php?{{$app_id}}&access_key={{$access_key}}">→一時公開用ブログパーツのURL</a>: </span><br>
+    <span class="memo"><a href="{{$widget_url}}">→一時公開用ブログパーツのURL</a>: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
-    value="{{$n3s_baseurl}}/widget.php?{{$app_id}}&access_key={{$access_key}}"><br>
+    value="{{$widget_url}}"><br>
     {{ endif }}
   {{ else }}
   <span class="memo">→この作品のURL: </span><br>
   <input class="info_link" type="text" onclick="this.select()"
     value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
-  <span class="memo"><a href="{{$n3s_baseurl}}/widget.php?{{$app_id}}">→ブログパーツのURL</a>: </span><br>
+  <span class="memo"><a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
   <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}">
   {{ endif }}
 </div>
