@@ -36,7 +36,7 @@ function to_html(s) {
   return s.replace(/\&/g, '&amp;')
           .replace(/\</g, '&lt;')
           .replace(/\>/g, '&gt;')
-          .replace(/\\n/g, '<br>')
+          .replace(/(\r\n|\n|\r)/g, '<br>')
 }
 function nako3_run() {
   var va = nako_version.split(".")
