@@ -121,6 +121,7 @@ function n3s_show_get($agent)
     $w += 32;
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
+    $a['is_private'] = isset($a['is_private']) ? $a['is_private'] : FALSE;
     if ($a['is_private']) {
         $wurl .= "&access_key=".$a['access_key'];
     }
