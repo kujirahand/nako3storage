@@ -62,56 +62,56 @@ function template_render($tpl_filename, $tpl_params) {
   $fw_contents = preg_replace_callback_array([
     // flow
     // {{ eval code }} {{e:code}}
-    '#\{\{\s*(eval|e)[\s\:]+(.+?)}}#is' => function (&$m) {
+    '#\{\{\s*(eval|e)[\s\:]+(.+?)}}#is' => function ($m) {
       $code = $m[2];
       return "<?php $code;?>";
     },
     // {{ include filename }} 
-    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function (&$m) use ($tpl_params){
+    '#\{\{\s*include\s+[\'\"]?(.+?)[\'\"]?\s*}}#is' => function ($m) use ($tpl_params){
       $file = $m[1];
       // $enc = json_encode($tpl_params);
       return "<?php template_render('$file', []);?>";
     },
     // {{ if $var.name cond }} 
-    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function (&$m) {
+    '#\{\{\s*if\s+\$([a-zA-Z0-9_\.]+)(.*?)\}\}#is' => function ($m) {
       $var = template_var_name($m[1]);
       $cond = check_eq_flag($m[2]);
       return "<?php if (\${$var} {$cond}):/*if_var_cond*/ ?>";
     },
     // {{ if cond }} 
-    '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function (&$m) {
+    '#\{\{\s*if\s+(.+?)\s*\}\}#is' => function ($m) {
       $cond = check_eq_flag($m[1]);
       return "<?php if ($cond): ?>";
     },
-    '#\{\{\s*else\s*(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*else\s*(.*?)}}#is' => function ($m) {
       return "<?php else: ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9_]+)\s*\=\>\s*\$([a-zA-Z0-9]+)\s*}}#is' => function ($m) {
       $ary = template_var_name($m[2]);
       $key = $m[3];
       $val = $m[4];
       return "<?php foreach (\${$ary} as \${$key} => \${$val}): ?>";
     },
     // {{ for $vars as $key => $val }}
-    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function (&$m) {
+    '#\{\{\s*(for|foreach)\s+\$([a-zA-Z0-9_\.]+)\s+as\s+\$([a-zA-Z0-9]+)\s*}}#i' => function ($m) {
       $ary = template_var_name($m[2]);
       $val = $m[3];
       return "<?php foreach (\${$ary} as \${$val}): ?>";
     },
-    '#\{\{\s*(endif|endfor|endforeach|end)\s*(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*(endif|endfor|endforeach|end)\s*(.*?)}}#is' => function ($m) {
       $end = $m[1];
       if ($end == 'endfor') { $end = 'endforeach'; }
       return "<?php $end; ?>";
     },
     // varname with filter
-    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*\|\s*([a-zA-Z0-9_]+)\s*}}#is' => function ($m) {
       $key = template_var_name($m[1]);
       $filter = $m[2];
       return "<?php echo t_{$filter}(\$$key);?>";
     },
     // varname only
-    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*}}#is' => function (&$m) {
+    '#\{\{\s*\$([a-zA-Z0-9_.]+)\s*}}#is' => function ($m) {
       $key = template_var_name($m[1]);
       return "<?php echo t_echo(\$$key);?>";
     },
@@ -122,7 +122,7 @@ function template_render($tpl_filename, $tpl_params) {
       return "<?php echo t_{$filter}($str);?>";
     },
     // comment
-    '#\{\{\s*\#(.*?)}}#is' => function (&$m) {
+    '#\{\{\s*\#(.*?)}}#is' => function ($m) {
       return "";
     },
   ], $fw_contents);
