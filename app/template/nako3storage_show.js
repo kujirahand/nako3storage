@@ -51,7 +51,7 @@ function nako3_run() {
   }
   var code_e = document.getElementById("nako3code")
   if (!code_e) return
-  var code = code_e.value
+  var code = editor.getValue()
   var div_name = '#nako3_div'
   const head =
     "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
@@ -108,7 +108,7 @@ function canvas_size_change() {
 function saveClick() {
   const code_e = document.getElementById("nako3code");
   localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = code_e.value
+  localStorage["n3s_save_body"] = editor.getValue()
   localStorage["n3s_action_time"] = (new Date()).getTime()
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value
