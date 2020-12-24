@@ -121,12 +121,14 @@ function n3s_show_get($agent)
     $w += 32;
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
+    $a['is_private'] = isset($a['is_private']) ? $a['is_private'] : FALSE;
     if ($a['is_private']) {
         $wurl .= "&access_key=".$a['access_key'];
     }
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
     $a['root_url'] = n3s_get_config('baseurl', '');
+    $a['url_images'] = n3s_get_config('url_images', ''); 
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);
