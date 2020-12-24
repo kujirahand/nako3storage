@@ -82,7 +82,15 @@ function n3s_show_get($agent)
         $wnako = "$baseurl/release/wnako3.js";
         $js_a[] = "<script defer src=\"$wnako\"></script>";
         // add other plugins
-        $pname_list = ['plugin_csv', 'plugin_datetime', 'plugin_markup', 'plugin_kansuji', 'plugin_turtle'];
+        $pname_list = [
+            'plugin_csv', 
+            'plugin_datetime', 
+            'plugin_markup', 
+            'plugin_kansuji', 
+            'plugin_turtle',
+            'plugin_caniuse',
+            'plugin_webworker'
+        ];
         foreach ($pname_list as $p) {
             $src = "{$baseurl}release/{$p}.js";
             $js_a[] = "<script defer src=\"$src\"></script>";
