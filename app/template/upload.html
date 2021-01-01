@@ -1,16 +1,16 @@
 {{ include parts_html_header.html }}
 
 <div class="saveform">
-  <p>画像のアップロード:</p>
+  <p>画像/音声/テキストのアップロード:</p>
   <div>
     <form enctype="multipart/form-data"
       action="{{$baseurl}}/index.php?action=upload&mode=go"
-      method="POST"
+      method="POST" class="pure-form"
       onsubmit="return checkForm();">
       <!-- MAX_FILE_SIZE は、必ず "file" input フィールドより前に。3MBを指定。 -->
       <input type="hidden" name="MAX_FILE_SIZE" value="3145728" />
       <div style="padding:6px">
-        <input id="userfile" name="userfile" type="file" accept="image/*" class="pure-button" />
+        <input id="userfile" name="userfile" type="file" class="pure-button" />
       </div>
       <div>
         <label>
@@ -41,7 +41,7 @@
     const file = userfile.files[0]
     // 拡張子のチェック
     const fname = file.name.toLowerCase()
-    if (!fname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    if (!fname.match(/\.(jpg|jpeg|png|gif|mp3|ogg|csv|tsv|json|txt)$/)) {
       alert('アップロードできるのは、JPEG/GIF/PNG画像のみです。')
       return false
     }

@@ -68,10 +68,10 @@ function go_upload() {
     }
     $fname = strtolower($fname);
     $ext = '.jpg';
-    if (preg_match('/(\.(jpg|jpeg|gif|png))$/i', $fname, $m)) {
+    if (preg_match('/(\.(jpg|jpeg|gif|png|mp3|ogg|txt|csv|tsv|json))$/i', $fname, $m)) {
         $ext = strtolower($m[1]);
     } else {
-        n3s_error('アップロード失敗', "画像ファイルのみアップロードできます。");
+        n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみアップロードできます。");
         return;
     }
     $user_id = n3s_get_user_id();
@@ -197,7 +197,13 @@ function list_image() {
         'ORDER BY image_id DESC LIMIT ?', [$max_id, $PER_PAGE]);
     foreach ($images as &$i) {
         $max_id = $i['image_id'] - 1;
-        $i['image_url'] = n3s_get_config('url_images', 'images/')."/{$i['filename']}";
+        $fname = $i['filename'];
+        $is_image = False;
+        if (preg_match('/\.(jpg|jpeg|png|gif)$/', $fname)) {
+            $is_image = True;
+        }
+        $i['is_image'] = $is_image;
+        $i['image_url'] = n3s_get_config('url_images', 'images/')."/{$fname}";
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id'=>$i['image_id'], 'mode'=>'show']);
     }
     $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode'=>'list']);
