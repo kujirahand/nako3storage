@@ -74,6 +74,11 @@ function n3s_show_get($agent)
     $a['import_nako'] = '';
     if ($nakotype === "wnako") {
         $version = preg_replace("/[^0-9.]/", "", $version);
+        $ver_a = explode(".", $version.'.0.0');
+        $v1 = intval($ver_a[0]); // 3_00_00
+        $v2 = intval($ver_a[1]); // 3_99_00
+        $v3 = intval($ver_a[2]); // 3_11_99
+        $ver = $v1 * 10000 + $v2 * 100 + $v3;
         $baseurl = "https://nadesi.com/v3/cdn.php?v=$version&f=";
         $a['baseurl'] = $baseurl;
         // plugins
@@ -83,14 +88,19 @@ function n3s_show_get($agent)
         $js_a[] = "<script defer src=\"$wnako\"></script>";
         // add other plugins
         $pname_list = [
+            'plugin_turtle',
             'plugin_csv', 
-            'plugin_datetime', 
+            'plugin_datetime',
             'plugin_markup', 
             'plugin_kansuji', 
-            'plugin_turtle',
             'plugin_caniuse',
             'plugin_webworker'
         ];
+        if (30105 < $ver) {
+            $pname_list = array_slice($pname_list, 0, 1);
+        } else if (30111 < $ver) {
+            $pname_list = array_slice($pname_list, 0, 4);
+        }
         foreach ($pname_list as $p) {
             $src = "{$baseurl}release/{$p}.js";
             $js_a[] = "<script defer src=\"$src\"></script>";
