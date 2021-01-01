@@ -49,9 +49,14 @@ function nako3_run() {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
+  var code = ""
   var code_e = document.getElementById("nako3code")
-  if (!code_e) return
-  var code = editor.getValue()
+  if (!code_e) {return}
+  if (typeof(editor) == 'string') {
+    code = code_e.value
+  } else {
+    code = editor.getValue()
+  }
   var div_name = '#nako3_div'
   const head =
     "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +

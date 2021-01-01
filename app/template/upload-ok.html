@@ -8,8 +8,14 @@
     <li>提供者: <a href="https://twitter.com/{{$user.screen_name}}">
       <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></li>
     <li>タイトル: {{$title}}</li>
-    <li>URL: <input type="text" onclick="this.select()" value="{{$image_url}}"></li>
-    <li><a href="{{$image_url}}"><img src="{{$image_url}}" width="400"></a></li>
+    <li>相対URL: <input type="text" onclick="this.select()" value="{{$image_url}}"></li>
+    <li><a href="{{$image_url}}">
+      {{ if (preg_match('/\.(jpg|jpeg|png|gif)$/', $image_url)) }}
+      <img src="{{$image_url}}" width="400">
+      {{ else }}
+        {{$image_url}}
+      {{ endif }}
+    </a></li>
   </ul>
 </div>
 
@@ -29,5 +35,9 @@
   </div>
 </div>
 {{ endif }}
+
+<div class="saveform">
+  <a href="index.php?action=upload&mode=list" class="pure-button">素材の一覧を見る</a>
+</div>
 
 {{ include parts_html_footer.html }}

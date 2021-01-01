@@ -85,7 +85,7 @@
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
     </div>
-    <div class="memo"><a href="id.php?{{$app_id}}">{{$title}}</a> by {{$author}} ({{$mtime | datetime}})</div>
+    <div class="memo"><a href="id.php?{{$app_id}}">{{$title | check_mudai}}</a> by {{$author}} ({{$mtime | datetime}})</div>
     <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
             
     <!-- script for nadesiko3 -->
@@ -102,6 +102,7 @@
     <script defer type="text/javascript"
       src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
     <script>
+      const editor = 'editor';
       const start_screen = document.getElementById('start_screen')
       start_screen.onclick = function () {
         start_screen.style.display = 'none'

@@ -144,7 +144,7 @@
 <script type="text/javascript"
         src="{{$url_images}}/ext-language_tools.js"></script>
 <script>
-  var editor = ace.edit("nako3code");
+  const editor = ace.edit("nako3code");
   editor.$blockScrolling = Infinity;
   editor.setOptions({
           enableBasicAutocompletion: false,
@@ -152,7 +152,7 @@
           enableLiveAutocompletion: false
         });
   // editor.getSession().setMode("ace/mode/javascript");
-  editor.setFontSize(20)
+  editor.setFontSize(16)
 </script>
 
 

@@ -2,12 +2,17 @@
 
 {{ if $images }}
 <div class="showblock">
-  <h1>画像の一覧</h1>
-  <p>以下の素材画像はパブリックドメイン(CC0)のものです。</p>
+  <h1>素材の一覧</h1>
+  <p>以下の素材はパブリックドメイン(CC0)のものです。</p>
   <ul>
     {{ for $images as $i }}
-    <li><a href="{{$i.info_url}}">タイトル: {{$i.title}}<br>
-      <img src="{{$i.image_url}}" width="400"></a></li>
+    <li>
+      <a href="{{$i.info_url}}">タイトル: {{$i.title}}<br>
+      {{ if $i['is_image'] }}
+        <img src="{{$i.image_url}}" width="400">
+      {{ endif }}
+      </a>
+    </li>
     {{ endfor }}
   </ul>
 </div>
