@@ -96,9 +96,9 @@ function n3s_show_get($agent)
             'plugin_caniuse',
             'plugin_webworker'
         ];
-        if (30105 < $ver) {
+        if (30105 > $ver) {
             $pname_list = array_slice($pname_list, 0, 1);
-        } else if (30111 < $ver) {
+        } else if (30109 > $ver) {
             $pname_list = array_slice($pname_list, 0, 4);
         }
         foreach ($pname_list as $p) {
