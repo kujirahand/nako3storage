@@ -63,9 +63,14 @@ function n3s_web_login_callback() {
     $secret = n3s_get_config('twitter_api_secret', '');
     $access_token = n3s_get_config('twitter_acc_token','');
     $access_token_secret = n3s_get_config('twitter_acc_secret','');
-    //
+    // check get params
     $oauth_verifier = empty($_GET['oauth_verifier']) ? '' : $_GET['oauth_verifier'];
     $oauth_token = empty($_GET['oauth_token']) ? '' : $_GET['oauth_token'];
+    // check session
+    if (empty($_SESSION['oauth_token']) || empty($_SESSION['oauth_token_secret'])) {
+        n3s_error('Twitterへのログインに失敗', $e->getMessage());
+        return;
+    }
 
     //リクエストトークンを使い、アクセストークンを取得する
     try {
