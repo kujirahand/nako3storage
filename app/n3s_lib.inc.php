@@ -5,7 +5,7 @@
 // --------------------------------------------------------
 global $n3s_config;
 define("N3S_DB_VERSION", 3);
-define("NAKO_DEFAULT_VERSION", "3.1.11");
+define("NAKO_DEFAULT_VERSION", "3.1.12");
 define("N3S_APP_VERSION", "0.44");
 
 // fw_template_engine
