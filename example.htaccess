@@ -1,0 +1,6 @@
+# .htaccess
+# --- redirect ---
+Redirect 302 /v3/new https://nadesi.com/v3/storage/index.php?page=new&action=show
+Redirect 302 /v3/list https://nadesi.com/v3/storage/index.php?page=all&action=list
+RedirectMatch 302 /v3/edit/(.+)$ https://nadesi.com/v3/storage/id.php?$1
+RedirectMatch 302 /v3/show/(.+)$ https://nadesi.com/v3/storage/id.php?$1
