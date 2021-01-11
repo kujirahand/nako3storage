@@ -1,0 +1,5 @@
+VER=ナデシコバージョン。
+「<?php
+define("NAKO_DEFAULT_VERSION", "{VER}");
+」を「{母艦パス}/nako_version.inc.php」へ保存。
+
