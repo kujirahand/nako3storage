@@ -10,6 +10,7 @@
 
  - [基本URL] https://nadesi.com/v3/storage/
  - [新規プログラム作成] https://nadesi.com/v3/new
+ - [新規プログラム一覧] https://nadesi.com/v3/list
  - [既存プログラム編集] https://nadesi.com/v3/edit?(id)
  - [既存プログラム確認] https://nadesi.com/v3/show?(id)
 
