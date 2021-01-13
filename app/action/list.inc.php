@@ -29,11 +29,15 @@ function n3s_api_list()
 function n3s_list_get()
 {
     global $n3s_config;
+  
     // get parameters
-    $n3s_config['search_word'] = isset($_GET['search_word']) ? $_GET['search_word'] : '';
+    $n3s_config['search_word'] = $search = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
     $nofilter = empty($_GET['nofilter']) ? 0 : intval($_GET['nofilter']);
     $onlybad = empty($_GET['onlybad']) ? 0 : intval($_GET['onlybad']);
     $find_user_id = empty($_GET['user_id']) ? 0 : intval($_GET['user_id']);
+    $mode = empty($_GET['mode']) ? 'list' : $_GET['mode'];
+    if (!empty($search)) { $mode = "search";}
+    
     // get db
     $db = n3s_get_db();
     // list
@@ -60,11 +64,23 @@ function n3s_list_get()
     }
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
-    $h = $db->prepare('SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
-        ' WHERE ' . implode(' AND ', $wheres) .
-        ' ORDER BY app_id DESC LIMIT ?');
-    $h->execute($statements);
-    $list = $h->fetchAll();
+    $list = [];
+    if ($mode == 'list' && $mode == 'search') {
+      $h = $db->prepare(
+          'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
+          ' WHERE ' . implode(' AND ', $wheres) .
+          ' ORDER BY app_id DESC LIMIT ?');
+      $h->execute($statements);
+      $list = $h->fetchAll();
+    } else if ($mode == 'ranking') {
+      $wheres[] = 'fav > 0';
+      $h = $db->prepare(
+          'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
+          ' WHERE ' . implode(' AND ', $wheres) .
+          ' ORDER BY fav DESC, app_id DESC LIMIT ?');
+      $h->execute($statements);
+      $list = $h->fetchAll();
+    }
     // next
     $min_id = PHP_INT_MAX;
     foreach ($list as &$row) {
@@ -77,8 +93,23 @@ function n3s_list_get()
         'user_id' => $find_user_id,
     ]);
     if ($app_id === 0) $next_url = ""; // トップなので次はない
-    return array(
+    // ranking
+    $ranking = null;
+    if ($mode == 'list') {
+        // Nヶ月以内に更新されたアプリ
+        $mon = 6;
+        $mtime = time() - (60 * 60 * 24 * 30 * $mon);
+        $h = $db->prepare('SELECT * FROM apps '.
+          'WHERE (mtime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
+          'ORDER BY fav DESC LIMIT 10');
+        $h->execute([$mtime]);
+        $ranking = $h->fetchAll();
+    }
+
+    return [
+        "mode" => $mode,
         "list" => $list,
         "next_url" => $next_url,
-    );
+        "ranking" => $ranking,
+    ];
 }

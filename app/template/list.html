@@ -1,12 +1,58 @@
 {{ include parts_html_header.html }}
 
+<!-- 説明 -->
 <div class="showblock">
-  <div class="memo">『nako3storage』は「<a href="https://nadesi.com/doc3/">なでしこv3</a>」のプログラムを書き込んで共有する場所です。</div>
+  <div class="memo">
+    『nako3storage』は「<a href="https://nadesi.com/doc3/">なでしこv3</a>」のプログラムを書き込んで共有する場所です。
+  </div>
 </div>
 
-{{ if $list }}
-<div class="list">
-<h1>プログラムの一覧</h1>
+{{ if $ranking }}
+  <!-- 人気のリスト -->
+  <div class="list" id="ranking_list">
+  <h1>人気の投稿</h1>
+  <p>半年以内に更新された人気の投稿です。(<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)</p>
+  <table>
+      <tr>
+          <th>ID</th>
+          <th>タイトル</th>
+          <th>説明</th>
+      </tr>
+      {{ for $ranking as $r }}
+      <tr>
+          <td>
+              <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
+          </td>
+          <td>
+              <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+              {{if $r.fav gt 0}}
+              <br><span class='memo'>{{$r.fav | star}}</span>
+              {{endif}}
+          </td>
+          <td>
+              {{if $r.user_id gt 0}}
+              <span class="dev">
+                  <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
+              </span>
+              {{else}}
+              <span class="dev">{{$r.author | check_nanasi }} 作</span>
+              {{endif}}
+              <br>
+              <span>{{$r.memo | trim100 }}</span>
+              <span class="date">({{$r.mtime | date2}})</span><br>
+          </td>
+      </tr>
+      {{ endfor }}
+  </table>
+  </div><!-- end of #ranking_list -->
+{{ endif /* end of ranking */ }}
+
+
+<div class="list" id="recent_list">
+<h1>最新の投稿</h1>
+{{ if !$list }}
+  <div class="showblock">😔 見つかりませんでした。</div>
+{{ else }}
 <table>
     <tr>
         <th>ID</th>
@@ -20,7 +66,7 @@
         </td>
         <td>
             <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
-            {{if $r.fav > 0}}
+            {{if $r.fav gt 0}}
             <br><span class='memo'>{{$r.fav | star}}</span>
             {{endif}}
         </td>
@@ -38,31 +84,26 @@
         </td>
     </tr>
     {{ endfor }}
-
 </table>
 
-{{ if $next_url }}
-<div class="next_button_div">
-    <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
-</div>
-{{ endif }}
-
-{{ else }}
-<div class="showblock">😔 見つかりませんでした。</div>
+  {{ if $next_url }}
+  <div class="next_button_div">
+      <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
+  </div>
+  {{ endif }}
 {{ endif }}
 
 <div class="addon_block">
-    <ul>
-        <li><a href="index.php?action=upload&mode=list">→素材ファイルの一覧を表示</a></li>
-        <li><a href="index.php?action=list&nofilter=1">→フィルタせずに投稿を表示😃</a></li>
-        <li><a href="index.php?action=list&onlybad=1">→問題のある投稿を表示(閲覧注意😭)</a></li>
-        {{if n3s_is_login()}}
-            <li><a href="index.php?action=mypage&page=my">→自分の投稿(マイページ)を表示</a></li>
-        {{endif}}
-    </ul>
+  <ul>
+    <li><a href="index.php?action=upload&mode=list">→素材ファイルの一覧を表示</a></li>
+    <li><a href="index.php?action=list&nofilter=1">→フィルタせずに投稿を表示😃</a></li>
+    <li><a href="index.php?action=list&onlybad=1">→問題のある投稿を表示(閲覧注意😭)</a></li>
+    {{if n3s_is_login()}}
+    <li><a href="index.php?action=mypage&page=my">→自分の投稿(マイページ)を表示</a></li>
+    {{endif}}
+  </ul>
 </div>
 
-
-
+</div><!-- end of #recent_list -->
 {{ include parts_html_footer.html }}
 
