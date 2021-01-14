@@ -2,24 +2,20 @@
 
 ## これは何？
 
-- [プログラミング言語「なでしこv3」](https://nadesi.com)のプログラムとリソースを保存するためのストレージ。
-- Webインターフェイスもあるが、APIからも自由に操作できるもの。
-- なでしこ3のプログラムやリソースの保存・読込を手軽に行うためのWebサービス
+ - [プログラミング言語「なでしこv3」](https://nadesi.com)のプログラムとリソースを保存するためのストレージ。
+ - なでしこ3のプログラムやリソースの保存・読込を手軽に行うためのWebサービス。
+ - なでしこのサイトで運用しているものの、自分のサイトで運用したい場合も手軽に利用できる。
 
 # 現在運用中のnako3storage
 
  - [基本URL] https://nadesi.com/v3/storage/
- - [新規プログラム作成] https://nadesi.com/v3/new
- - [新規プログラム一覧] https://nadesi.com/v3/list
- - [既存プログラム編集] https://nadesi.com/v3/edit?(id)
- - [既存プログラム確認] https://nadesi.com/v3/show?(id)
 
 ## インストール
 
-- `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
-- `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
-- `bash scripts/setup.sh`コマンドを実行する
-- 必要ライブラリのインストール `cd app` そして `composer install`
+ - `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
+ - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
+ - `bash scripts/setup.sh`コマンドを実行する
+ - 必要ライブラリ(Twitterの認証)のインストール `cd app` そして `composer install`
 
 # 外部のプログラムから保存したい場合
 
