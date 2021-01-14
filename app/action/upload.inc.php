@@ -2,6 +2,10 @@
 include_once dirname(__FILE__) . '/save.inc.php';
 include_once dirname(__FILE__) . '/show.inc.php';
 
+// アップロード可能タイプ
+$supported_type = 'jpg|jpeg|gif|png|mp3|ogg|oga|xml|js|txt|csv|tsv|json';
+
+
 function n3s_api_upload() {
     n3s_api_output(FALSE, []);
 }
@@ -68,10 +72,12 @@ function go_upload() {
     }
     $fname = strtolower($fname);
     $ext = '.jpg';
-    if (preg_match('/(\.(jpg|jpeg|gif|png|mp3|ogg|txt|csv|tsv|json))$/i', $fname, $m)) {
+    global $supported_type;
+    if (preg_match("/(\.({$supported_type})$/i", $fname, $m)) {
         $ext = strtolower($m[1]);
     } else {
-        n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみアップロードできます。");
+        n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみ".
+          "アップロードできます。 (".$supported_type.")");
         return;
     }
     $user_id = n3s_get_user_id();
@@ -110,6 +116,7 @@ function show_image() {
     $user_id = $im['user_id'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
     $image_url = n3s_get_config('url_images', 'images')."/{$filename}";
+    $image_url_abs = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
     // can_edit
     $can_edit = FALSE;
     if (n3s_is_admin()) {
@@ -127,6 +134,7 @@ function show_image() {
         'image_id' => $im['image_id'],
         'title' => $im['title'],
         'image_url' => $image_url,
+        'image_url_abs' => $image_url_abs,
         'msg' => 'ファイルの情報',
         'user' => $user,
         'can_edit' => $can_edit,

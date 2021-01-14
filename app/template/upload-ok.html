@@ -9,6 +9,7 @@
       <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></li>
     <li>タイトル: {{$title}}</li>
     <li>相対URL: <input type="text" onclick="this.select()" value="{{$image_url}}"></li>
+    <li>絶対URL: <input type="text" onclick="this.select()" value="{{$image_url_abs}}"></li>
     <li><a href="{{$image_url}}">
       {{ if (preg_match('/\.(jpg|jpeg|png|gif)$/', $image_url)) }}
       <img src="{{$image_url}}" width="400">
