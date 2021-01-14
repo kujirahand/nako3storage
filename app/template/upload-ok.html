@@ -1,23 +1,63 @@
 {{ include parts_html_header.html }}
 
+<style>
+.upload-item {
+  padding-left: 1em;
+}
+.upload-item tr {
+  height: 2em;
+}
+.upload-item th {
+  text-align: right;
+  border-bottom: 1px solid silver;
+}
+.upload-item td {
+  padding-left: 1em;
+  text-align: left;
+  border-bottom: 1px solid silver;
+}
+.upload-item-image {
+  padding: 1em;
+}
+</style>
+
 <div class="saveform">
   <h1>{{$msg}}</h1>
   <p>以下のURLをコピーしてプログラムでご利用ください。</p>
-  <ul>
-    <li>ID: {{$image_id}}</li>
-    <li>提供者: <a href="https://twitter.com/{{$user.screen_name}}">
-      <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></li>
-    <li>タイトル: {{$title}}</li>
-    <li>相対URL: <input type="text" onclick="this.select()" value="{{$image_url}}"></li>
-    <li>絶対URL: <input type="text" onclick="this.select()" value="{{$image_url_abs}}"></li>
-    <li><a href="{{$image_url}}">
+  <div class="upload-item">
+    <table>
+      <tr>
+        <th>ID</th>
+        <td>{{ $image_id }}</td>
+      </td>
+      <tr>
+        <th>提供者</th>
+        <td><a href="https://twitter.com/{{$user.screen_name}}">
+          <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></td>
+      </td>
+      <tr>
+        <th>タイトル</th>
+        <td>{{ $title }}</td>
+      </td>
+      <tr>
+        <th>相対URL</th>
+        <td><input type="text" onclick="this.select()" value="{{$image_url}}"></td>
+      </td>
+      <tr>
+        <th>絶対URL</th>
+        <td><input type="text" onclick="this.select()" value="{{$image_url_abs}}"></td>
+      </td>
+    </table>
+  </div>
+  <div class="upload-item-image">
+    <a href="{{$image_url}}">
       {{ if (preg_match('/\.(jpg|jpeg|png|gif)$/', $image_url)) }}
-      <img src="{{$image_url}}" width="400">
+        <img src="{{$image_url}}" width="400">
       {{ else }}
         {{$image_url}}
       {{ endif }}
-    </a></li>
-  </ul>
+    </a>
+  </div>
 </div>
 
 {{ if n3s_is_login() && $can_edit }}
