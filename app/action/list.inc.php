@@ -65,7 +65,7 @@ function n3s_list_get()
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
     $list = [];
-    if ($mode == 'list' && $mode == 'search') {
+    if ($mode == 'list' || $mode == 'search') {
       $h = $db->prepare(
           'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
           ' WHERE ' . implode(' AND ', $wheres) .
