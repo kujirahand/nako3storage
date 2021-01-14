@@ -63,11 +63,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
     console.log('エディタが見当たりません!!')
     return
   }
-  if (typeof(code_e.getValue) == 'function') {
-    code = editor.getValue()
-  } else {
-    code = code_e.value
-  }
+  code = code_e.value
   // 空なら実行しない
   if (code == '') {return}
   
@@ -134,9 +130,13 @@ function canvas_size_change() {
 //--------------------------
 // save button
 function saveClick() {
+  if (runCount == 0) {
+    alert('一度エラーなしで実行しないと保存できません')
+    return
+  }
   const code_e = document.getElementById("nako3code");
   localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = editor.getValue()
+  localStorage["n3s_save_body"] = code_e.value
   localStorage["n3s_action_time"] = (new Date()).getTime()
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value
