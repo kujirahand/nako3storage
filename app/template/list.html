@@ -49,8 +49,8 @@
 
 
 <div class="list" id="recent_list">
-<h1>最新の投稿</h1>
-{{ if !$list }}
+  <h1>最新の投稿</h1>
+{{ if count($list) == 0 }}
   <div class="showblock">😔 見つかりませんでした。</div>
 {{ else }}
 <table>
