@@ -1,44 +1,51 @@
 // nako3storage_show.js
 // charset=utf-8
 
-var nako3_get_info = function () {
-  return document.getElementById("nako3_info")
+// 正しく実行した回数を表す
+var runCount = 0;
+// querySelectorのショートカット
+function $q(query, callback) {
+  const el = document.querySelector(query)
+  if (!el) {return undefined}
+  if (typeof(callback) == 'function') {
+    callback(el)
+  }
+  return el
 }
-var nako3_get_canvas = function () {
-  return document.getElementById("nako3_canvas")
-}
-var nako3_print = function (s) {
-  var info = nako3_get_info();
+// なでしこ本体に登録する関数
+function nako3_print(s) {
+  var info = $q('#nako3_info')
   if (!info) {
     console.log(s)
     return
   }
-  s = "" + s; // 文字列に変換
-  if (s.substr(0, 5) == "[err]") {
-    s = s.substr(5)
-    s = "<span style='color:red'>" + to_html(s) + "</span>"
-    info.innerHTML = s
-  } else {
-    info.innerHTML += to_html(s) + "<br>"
-  }
+  info.value += to_html(s, false) + '\n'
+  info.style.display = 'block'
 }
-var nako3_clear = function (s) {
-  var info = nako3_get_info()
-  if (!info) return
-  info.innerHTML = ''
-  var canvas = nako3_get_canvas()
-  if (!canvas) return
-  var ctx = canvas.getContext('2d')
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+function nako3_clear(s) {
+  $q('#nako3_info', (e) => { e.value ='' })
+  $q('#nako3_error', (e) => {
+    e.innerHTML =''
+    e.style.display = 'none'
+  })
+  $q('#nako3_canvas', (canvas) => {
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  })
 }
-function to_html(s) {
+function to_html(s, br) {
   s = '' + s
-  return s.replace(/\&/g, '&amp;')
+  s = s.replace(/\&/g, '&amp;')
           .replace(/\</g, '&lt;')
           .replace(/\>/g, '&gt;')
-          .replace(/(\r\n|\n|\r)/g, '<br>')
+  if (br) {
+    s = s.replace(/(\r\n|\n|\r)/g, '<br>')
+  }
+  return s
 }
-function nako3_run() {
+// エディタのUI操作
+function runButtonOnClick() { // 実行ボタンを押した時
+  // なでしこのバージョンチェック
   var va = nako_version.split(".")
   var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
   console.log('nako.version=' + verInt)
@@ -49,14 +56,22 @@ function nako3_run() {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
+  // コードを取得する
   var code = ""
   var code_e = document.getElementById("nako3code")
-  if (!code_e) {return}
-  if (typeof(editor) == 'string') {
-    code = code_e.value
-  } else {
-    code = editor.getValue()
+  if (!code_e) {
+    console.log('エディタが見当たりません!!')
+    return
   }
+  if (typeof(code_e.getValue) == 'function') {
+    code = editor.getValue()
+  } else {
+    code = code_e.value
+  }
+  // 空なら実行しない
+  if (code == '') {return}
+  
+  // デフォルトコードを追加する
   var div_name = '#nako3_div'
   const head =
     "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
@@ -73,22 +88,30 @@ function nako3_run() {
   } else {
     code = head + ";" + code
   }
+  // プログラムを実行
   try {
     runbox.style.display = 'block'
     nako3_clear();
     navigator.nako3.run(code);
+    runCount++ // 正しく実行した回数をチェック
   } catch (e) {
-    nako3_print("[err]" + e.message + "");
+    showError(e.message)
     console.log(e);
   }
 }
+function showError(msg) {
+  const div = $q('#nako3_error')
+  div.style.display = 'block'
+  div.innerHTML = to_html(msg, true)
+}
+
 //--------------------------
 // run and clear
 const runButton = document.getElementById("runButton")
 const clearButton = document.getElementById("clearButton")
 const runbox = document.getElementById('runbox')
-runButton.onclick = nako3_run;
-clearButton.onclick = nako3_clear;
+runButton.onclick = runButtonOnClick
+clearButton.onclick = nako3_clear
 
 //--------------------------
 // canvas_w * canvas_h
@@ -101,8 +124,8 @@ if (canvas_w_txt) {
 function canvas_size_change() {
   const w = parseInt(canvas_w_txt.value)
   const h = parseInt(canvas_h_txt.value)
-  if (w > 0 && h > 0) {
-    const cv = nako3_get_canvas()
+  if (w >= 0 && h >= 0) {
+    const cv = $q('#nako3_canvas')
     cv.width = w
     cv.height = h
   }
@@ -126,6 +149,10 @@ const fav_button = document.getElementById('fav_button')
 if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
   fav_button.onclick = function () {
+    if (runCount == 0) {
+      alert('最初に実行してください')
+      return
+    }
     fav_button.disabled = true
     ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
       fav.innerHTML = txt

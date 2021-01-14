@@ -10,12 +10,15 @@
   </div>
   <div>
     <label>プログラム:<br />
-    <div id="nako3code" style="height:300px;">{{ $body }}</div>
+    
+    <textarea id="nako3code">{{ $body }}</textarea>
     </label><br />
     <button id="runButton" class="pure-button pure-button-primary">▶　実 行</button>
     <button id="clearButton" class="pure-button">クリア</button>
     <div id="runbox">
-      <div class="nako3row nako3info" id="nako3_info"></div>
+      <div id="nako3_error" style="display:none"></div>
+      <textarea class="nako3row nako3info" readonly
+            id="nako3_info" rows="5" style="display:none"></textarea>
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
       <div>
@@ -138,23 +141,5 @@
 </script>
 <script defer type="text/javascript"
   src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
-<!-- ace editor -->
-<script type="text/javascript"
-        src="{{$url_images}}/ace.js"></script>
-<script type="text/javascript"
-        src="{{$url_images}}/ext-language_tools.js"></script>
-<script>
-  const editor = ace.edit("nako3code");
-  editor.$blockScrolling = Infinity;
-  editor.setOptions({
-          enableBasicAutocompletion: false,
-          enableSnippets: false,
-          enableLiveAutocompletion: false
-        });
-  // editor.getSession().setMode("ace/mode/javascript");
-  editor.setFontSize(16)
-</script>
-
-
 
 {{ include parts_html_footer.html }}
