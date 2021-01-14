@@ -140,9 +140,13 @@ h2 {
 
 .nako3info {
   border: 1px solid silver;
-  background-color: #f0f0f0;
+  background-color: #f0f0ff;
   margin: 4px;
   padding: 8px;
+}
+
+#nako3_info {
+  width: 99%;
 }
 
 #nako3_canvas {
@@ -212,11 +216,20 @@ h2 {
 #nako3code {
   margin: 0;
   padding: 0.5em;
-  font-size: 1em;
+  font-size: 1.2em;
   line-height: 1.4em;
   width: 99%;
   height: 150px;
   background-color: #f0f0f0;
+  border: 1px solid silver;
+}
+
+#nako3_error {
+  color: red;
+  padding: 0.5em;
+  margin: 0.5em;
+  border: 1px solid silver;
+  background-color: #fff0f0;
 }
 
 .info_box {
