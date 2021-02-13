@@ -26,9 +26,11 @@
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
   {{ endif }}
 
-  <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=edit">
+  <form method="POST"
+    onsubmit="return checkSubmit()"
+    action="index.php?action=save&page={{$app_id}}&mode=edit">
     <p>
-      <label>プログラム本体:<br />
+      <label>プログラム本体(30文字以上):<br />
       <textarea id="body" name="body">{{ $body }}</textarea>
       </label>
     </p>
@@ -39,13 +41,13 @@
       </label>
     </p>
     <p>
-      <label>タイトル(必須):<br />
-      <input name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
+      <label>タイトル(5文字以上):<br />
+      <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
       </label>
     </p>
     <p>
-      <label>プログラムの説明(任意):<br />
-      <input name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
+      <label>プログラムの説明(5文字以上):<br />
+      <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
       </label>
     </p>
     {{if n3s_is_login() }}
@@ -56,7 +58,7 @@
       </p>
     {{else}}
     <p>
-      <label>制作者名(任意):<br />
+      <label>制作者名(必須):<br />
       <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前" />
       </label>
     </p>
@@ -156,6 +158,37 @@ function saveToLocalStorage() {
   localStorage['n3s_save_body'] = body.value
   localStorage['n3s_canvas_w'] = 300
   localStorage['n3s_canvas_h'] = 300
+}
+// check submit
+function checkSubmit() {
+  const body = document.getElementById('body').value
+  const title = document.getElementById('title').value
+  const memo = document.getElementById('memo').value
+  const author = document.getElementById('author').value
+  if (body.length < 30) {
+    alert('お手数おかけします。\n' +
+      '現在プログラムに最低文字数の制限をかけさせていただいています。\n' +
+      '30文字以上のプログラムを保存できます。')
+    return false
+  }
+  if (title.length < 5) {
+    alert('お手数おかけします。\n' +
+      'プログラムのタイトルに、分かりやすい5文字以上の名前を付けてください。\n' +
+      'どうぞ、ご協力よろしくお願いします。')
+    return false
+  }
+  if (memo.length < 5) {
+    alert('お手数おかけします。\n' +
+      'プログラムの説明を5文字以上で記入してください。\n' +
+      'どうぞ、ご協力よろしくお願いします。')
+    return false
+  }
+  if (author == '') {
+    alert('お手数おかけします。\n' +
+      '作者名を記入してください。\n' +
+      'どうぞ、ご協力よろしくお願いします。')
+    return false
+  }
 }
 </script>
 
