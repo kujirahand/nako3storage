@@ -23,12 +23,12 @@ function nako3_print(s) {
   info.style.display = 'block'
 }
 function nako3_clear(s) {
-  $q('#nako3_info', (e) => { e.value ='' })
-  $q('#nako3_error', (e) => {
+  $q('#nako3_info', function (e) { e.value ='' })
+  $q('#nako3_error', function (e) {
     e.innerHTML =''
     e.style.display = 'none'
   })
-  $q('#nako3_canvas', (canvas) => {
+  $q('#nako3_canvas', function (canvas) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
   })
@@ -147,14 +147,14 @@ if (fav_button) { // fav_button が非表示になることがある
       return
     }
     fav_button.disabled = true
-    ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
       fav.innerHTML = txt
     })
   
   }
   // favの値を取得する --- 現在不使用
   function getFavCount(){
-    ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav', function(txt, r){
       fav.innerHTML = txt
     })
   }
@@ -167,13 +167,13 @@ const bad = document.getElementById('bad')
 if (bad_button) { //  非表示になることがあるので
   bad_button.onclick = function () {
     bad_button.disabled = true
-    ajax(`api.php?page=${app_id}&action=bad&q=up`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
     })
   
   }
   setTimeout(function(){
-    ajax(`api.php?page=${app_id}&action=bad`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=bad', function(txt, r){
       bad.innerHTML = txt
     })
   }, 2000)
