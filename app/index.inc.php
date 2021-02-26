@@ -33,6 +33,7 @@ function n3s_check_config()
         "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
         "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
         "page_title" => "nako3storage",
+        "extra_header_html" => "",
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
         "nako3storage_version" => N3S_APP_VERSION,
