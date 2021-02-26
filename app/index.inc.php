@@ -36,6 +36,7 @@ function n3s_check_config()
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
         "nako3storage_version" => N3S_APP_VERSION,
+        "nako_default_version" => NAKO_DEFAULT_VERSION,
         // for twitter login
         "twitter_api_key" => "",
         "twitter_api_secret" => "",
