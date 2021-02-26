@@ -98,6 +98,8 @@
       // nako3 program info
       const app_id = {{ $app_id }};
       const nako_version = "{{ $version }}" + ".0.0.0"
+      const setValue = function(text) { document.getElementById('nako3code').value = text }
+      const getValue = function(text) { return document.getElementById('nako3code').value }
     </script>
     <script defer type="text/javascript"
       src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
