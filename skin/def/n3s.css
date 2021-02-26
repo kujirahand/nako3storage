@@ -212,8 +212,14 @@ h2 {
   text-decoration: none;
 }
 
+/* ace editor の場合 */
+div#nako3code {
+  width: 99%;
+  height: 450px;
+}
 
-#nako3code {
+/* 古いバージョンのなでしこを使う場合 */
+textarea#nako3code {
   margin: 0;
   padding: 0.5em;
   font-size: 1.2em;

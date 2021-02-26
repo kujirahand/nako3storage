@@ -57,13 +57,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
   // コードを取得する
-  var code = ""
-  var code_e = document.getElementById("nako3code")
-  if (!code_e) {
-    console.log('エディタが見当たりません!!')
-    return
-  }
-  code = code_e.value
+  var code = getValue()
   // 空なら実行しない
   if (code == '') {return}
   
@@ -134,9 +128,8 @@ function saveClick() {
     alert('一度エラーなしで実行しないと保存できません')
     return
   }
-  const code_e = document.getElementById("nako3code");
   localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = code_e.value
+  localStorage["n3s_save_body"] = getValue()
   localStorage["n3s_action_time"] = (new Date()).getTime()
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value

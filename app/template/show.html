@@ -124,6 +124,43 @@
 
 <!-- script for nako3storage-->
 <script type="text/javascript">
+  var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
+  var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
+
+  function setupEditor() {
+      if (navigator.nako3 === undefined) {
+          setTimeout(function() { setupEditor() }, 100);
+          return
+      }
+      const nako3code = document.getElementById("nako3code")
+      if (navigator.nako3.setupEditor) {
+        // 3.1.17以上ならsetupEditor関数が存在する。
+        // textareaをdivで置換してからace editorとして使う。
+        const div = document.createElement("div")
+        div.id = "nako3code"
+        const parent = nako3code.parentElement
+        parent.removeChild(nako3code)
+        parent.appendChild(div)
+        div.dataset.nako3Resizable = "true"
+        div.textContent = nako3code.value
+
+        const editor = navigator.nako3.setupEditor("nako3code");
+        editor.editor.on("change", function(e) {
+          localStorage["n3s_save_body"] = editor.editor.getValue()
+        })
+        setValue = function(text) { editor.editor.setValue(text) }
+        getValue = function() { return editor.editor.getValue() }
+      } else {
+        // 3.1.17未満のときはtextareaで表示する。
+        nako3code.addEventListener("change", function(e) {
+          localStorage["n3s_save_body"] = nako3code.value
+        })
+        setValue = function(text) { nako3code.value = text }
+        getValue = function(text) { return nako3code.value }
+        return
+      }
+  }
+
   // nako3storage info
   const baseurl = "{{ $baseurl | safe }}";
   const editlink = "{{ $editlink  | safe }}";
@@ -133,11 +170,7 @@
   const runbox_c = document.getElementById('runbox')
   runbox_c.style.display = 'none'
   // check modified
-  const nako3code = document.getElementById('nako3code')
-  nako3code.addEventListener("change", (e) => {
-    localStorage["n3s_save_body"] = nako3code.value
-  })
-  
+  setupEditor()
 </script>
 <script defer type="text/javascript"
   src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
