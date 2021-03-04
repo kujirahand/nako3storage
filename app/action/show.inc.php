@@ -84,8 +84,17 @@ function n3s_show_get($agent)
         // plugins
         $js_a = [];
         // add wanko3.js
-        $wnako = "$baseurl/release/wnako3.js";
-        $js_a[] = "<script defer src=\"$wnako\"></script>";
+        $js_a[] =
+            "<script defer src=\"$baseurl/release/wnako3.js\"></script>";
+
+        // 3.1.17以上ならace editor用のHTMLタグを追加する。
+        if ($ver >= 30117) {
+            $a['extra_header_html'] .= "<link rel=\"stylesheet\" href=\"$baseurl/src/wnako3_editor.css\">";
+            $js_a[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>';
+            $js_a[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>';
+            $js_a[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>';
+        }
+
         // add other plugins
         $pname_list = [
             'plugin_turtle',
@@ -105,8 +114,9 @@ function n3s_show_get($agent)
             $src = "{$baseurl}release/{$p}.js";
             $js_a[] = "<script defer src=\"$src\"></script>";
         }
-        // add Chart.js
+        // add Chart.js and Mocha.js
         $js_a[] = "<script defer src='https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js'></script>";
+        $js_a[] = '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.3.0/mocha.min.js" integrity="sha512-LA/TpBXau/JNubKzHQhdi5vGkRLyQjs1vpuk2W1nc8WNgf/pCqBplD8MzlzeKJQTZPvkEZi0HqBDfRC2EyLMXw==" crossorigin="anonymous"></script>';
         // add
         $a['import_nako'] = implode("\n", $js_a);
     }

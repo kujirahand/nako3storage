@@ -23,12 +23,12 @@ function nako3_print(s) {
   info.style.display = 'block'
 }
 function nako3_clear(s) {
-  $q('#nako3_info', (e) => { e.value ='' })
-  $q('#nako3_error', (e) => {
+  $q('#nako3_info', function (e) { e.value ='' })
+  $q('#nako3_error', function (e) {
     e.innerHTML =''
     e.style.display = 'none'
   })
-  $q('#nako3_canvas', (canvas) => {
+  $q('#nako3_canvas', function (canvas) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
   })
@@ -57,13 +57,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
   // コードを取得する
-  var code = ""
-  var code_e = document.getElementById("nako3code")
-  if (!code_e) {
-    console.log('エディタが見当たりません!!')
-    return
-  }
-  code = code_e.value
+  var code = getValue()
   // 空なら実行しない
   if (code == '') {return}
   
@@ -134,9 +128,8 @@ function saveClick() {
     alert('一度エラーなしで実行しないと保存できません')
     return
   }
-  const code_e = document.getElementById("nako3code");
   localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = code_e.value
+  localStorage["n3s_save_body"] = getValue()
   localStorage["n3s_action_time"] = (new Date()).getTime()
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value
@@ -154,14 +147,14 @@ if (fav_button) { // fav_button が非表示になることがある
       return
     }
     fav_button.disabled = true
-    ajax(`api.php?page=${app_id}&action=fav&q=up`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
       fav.innerHTML = txt
     })
   
   }
   // favの値を取得する --- 現在不使用
   function getFavCount(){
-    ajax(`api.php?page=${app_id}&action=fav`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav', function(txt, r){
       fav.innerHTML = txt
     })
   }
@@ -174,13 +167,13 @@ const bad = document.getElementById('bad')
 if (bad_button) { //  非表示になることがあるので
   bad_button.onclick = function () {
     bad_button.disabled = true
-    ajax(`api.php?page=${app_id}&action=bad&q=up`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
     })
   
   }
   setTimeout(function(){
-    ajax(`api.php?page=${app_id}&action=bad`, function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=bad', function(txt, r){
       bad.innerHTML = txt
     })
   }, 2000)
