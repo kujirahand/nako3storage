@@ -7,8 +7,8 @@ function n3s_web_widget()
     $a = n3s_show_get('web');
     n3s_widgetd_check_private($a);
     // run mode?
-    $run = isset($_GET['run']) ? intval($_GET['run']) : 0;
-    $a['run'] = $run;
+    $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
+    $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
     n3s_template_fw('widget.html', $a);
 }
 

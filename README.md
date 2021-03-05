@@ -27,11 +27,11 @@
 </iframe>
  ```
 
-srcにオプションrun=1を追加すると実行ボタンを押すことなくスクリプトが実行される。
+srcにオプションrun=1やmute_name=1を追加すると実行ボタンを押すことなくスクリプトが実行される。
 
  ```
  <iframe width="232" height="320"
-  src="http://localhost/repos/nako3storage/widget.php?1&run=1">
+  src="http://localhost/repos/nako3storage/widget.php?1&run=1&mute_name=1">
 </iframe>
  ```
 
