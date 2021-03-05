@@ -63,7 +63,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
   
   // デフォルトコードを追加する
   var div_name = '#nako3_div'
-  const head =
+  let preCode =
     "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
     "もし、F=「function」ならば;" + 
     "  『「" + div_name + "」へDOM親要素設定;" +
@@ -74,15 +74,15 @@ function runButtonOnClick() { // 実行ボタンを押した時
     "カメ全消去;" +
     "カメ画像URL=「" + baseurl + "/demo/turtle.png」;"
   if (verInt >= 3108) {
-    code = head + "‰\n" + code
+    preCode += "‰\n"
   } else {
-    code = head + ";" + code
+    preCode += ";\n"
   }
   // プログラムを実行
   try {
     runbox.style.display = 'block'
     nako3_clear();
-    navigator.nako3.run(code);
+    navigator.nako3.run(preCode + code);
     runCount++ // 正しく実行した回数をチェック
   } catch (e) {
     showError(e.message)
