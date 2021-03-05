@@ -6,6 +6,9 @@ function n3s_web_widget()
 {
     $a = n3s_show_get('web');
     n3s_widgetd_check_private($a);
+    // run mode?
+    $run = isset($_GET['run']) ? intval($_GET['run']) : 0;
+    $a['run'] = $run;
     n3s_template_fw('widget.html', $a);
 }
 

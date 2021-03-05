@@ -72,11 +72,13 @@
   </head>
   <body>
     <!-- click to start -->
-    <div id="start_screen" class="fullscreen">
+    <div id="start_screen" class="fullscreen"
+      {{if $run eq 1}}style="display:none;"{{endif}}>
       <div class="msg_top">&nbsp;</div>
       <div class="msg"><span class="pure-button">▶ 実 行</span></div>
     </div>
-    <div id="buttons">
+    <div id="buttons"
+      {{if $run eq 1}}style="display:none;"{{endif}}>
       <button id="runButton" class="pure-button">▶ 実行</button>
       <button id="clearButton" class="pure-button">クリア</button>
     </div>
@@ -106,10 +108,14 @@
     <script>
       const editor = 'editor';
       const start_screen = document.getElementById('start_screen')
-      start_screen.onclick = function () {
+      function runNako3() {
         start_screen.style.display = 'none'
-        runButton.click()
+        runButtonOnClick()
       }
+      start_screen.onclick = runNako3
+      {{ if $run eq 1 }}
+      document.addEventListener("DOMContentLoaded", runNako3);
+      {{ endif }}
     </script>
   </body>
 </html>
