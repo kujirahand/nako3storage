@@ -17,6 +17,25 @@
  - `bash scripts/setup.sh`コマンドを実行する
  - 必要ライブラリ(Twitterの認証)のインストール `cd app` そして `composer install`
 
+## ガジェット
+
+以下のように記述することでガジェットをブログやHTMLに貼り付けできる。
+
+ ```
+ <iframe width="232" height="320"
+  src="http://localhost/repos/nako3storage/widget.php?1">
+</iframe>
+ ```
+
+srcにオプションrun=1を追加すると実行ボタンを押すことなくスクリプトが実行される。
+
+ ```
+ <iframe width="232" height="320"
+  src="http://localhost/repos/nako3storage/widget.php?1&run=1">
+</iframe>
+ ```
+
+
 # 外部のプログラムから保存したい場合
 
 Webフォームから、以下のURLに body=xxx&version=(なでしこバージョン) をポストすれば良い。
