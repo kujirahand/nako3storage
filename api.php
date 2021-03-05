@@ -1,6 +1,8 @@
 <?php
 global $n3s_config;
 
+include_once __DIR__.'/nako_version.inc.php';
+
 // read config file
 $root = dirname(__FILE__);
 $n3s_config = array(
