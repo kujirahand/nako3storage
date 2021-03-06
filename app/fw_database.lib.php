@@ -3,26 +3,32 @@
 global $FW_DB_MAIN; // PDOオブジェクトの配列
 global $FW_DB_INFO; // 設定
 
-function database_set($file_db, $file_sql) {
+function database_set($file_db, $file_sql, $dbname = 'main') {
   global $FW_DB_INFO;
   $FW_DB_INFO = [
-    'file_db' => $file_db,
-    'file_sql' => $file_sql,
+    $dbname => [
+      'file_db' => $file_db,
+      'file_sql' => $file_sql,
+      'handle' => null,
+    ]
   ];
 }
 
-function database_get() {
-  global $FW_DB_MAIN, $FW_DB_INFO;
+function database_get($dbname = 'main') {
+  global $FW_DB_INFO;
+
   // 既にオープンしたか確認
-  if ($FW_DB_MAIN) {
-    return $FW_DB_MAIN;
+  if (isset($FW_DB_INFO[$dbname]['handle']) && $FW_DB_INFO[$dbname]['handle']) {
+    return $FW_DB_INFO[$dbname]['handle'];
   }
+
   // Check info
-  extract($FW_DB_INFO);
-  if (empty($file_db)) {
+  if (empty($FW_DB_INFO[$dbname]['file_db'])) {
     echo '<h1>[ERROR] Database not set.</h1>'; exit;
   }
   // Open
+  $file_db = $FW_DB_INFO[$dbname]['file_db'];
+  $file_sql = $FW_DB_INFO[$dbname]['file_sql'];
   if (substr($file_db, 0, 7) == 'sqlite:') {
     $file_db = substr($file_db, 7);
   }

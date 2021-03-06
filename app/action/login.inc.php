@@ -1,7 +1,14 @@
 <?php
 // for Twitter login
-require_once dirname(__DIR__ ).'/vendor/autoload.php'; // for autoload
+global $enabled_twitter;
+$enabled_twitter = TRUE;
+$autoload = dirname(__DIR__ ).'/vendor/autoload.php';
 use Abraham\TwitterOAuth\TwitterOAuth; // Twitter auth
+if (file_exists($autoload)) {
+    require_once $autoload;
+} else {
+    $enabled_twitter = FALSE;
+}
 
 // no api login
 function n3s_api_login()
@@ -11,7 +18,11 @@ function n3s_api_login()
 
 function n3s_web_login()
 {
-    global $n3s_config;
+    global $n3s_config, $enabled_twitter;
+    if (!$enabled_twitter) {
+        n3s_error('ログイン画面を利用できません', 'Twitterライブラリをインストールしてください。');
+        exit;
+    }
 
     // callback?
     $page = n3s_get_config('page', '');
