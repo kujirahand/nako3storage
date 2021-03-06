@@ -46,7 +46,7 @@
       </label>
     </p>
     <p>
-      <label>プログラムの説明(30文字以上):<br />
+      <label>プログラムの説明(10文字以上):<br />
       <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
       </label>
     </p>
@@ -177,9 +177,9 @@ function checkSubmit() {
       'どうぞ、ご協力よろしくお願いします。')
     return false
   }
-  if (memo.length < 5) {
+  if (memo.length < 10) {
     alert('お手数おかけします。\n' +
-      'プログラムの説明を5文字以上で記入してください。\n' +
+      'プログラムの説明を10文字以上で記入してください。\n' +
       'どうぞ、ご協力よろしくお願いします。')
     return false
   }
