@@ -95,9 +95,13 @@
       {{if $mute_name eq 0}}by {{$author}} ({{$mtime | datetime}}){{endif}}</div>
     <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
             
-    <!-- script for nadesiko3 -->
-    {{ $import_nako | raw }}
-    
+<!-- script for nadesiko3 -->
+{{ if $custom_head eq '' }}
+{{   $import_nako | raw }}
+{{ else }}
+{{   $custom_head | raw }}
+{{ endif }}
+
     <!-- script for nako3storage-->
     <script type="text/javascript">
       // nako3storage info

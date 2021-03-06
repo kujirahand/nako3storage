@@ -91,7 +91,7 @@ function n3s_check_field_size(&$a) {
     if (!isset($v) || !is_string($v)) {
       continue;
     }
-    $v = trim($v);
+    $v = trim($v); // 値は自動でトリムする
     $size = strlen($v);
     // body ?
     if ($k == 'body') {
@@ -129,6 +129,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
   $a['user_id'] = isset($a['user_id']) ? intval($a['user_id']) : 0;
   $a['access_key'] = isset($a['access_key']) ? $a['access_key'] : '';
+  $a['custom_head'] = isset($a['custom_head']) ? $a['custom_head'] : '';
   $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
   // check params
   if (!$check_error) { return; }
@@ -219,14 +220,14 @@ INSERT INTO apps (
   canvas_w, canvas_h,
   material_id, version, nakotype, tag,
   is_private,
-  user_id, access_key,
+  user_id, access_key, custom_head,
   ref_id, ip, ctime, mtime
 ) VALUES (
   :title, :author, :email, :url, :memo,
   :canvas_w, :canvas_h,
   :material_id, :version, :nakotype, :tag,
   :is_private,
-  :user_id, :access_key,
+  :user_id, :access_key, :custom_head,
   :ref_id, :ip, :ctime, :mtime
 )
 EOS;
@@ -244,6 +245,7 @@ EOS;
       ":is_private" => $a['is_private'],
       ":user_id"    => $a['user_id'],
       ":access_key" => $a['access_key'],
+      ":custom_head"=> $a['custom_head'],
       ":ref_id"     => $a['ref_id'],
       ":canvas_w"   => $a['canvas_w'],
       ":canvas_h"   => $a['canvas_h'],
@@ -261,7 +263,7 @@ EOS;
 UPDATE apps SET
   title=:title, author=:author, email=:email, url=:url, memo=:memo,
   canvas_w=:canvas_w, canvas_h=:canvas_h, access_key=:access_key,
-  version=:version, is_private=:is_private,
+  version=:version, is_private=:is_private, custom_head=:custom_head,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
@@ -283,6 +285,7 @@ EOS;
       ":mtime"      => $a['mtime'],
       ":app_id"     => $a['app_id'],
       ":access_key" => $a['access_key'],
+      ":custom_head"=> $a['custom_head'],
       // editkey は更新しない
     ));
     // update body
