@@ -1,37 +1,23 @@
 <?php
 
 function n3s_api_save() {
-  // post?
-  if (!isset($_POST['body'])) {
-    n3s_api_output(false, array(
-      "msg" => 'データがありません。POSTメソッドで送信してください。')
-    );
-    exit;
-  }
-  n3s_action_save_data($_POST, 'api');
-  return;
+  n3s_api_output(false, ["msg" => 'API経由のアクセスは停止中です。']);
 }
 
 function n3s_web_save() {
-  // params
-  $mode = empty($_GET['mode']) ? 'edit' : $_GET['mode'];
-  // === mode check ===
-  // アプリの保存?
-  if (isset($_POST['body']) && $mode == 'edit') {
-    n3s_action_save_data($_POST, 'web');
-    return;
+  // check mode
+  $mode = empty($_GET['mode']) ? '' : $_GET['mode'];
+  switch ($mode) {
+    case 'edit':
+      n3s_action_save_data($_POST, 'web');
+      return;
+    case 'delete':
+      n3s_action_save_delete($_POST, 'web');
+      return;
+    case 'reset_bad':
+      n3s_action_save_reset_bad($_POST, 'web');
+      return;
   }
-  // delete?
-  if ($mode == 'delete') {
-    n3s_action_save_delete($_POST, 'web');
-    return;
-  }
-  // reset bad?
-  if ($mode == 'reset_bad') {
-    n3s_action_save_reset_bad($_POST, 'web');
-    return;
-  }
-
   // show form
   $app_id = intval($_GET['page']);
   $a = array();
@@ -52,6 +38,7 @@ function n3s_web_save() {
     $a['author'] = $user['name'];
   }
   $a['presave'] = 'no';
+  $a['edit_token'] = n3s_getEditToken();
   n3s_template_fw('save.html', $a);
 }
 
@@ -142,6 +129,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['canvas_h'] = isset($a['canvas_h']) ? intval($a['canvas_h']) : 300;
   $a['user_id'] = isset($a['user_id']) ? intval($a['user_id']) : 0;
   $a['access_key'] = isset($a['access_key']) ? $a['access_key'] : '';
+  $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
@@ -155,6 +143,11 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
 // save
 function n3s_action_save_data($data, $agent = 'web') {
   global $n3s_config;
+  // セキュリティ対策のためAPI経由での保存を禁止した(#51)
+  if ($agent == 'api') {
+    n3s_api_output(false, array("msg"=>"You could not save from API access."));
+    return;
+  }
   try {
     $app_id = n3s_action_save_data_raw($data, $agent);
     if ($agent === 'api') {
@@ -165,11 +158,6 @@ function n3s_action_save_data($data, $agent = 'web') {
       header("location: $url");
     }
   } catch(Exception $e) {
-    if ($agent == "api") {
-      n3s_api_output(false, array("msg"=>$e->getMessage()));
-      return;
-    }
-    // throw $e;
     n3s_error("保存に失敗", $e->getMessage());
     return;
   }
@@ -187,6 +175,13 @@ function n3s_action_save_data_raw($data, $agent) {
   $a['app_id'] = $app_id;
   n3s_action_save_check_param($a, TRUE);
   $a['ip'] = $_SERVER['REMOTE_ADDR'];
+
+  // CSRF対策
+  if (!n3s_checkEditToken()) {
+    throw new Exception(
+      '保存に失敗しました。別のページを開いていれば閉じてください。改めて保存ボタンをクリックしてください。');
+  }
+
   if ($app_id > 0) {
     // check editkey
     $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
@@ -302,6 +297,10 @@ EOS;
 
 function n3s_action_save_delete($params) {
   global $n3s_config;
+  // トークンのチェック
+  if (!n3s_checkEditToken()) {
+    n3s_error('トークンが無効', '再度実行してください。');
+  }
   $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
   if ($app_id <= 0) {
     n3s_error('IDの不正', 'IDのエラー');
@@ -344,6 +343,10 @@ function n3s_action_save_delete($params) {
 
 function n3s_action_save_reset_bad($params) {
   global $n3s_config;
+  // トークンのチェック
+  if (!n3s_checkEditToken()) {
+    n3s_error('トークンが無効', '再度実行してください。');
+  }
   // check app id
   $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
   if ($app_id <= 0) {
