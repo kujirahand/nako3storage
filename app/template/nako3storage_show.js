@@ -147,8 +147,8 @@ function canvas_size_change() {
 
 //--------------------------
 // save button
-function saveClick() {
-  if (runCount == 0) {
+function saveClick(useCheck) {
+  if (runCount == 0 && useCheck) {
     alert('一度エラーなしで実行しないと保存できません')
     return
   }
