@@ -1,4 +1,7 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+
 function n3s_web_fav()
 {
     echo_fav();

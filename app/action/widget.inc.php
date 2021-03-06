@@ -1,4 +1,7 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+
 include_once dirname(__FILE__) . '/save.inc.php';
 include_once dirname(__FILE__) . '/show.inc.php';
 
