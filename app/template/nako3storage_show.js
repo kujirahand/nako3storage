@@ -19,7 +19,12 @@ function nako3_print(s) {
     console.log(s)
     return
   }
-  info.value += to_html(s, false) + '\n'
+  // textarea?
+  if (info.tagName.toUpperCase() == 'TEXTAREA') {
+    info.value += to_html(s, false) + '\n'
+  } else {
+    info.innerHTML += to_html(s, true) + '<br/>'
+  }
   info.style.display = 'block'
 }
 function nako3_clear(s) {
@@ -51,10 +56,12 @@ function runButtonOnClick() { // 実行ボタンを押した時
   var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
   console.log('nako.version=' + verInt)
   if (verInt >= 3119) {
-    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
-  } else if (verInt >= 3021) {
     navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print, true)
     navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
+  }
+  if (verInt >= 3021) {
+    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
+    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
   } else {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
@@ -104,8 +111,12 @@ function runButtonOnClick() { // 実行ボタンを押した時
 }
 function showError(msg) {
   const div = $q('#nako3_error')
-  div.style.display = 'block'
-  div.innerHTML = to_html(msg, true)
+  if (div) {
+    div.style.display = 'block'
+    div.innerHTML = to_html(msg, true)
+  } else {
+    console.error(msg)
+  }
 }
 
 //--------------------------

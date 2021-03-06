@@ -107,8 +107,12 @@
   <span class="memo">→この作品のURL: </span><br>
   <input class="info_link" type="text" onclick="this.select()"
     value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
-  <span class="memo"><a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
-  <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}">
+  <span class="memo">
+    <a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
+  <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
+  <span class="memo">
+    <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
+  <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}">
   {{ endif }}
 </div>
 {{ endif }}

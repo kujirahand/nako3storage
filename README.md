@@ -12,9 +12,10 @@
 
 ## 簡単なインストール方法
 
- - ReleaseからZIPファイルをダウンロードして解凍。
+ - [Release](https://github.com/kujirahand/nako3storage/releases)からZIPファイルをダウンロードして解凍。
  - アーカイブをPHP7以上が動くWebサーバーへアップ。
  - dataフォルダを書き込み可能にする。
+ - index.phpにアクセス。
 
 ## 詳細なインストール方法
 
@@ -28,12 +29,22 @@
 ```
 <?php
 global $n3s_config;
-$n3s_config['admin_users'] = [PHP_INT_MAX];
+// Twitterの認証情報を記述
 $n3s_config['twitter_api_key'] = 'xxx';
 $n3s_config['twitter_api_secret'] = 'xxx';
 $n3s_config['twitter_acc_token'] = 'xxx-xxx';
 $n3s_config['twitter_acc_secret'] = 'xxxxxx';
+// 管理ユーザーのIDを配列で指定
+$n3s_config['admin_users'] = [PHP_INT_MAX];
 ```
+
+まず、Twitterの開発者サイトでアプリ登録してください。
+Twitterのアプリ側でCallback先のURLを指定します。
+
+```
+(設置したURL)/callback.php
+```
+
 
 ## ガジェット
 
@@ -61,30 +72,10 @@ Webフォームから、以下のURLに body=xxx&version=(なでしこバージ�
 ```
 <設置url>/index.php?page=0&action=presave
 ```
+ - POSTする値
+   - body --- プログラム本体
+   - version --- 利用なでしこのバージョン
 
-# APIの使い方
-
-### プログラムの保存
-
-```
-<設置url>/api.php?page=(app_id)&action=save
-```
-
-POST メソッドで以下のデータを送信すると、プログラムを保存できる。
-
-- app_id --- 新規は0を指定。
-- body --- プログラム本体
-- title --- プログラムのタイトル
-- author --- 制作者名
-- email --- 連絡先
-- memo --- プログラムの説明
-- version --- 利用しているなでしこのバージョン
-- is_private --- 通常は0を。プログラムを非公開にしたいときは1を指定。
-- need_key --- 0:公開 1:access_keyを指定する (まだ未実装)
-- access_key --- need_keyを1にしたい際に必要 (まだ未実装
-
-戻り値として、app_idを取得できる。
-プログラムを更新したい時には、前回送信したeditkeyと同じキーでデータをPOSTするとプログラムやその他の情報を更新できる。
 
 ### プログラムの読み込み
 
@@ -98,22 +89,5 @@ GETでアクセスすると、プログラムと情報を取得できる。
 
 - `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
 
-## Twitterログイン
-
-Twitterでアプリ登録してください。
-設定にキーを指定します。
-
-```
-$n3s_config['twitter_api_key'] = 'xxxx';
-$n3s_config['twitter_api_secret'] = 'xxxx';
-$n3s_config['twitter_acc_token'] = 'xxx-xxxx';
-$n3s_config['twitter_acc_secret'] = 'xxxx';
-```
-
-Twitterのアプリ側でCallback先のURLを指定します。
-
-```
-(設置したURL)/callback.php
-```
 
 
