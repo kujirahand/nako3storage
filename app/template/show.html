@@ -79,11 +79,11 @@
 <!-- 編集ボタン -->
 <div class="ctrl_block">
   {{if $app_id == 0}}
-    <p><button onclick="saveClick()" class="pure-button">新規保存</button></p>
+    <p><button onclick="saveClick(true)" class="pure-button">新規保存</button></p>
   {{else}}
     {{if n3s_is_login()}}
       {{if ($my_user_id === $user_id) || n3s_is_admin()}}
-      <p><button onclick="saveClick()" class="pure-button">編集</button></p>
+      <p><button onclick="saveClick(false)" class="pure-button">編集</button></p>
       {{endif}}
     {{endif}}
   {{endif}}
