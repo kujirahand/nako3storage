@@ -138,6 +138,17 @@ h2 {
   padding: 1em;
 }
 
+#nako3_output {
+  border: 1px solid silver;
+  max-height: 200px;
+  resize: vertical;
+  box-sizing: content-box;
+  background-color: #f0f0f04b;
+  margin: 4px;
+  padding: 4px 4px 16px 16px;
+  overflow-y: auto;
+}
+
 .nako3info {
   border: 1px solid silver;
   background-color: #f0f0ff;

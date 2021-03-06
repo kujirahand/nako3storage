@@ -16,9 +16,14 @@
     <button id="runButton" class="pure-button pure-button-primary">▶　実 行</button>
     <button id="clearButton" class="pure-button">クリア</button>
     <div id="runbox">
-      <div id="nako3_error" style="display:none"></div>
+      <!-- 3.1.19以上 -->
+      <div id="nako3_output"></div>
+
+      <!-- 3.1.18以下 -->
+      <div id="nako3_error" style="display:none"></div> 
       <textarea class="nako3row nako3info" readonly
             id="nako3_info" rows="5" style="display:none"></textarea>
+  
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
       <div>
@@ -124,8 +129,10 @@
 
 <!-- script for nako3storage-->
 <script type="text/javascript">
+  //nako3storage_show.js から参照する変数
   var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
-  var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
+  var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
+  var editorObjects = null
 
   function setupEditor() {
       if (navigator.nako3 === undefined) {
@@ -144,12 +151,12 @@
         div.dataset.nako3Resizable = "true"
         div.textContent = nako3code.value
 
-        const editor = navigator.nako3.setupEditor("nako3code");
-        editor.editor.on("change", function(e) {
-          localStorage["n3s_save_body"] = editor.editor.getValue()
+        editorObjects = navigator.nako3.setupEditor("nako3code");
+        editorObjects.editor.on("change", function(e) {
+          localStorage["n3s_save_body"] = editorObjects.editor.getValue()
         })
-        setValue = function(text) { editor.editor.setValue(text) }
-        getValue = function() { return editor.editor.getValue() }
+        setValue = function(text) { editorObjects.editor.setValue(text) }
+        getValue = function() { return editorObjects.editor.getValue() }
       } else {
         // 3.1.17未満のときはtextareaで表示する。
         nako3code.addEventListener("change", function(e) {

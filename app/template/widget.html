@@ -83,6 +83,10 @@
       <button id="clearButton" class="pure-button">クリア</button>
     </div>
     <div id="runbox">
+      <!-- 3.1.19以上 -->
+      <div id="nako3_output"></div>
+
+      <!-- 3.1.18以下 -->
       <div class="nako3row nako3info" id="nako3_info"></div>
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
@@ -101,8 +105,11 @@
       // nako3 program info
       const app_id = {{ $app_id }};
       const nako_version = "{{ $version }}" + ".0.0.0"
+
+      //nako3storage_show.js から参照する変数
       const setValue = function(text) { document.getElementById('nako3code').value = text }
       const getValue = function(text) { return document.getElementById('nako3code').value }
+      var editorObjects = null
     </script>
     <script defer type="text/javascript"
       src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
