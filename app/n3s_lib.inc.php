@@ -4,12 +4,17 @@
 // library for n3s
 // --------------------------------------------------------
 global $n3s_config;
-define("N3S_DB_VERSION", 3);
-define("N3S_APP_VERSION", "0.44");
+
+// include version
+include_once dirname(__DIR__).'/nako3storage_version.inc.php';
+include_once dirname(__DIR__).'/nako_version.inc.php';
 
 // fw_template_engine
 require_once __DIR__ . '/fw_template_engine.lib.php';
 require_once __DIR__ . '/fw_database.lib.php';
+
+// database version
+define("N3S_DB_VERSION", 3);
 
 /**
  * get config value
