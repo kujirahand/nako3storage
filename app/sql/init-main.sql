@@ -17,6 +17,7 @@ CREATE TABLE apps (
   material_id INTEGER DEFAULT 0,
   version     TEXT DEFAULT '',
   nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako/text/json/base64 */
+  custom_head TEXT DEFAULT '', /* カスタムヘッダ */
   tag         TEXT DEFAULT '',
   editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されて保存される) */
   need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
@@ -58,7 +59,22 @@ CREATE TABLE comments (
   mtime         INTEGER DEFAULT 0
 );
 
+CREATE TABLE images (
+  image_id      INTEGER PRIMARY KEY,
+  title         TEXT DEFAULT '',
+  filename      TEXT DEFAULT '',
+  user_id       INTEGER DEFAULT 0,
+  fav           INTEGER DEFAULT 0,
+  fav_id        TEXT DEFAULT '',
+  bad           INTEGER DEFAULT 0,
+  ctime         INTEGER DEFAULT 0,
+  mtime         INTEGER DEFAULT 0
+);
+
 /*
+2021/03/06
+ALTER TABLE apps ADD COLUMN custom_head TEXT DEFAULT ''
+
 2020/12/05
 ALTER TABLE apps ADD COLUMN canvas_w INTEGER DEFAULT 300
 ALTER TABLE apps ADD COLUMN canvas_h INTEGER DEFAULT 300
@@ -71,16 +87,4 @@ ALTER TABLE apps ADD COLUMN user_id INTEGER DEFAULT 0
 ALTER TABLE comments ADD COLUMN user_id INTEGER DEFAULT 0
 */
 
-/* 2020/12/21
-画像のアップロード機能 */
-CREATE TABLE images (
-  image_id      INTEGER PRIMARY KEY,
-  title         TEXT DEFAULT '',
-  filename      TEXT DEFAULT '',
-  user_id       INTEGER DEFAULT 0,
-  fav           INTEGER DEFAULT 0,
-  fav_id        TEXT DEFAULT '',
-  bad           INTEGER DEFAULT 0,
-  ctime         INTEGER DEFAULT 0,
-  mtime         INTEGER DEFAULT 0
-)
+/* 2020/12/21 add images table (画像のアップロード機能) */

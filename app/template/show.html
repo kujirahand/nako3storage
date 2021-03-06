@@ -128,8 +128,14 @@
 </div>
 {{endif}}
 
+<!-- script for ace editor -->
+{{ $import_editor | raw }}
 <!-- script for nadesiko3 -->
-{{ $import_nako | raw }}
+{{ if $custom_head eq '' }}
+{{   $import_nako | raw }}
+{{ else }}
+{{   $custom_head | raw }}
+{{ endif }}
 
 <!-- script for nako3storage-->
 <script type="text/javascript">
