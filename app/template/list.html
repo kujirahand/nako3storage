@@ -7,6 +7,21 @@
   </div>
 </div>
 
+{{ if $find_user_id gt 0 }}
+  <!-- ユーザー紹介 -->
+  <div class="list">
+    <h1>
+      {{$find_user_info.name}} さんの投稿:
+    </h1>
+    <p>
+      <a href="https://twitter.com/{{$find_user_info.screen_name}}">
+        <img src="{{$find_user_info.profile_url}}" width="48" style="border:1px solid silver;" /></a>
+      <a href="https://twitter.com/{{$find_user_info.screen_name}}">(Twitterより)</a>
+      {{$find_user_info.description}}
+    </p>
+  </div>
+{{ endif }}
+
 {{ if $ranking }}
   <!-- 人気のリスト -->
   <div class="list" id="ranking_list">
