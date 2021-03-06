@@ -40,6 +40,7 @@ function n3s_list_get()
     
     // get db
     $db = n3s_get_db();
+    $find_user_info = [];
     // list
     $app_id = intval(empty($n3s_config['app_id']) ? 0 : $n3s_config['app_id']);
     if ($app_id <= 0) $app_id = PHP_INT_MAX;
@@ -55,6 +56,7 @@ function n3s_list_get()
     // check user_id
     if ($find_user_id > 0) {
         $wheres[] = "user_id = $find_user_id";
+        $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?",[$find_user_id]);
     }
     $statements = array($app_id);
     if (!empty($n3s_config['search_word'])) {
@@ -111,5 +113,7 @@ function n3s_list_get()
         "list" => $list,
         "next_url" => $next_url,
         "ranking" => $ranking,
+        "find_user_id" => $find_user_id,
+        "find_user_info" => $find_user_info,
     ];
 }
