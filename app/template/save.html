@@ -88,6 +88,7 @@
     <p>
       <input name="mode" type="hidden" value="edit" />
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
+      <input name="edit_token" type="hidden" value="{{$edit_token}}" />
       <input class="pure-button pure-button-primary" type="submit" value="保存" />
     </p>
   </form>
@@ -103,6 +104,7 @@
           完全に削除する
         </label>
       </div>
+      <input name="edit_token" type="hidden" value="{{$edit_token}}" />
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
       <div>
         <input class="pure-button" type="submit" value="プログラムを削除">
@@ -122,6 +124,7 @@
         </label>
       </div>
       <div>
+        <input name="edit_token" type="hidden" value="{{$edit_token}}" />
         <input class="pure-button" type="submit" value="通報値変更">
       </div>
     </form>

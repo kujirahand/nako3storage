@@ -179,6 +179,31 @@ function n3s_is_admin() {
     return FALSE;
 }
 
+function n3s_getEditToken($key = 'default', $update = TRUE)
+{
+  global $n3s_config;
+  $sname = "n3s_edit_token_$key";
+  if ($update == FALSE) {
+    if (isset($_SESSION[$sname])) {
+      $n3s_config['edit_token'] = $_SESSION[$sname];
+      return $n3s_config['edit_token'];
+    }
+  }
+  if (!isset($n3s_config['edit_token'])) {
+    $t = $n3s_config['edit_token'] = bin2hex(random_bytes(32));
+    $_SESSION[$sname] = $t;
+  }
+  return $n3s_config['edit_token'];
+}
 
-
+function n3s_checkEditToken($key = 'default')
+{
+  $sname = "n3s_edit_token_$key";
+  $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
+  $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
+  if ($ses != '' && $ses == $get) {
+    return TRUE;
+  }
+  return FALSE;
+}
 
