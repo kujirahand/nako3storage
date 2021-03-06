@@ -51,10 +51,15 @@ function n3s_check_config()
 function n3s_action()
 {
     global $n3s_config;
+    // 実行アクションの指定
     $action = $n3s_config['action'];
-    $action = preg_replace('/([a-zA-Z0-9_]+)/', '$1', $action);
-    $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $agent = $n3s_config['agent'];
+    // サニタイズ処理
+    // アルファベット以外のアクションを削除
+    $action = preg_replace('/([^a-zA-Z0-9_]+)/', '', $action);
+    $agent = preg_replace('/([^a-zA-Z0-9_]+)/', '', $agent);
+    // モジュールを取得
+    $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $func_action = "n3s_{$agent}_{$action}";
 
     // DBを初期化

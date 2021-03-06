@@ -1,4 +1,7 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+
 function n3s_web_file()
 {
     echo_file();
@@ -11,6 +14,9 @@ function n3s_api_file()
 function echo_file() {
     global $n3s_config;
     $file = empty($_GET['page']) ? '__empty__' : $_GET['page'];
+    // テンプレート内のパス指定を削除
+    $file = str_replace('..', '', $file);
+    $file = str_replace('/', '', $file);
     $path = $n3s_config['dir_template']."/$file";
     if (!file_exists($path)) {
         header( "HTTP/1.1 404 Not Found" );
