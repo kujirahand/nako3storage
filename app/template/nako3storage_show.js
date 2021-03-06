@@ -28,6 +28,7 @@ function nako3_clear(s) {
     e.innerHTML =''
     e.style.display = 'none'
   })
+  $q('#nako3_output', function (e) { e.innerHTML = '' })
   $q('#nako3_canvas', function (canvas) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -49,7 +50,9 @@ function runButtonOnClick() { // 実行ボタンを押した時
   var va = nako_version.split(".")
   var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
   console.log('nako.version=' + verInt)
-  if (verInt >= 3021) {
+  if (verInt >= 3119) {
+    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
+  } else if (verInt >= 3021) {
     navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print, true)
     navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
   } else {
@@ -82,8 +85,18 @@ function runButtonOnClick() { // 実行ボタンを押した時
   try {
     runbox.style.display = 'block'
     nako3_clear();
-    navigator.nako3.run(preCode + code);
-    runCount++ // 正しく実行した回数をチェック
+
+    // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える。
+    if (editorObjects && verInt >= 3119) {
+      document.getElementById('nako3_output').style.display = 'block'
+      const logger = editorObjects.run({ preCode, outputContainer: document.getElementById('nako3_output') || undefined }).logger
+      logger.addListener('error', (data) => { if (data.level === 'error') { runCount = 0 } }) // エラーが飛んだらrunCountを0に戻す
+      runCount++ // 正しく実行した回数をチェック
+    } else {
+      document.getElementById('nako3_output').style.display = 'none'
+      navigator.nako3.run(preCode + code);
+      runCount++ // 正しく実行した回数をチェック
+    }
   } catch (e) {
     showError(e.message)
     console.log(e);
