@@ -1,8 +1,7 @@
 <?php
-include_once dirname(__FILE__) . '/n3s_lib.inc.php';
+require_once __DIR__ . '/n3s_lib.inc.php';
 
 n3s_main();
-
 
 function n3s_main()
 {
