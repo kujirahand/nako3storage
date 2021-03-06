@@ -1,14 +1,19 @@
 <!-- footer -->
 <div id="n3s_footer">
+    <!-- link -->
     <div class="header-right">
-    <span><a href="index.php?page=all&amp;action=list" class="pure-button">一覧</a></span>
-    <span><a href="index.php?page=new&amp;action=show" class="pure-button">新規</a></span>
-    {{ if n3s_is_login() }}
-    <span><a href="index.php?page=new&amp;action=upload" class="pure-button">素材投稿</a></span>
-    {{ endif }}
+        <span><a href="index.php?page=all&amp;action=list" class="pure-button">📒一覧</a></span>
+        <span><a href="index.php?page=new&amp;action=show" class="pure-button">🌟新規</a></span>
+        {{if n3s_is_login()}}
+        <a href="index.php?page=my&amp;action=mypage" class="pure-button">🐕マイページ</a>
+        {{else}}
+        <a href="index.php?page=my&amp;action=login" class="pure-button">🚪ログイン</a>
+        {{endif}}
     </div>
+    <!-- version info -->
     <div class="applink"><a href="https://github.com/kujirahand/nako3storage/">
-        {{$page_title}} v.{{$nako3storage_version}}</a></div>
+        {{$page_title}} v.{{$nako3storage_version}}</a>
+    </div>
 </div>
 
 </body>
