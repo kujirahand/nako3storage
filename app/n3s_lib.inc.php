@@ -100,14 +100,9 @@ function n3s_get_db($type = 'main')
     // open db
     $file_db = $n3s_config["file_db_{$type}"];
     $file_init_sql = $n3s_config['dir_sql'] . "/init-{$type}.sql";
-    if ($type == 'main') {
-        database_set($file_db, $file_init_sql);
-        $db = database_get();
-    } else {
-        $db = new PDO($file_db);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    }
+    database_set($file_db, $file_init_sql, $type);
+    $db = database_get($type);
+    // memorize db
     $n3s_db_handle[$type] = $db;
     return $db;
 }
