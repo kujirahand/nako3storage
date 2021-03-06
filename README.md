@@ -23,6 +23,17 @@
  - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
  - `bash scripts/setup.sh`コマンドを実行する
  - 必要ライブラリ(Twitterの認証)のインストール `cd app` そして `composer install`
+ - `./n3s_config.ini.php` に以下のようなTwitterの認証情報を指定
+
+```
+<?php
+global $n3s_config;
+$n3s_config['admin_users'] = [PHP_INT_MAX];
+$n3s_config['twitter_api_key'] = 'xxx';
+$n3s_config['twitter_api_secret'] = 'xxx';
+$n3s_config['twitter_acc_token'] = 'xxx-xxx';
+$n3s_config['twitter_acc_secret'] = 'xxxxxx';
+```
 
 ## ガジェット
 
