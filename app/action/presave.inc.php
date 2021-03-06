@@ -27,5 +27,7 @@ function n3s_web_presave() {
     ]);
   }
 
+  // 編集トークンを埋め込む
+  $a['edit_token'] = n3s_getEditToken();
   n3s_template_fw('save.html', $a);
 }
