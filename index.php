@@ -1,8 +1,6 @@
 <?php
 global $n3s_config;
 
-include_once __DIR__.'/nako_version.inc.php';
-
 // read config file (差分のみ ... 主に app/index.inc.php で指定)
 $root = dirname(__FILE__);
 $n3s_config = array(
