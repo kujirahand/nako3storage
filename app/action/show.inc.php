@@ -139,6 +139,7 @@ function n3s_show_get($agent)
         // ユーザー情報を取得
         $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
         $a['profile_url'] = $user['profile_url'];
+        $a['screen_name'] = $user['screen_name'];
     } else {
         $a['profile_url'] = 'skin/def/user-icon.png';
     }
