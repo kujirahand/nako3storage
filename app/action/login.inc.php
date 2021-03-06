@@ -1,4 +1,7 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+
 // for Twitter login
 global $enabled_twitter;
 $enabled_twitter = TRUE;

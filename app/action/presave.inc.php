@@ -1,4 +1,7 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
+
 include_once dirname(__FILE__).'/save.inc.php';
 
 function n3s_web_presave() {

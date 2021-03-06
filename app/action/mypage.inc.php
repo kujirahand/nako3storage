@@ -1,4 +1,6 @@
 <?php
+// for clickjacking
+header('X-Frame-Options: SAMEORIGIN');
 
 // no api login
 function n3s_api_mypage()
