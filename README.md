@@ -10,8 +10,15 @@
 
  - [基本URL] https://nadesi.com/v3/storage/
 
-## インストール
+## 簡単なインストール方法
 
+ - ReleaseからZIPファイルをダウンロードして解凍。
+ - アーカイブをPHP7以上が動くWebサーバーへアップ。
+ - dataフォルダを書き込み可能にする。
+
+## 詳細なインストール方法
+
+ - SSHでWebサーバーにログインする。
  - `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
  - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
  - `bash scripts/setup.sh`コマンドを実行する
