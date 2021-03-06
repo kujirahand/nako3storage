@@ -147,8 +147,8 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   if ($a['body'] == '') {
       throw new Exception('プログラムが空です。');
   }
-  if (strlen($a['body']) < 8) {
-      throw new Exception('プログラムが8文字以下です');
+  if (strlen($a['body']) < 30) {
+      throw new Exception('プログラムが30文字以下です');
   }
 }
 
