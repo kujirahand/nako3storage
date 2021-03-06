@@ -95,7 +95,7 @@ function n3s_list_get()
     if ($app_id === 0) $next_url = ""; // トップなので次はない
     // ranking
     $ranking = null;
-    if ($mode == 'list') {
+    if ($mode == 'list' && $find_user_id == 0) {
         // Nヶ月以内に更新されたアプリ
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
