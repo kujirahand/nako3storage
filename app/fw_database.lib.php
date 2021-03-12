@@ -36,7 +36,8 @@ function database_get($dbname = 'main') {
   if (!file_exists($file_db)) {
     $need_init = TRUE;
   }
-  $pdo = $FW_DB_MAIN = new PDO('sqlite:'.$file_db);
+  $pdo = new PDO('sqlite:'.$file_db);
+  $FW_DB_INFO[$dbname]['handle'] = $pdo;
   // エラーで例外を投げる
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   // 連想配列を返す
