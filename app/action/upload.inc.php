@@ -87,7 +87,7 @@ function go_upload() {
     }
     $user_id = n3s_get_user_id();
     //
-    $db = database_get();
+    $db = n3s_get_db('main');
     db_exec('begin');
     $image_id = db_insert(
         'INSERT INTO images (title,user_id,ctime,mtime)VALUES(?,?,?,?)', 
