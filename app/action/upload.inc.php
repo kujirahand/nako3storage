@@ -6,6 +6,7 @@ include_once dirname(__FILE__) . '/save.inc.php';
 include_once dirname(__FILE__) . '/show.inc.php';
 
 // アップロード可能タイプ
+global $supported_type;
 $supported_type = 'jpg|jpeg|gif|png|mp3|ogg|oga|xml|js|txt|csv|tsv|json';
 
 
@@ -76,8 +77,9 @@ function go_upload() {
     $fname = strtolower($fname);
     $ext = '.jpg';
     global $supported_type;
-    if (preg_match("/(\.({$supported_type})$/i", $fname, $m)) {
-        $ext = strtolower($m[1]);
+    $re = "/\.({$supported_type})$/";
+    if (preg_match($re, strtolower($fname), $m)) {
+        $ext = strtolower($m[0]);
     } else {
         n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみ".
           "アップロードできます。 (".$supported_type.")");
