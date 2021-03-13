@@ -183,6 +183,11 @@ function n3s_action_save_data_raw($data, $agent) {
       '保存に失敗しました。別のページを開いていれば閉じてください。改めて保存ボタンをクリックしてください。');
   }
 
+  // カスタムヘッダのチェック
+  if (!check_custom_head($a, $err)) {
+    throw new Exception("カスタムヘッダに指定したJavaScriptが許可されていません。".$err);
+  }
+
   if ($app_id > 0) {
     // check editkey
     $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
@@ -383,4 +388,76 @@ function n3s_action_save_reset_bad($params) {
 
 function randomStr($length = 8) {
     return substr(bin2hex(random_bytes($length)), 0, $length);
+}
+
+// カスタムヘッダ
+function check_custom_head(&$a, &$err) {
+  // (ex) $a['custom_head'] = '<script src="a.js" integrity="abcd" crossorigin="anonymous"></script>'."\n".'<script src="b.js"></script>';
+  $err = '';
+  $head = $a['custom_head'];
+  if ($head === '') {
+    return TRUE;
+  }
+  // コメント一覧を得る
+  $comment = "";
+  $i = preg_match_all('|<!--(.*?)-->|', $head, $m);
+  if ($i) {
+    $comment = trim(implode("\n", $m[0]))."\n";
+  }
+  // スクリプト一覧を得る
+  $i = preg_match_all('|<script [^>]+>|', $head, $m);
+  if (!$i) {
+    $err = '利用できるのは<script>タグのみです。';
+    return FALSE;
+  }
+  // スクリプトタグを解析する
+  $scr_res = [];
+  $scr_list = $m[0];
+  foreach ($scr_list as $script) {
+    $script = str_replace("'", '"', $script);
+    $i = preg_match_all('|([a-zA-Z]+)\="([^"]+)"|', $script, $m);
+    if ($i) {
+      $res = [];
+      foreach ($m[1] as $n => $key) {
+        $res[$key] = $m[2][$n];
+      }
+      $src = isset($res["src"]) ? $res["src"] : '';
+      $integrity = isset($res["integrity"]) ? $res["integrity"] : '';
+      $crossorigin = isset($res["crossorigin"]) ? $res["crossorigin"] : '';
+      if (!$src) continue;
+      $rr = [
+        "src" => $src, 
+        "integrity" => $integrity, 
+        "crossorigin" => $crossorigin
+      ];
+      if (strpos($script, "defer") !== FALSE) {
+        $rr["_sync"] = "defer";
+      } else if (strpos($script, "async") !== FALSE) {
+        $rr["_sync"] = "async";
+      } else {
+        $rr["_sync"] = "";
+      }
+      $scr_res[] = $rr;
+    }
+  }
+  // タグを再構築
+  $script = "";
+  foreach ($scr_res as $r) {
+    $src = $r['src'];
+    $sync = $r['_sync'];
+    $integrity = $r['integrity'];
+    $crossorigin = $r['crossorigin'];
+
+    $script .= "<script {$sync} src=\"{$src}\"";
+    if ($integrity != '') {
+      $script .= " integrity=\"{$integrity}\"";
+    }
+    if ($crossorigin != '') {
+      $script .= " crossorigin=\"{$crossorigin}\"";
+    }
+    $script .= "></script>\n";
+  }
+  // 結果を指定
+  $a['custom_head'] = $comment.$script;
+  return TRUE;
 }
