@@ -9,11 +9,11 @@
     <p class="memo">{{ $memo }}</p>
   </div>
   <div>
-    <label>プログラム:<br />
+    <label>プログラム: <span id="sizeSwitch">(→小サイズ)</span><br />
     
     <textarea id="nako3code">{{ $body }}</textarea>
     </label><br />
-    <button id="runButton" class="pure-button pure-button-primary">▶　実 行</button>
+    <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
     <button id="clearButton" class="pure-button">クリア</button>
     <div id="runbox">
       <!-- 3.1.19以上 -->
@@ -138,7 +138,7 @@
 {{ endif }}
 
 <!-- script for nako3storage-->
-<script type="text/javascript">
+<script>
   //nako3storage_show.js から参照する変数
   var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
   var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
@@ -178,6 +178,24 @@
       }
   }
 
+  function setupShortcut() {
+    // setup shortcut key
+    document.addEventListener("keydown", function(e) {
+      switch (e.keyCode) {
+        case 120: // [F9]
+          e.preventDefault()
+          const runButton = document.getElementById('runButton')
+          runButton.click()
+          break;
+        case 121: // [F11]
+          e.preventDefault()
+          const clearButton = document.getElementById('clearButton')
+          clearButton.click()
+          break;
+      }
+    });
+  }
+
   // nako3storage info
   const baseurl = "{{ $baseurl | safe }}";
   const editlink = "{{ $editlink  | safe }}";
@@ -187,9 +205,28 @@
   const runbox_c = document.getElementById('runbox')
   runbox_c.style.display = 'none'
   // check modified
-  setupEditor()
+  document.addEventListener("DOMContentLoaded", function() {
+    setupEditor();
+    setupShortcut();
+    setupEditorSize();
+  });
+
+  function setupEditorSize() {
+    const sizeSwitch = document.querySelector('#sizeSwitch');
+    const nako3code = document.querySelector('#nako3code');
+    const full_h = nako3code.style.height;
+    const mini_h = '200px';
+    sizeSwitch.onclick = function () {
+      if (nako3code.style.height == full_h) {
+        nako3code.style.height = mini_h;
+        sizeSwitch.innerHTML = '(→大サイズ)';
+      } else {
+        nako3code.style.height = full_h;
+        sizeSwitch.innerHTML = '(→小サイズ)';
+      }
+    };
+  }
 </script>
-<script defer type="text/javascript"
-  src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+<script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
 {{ include parts_html_footer.html }}
