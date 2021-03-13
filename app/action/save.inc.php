@@ -424,7 +424,17 @@ function check_custom_head(&$a, &$err) {
       $src = isset($res["src"]) ? $res["src"] : '';
       $integrity = isset($res["integrity"]) ? $res["integrity"] : '';
       $crossorigin = isset($res["crossorigin"]) ? $res["crossorigin"] : '';
-      if (!$src) continue;
+      if (!$src) {
+        $err = "scriptタグにはsrc属性が必要です。外部スクリプトの取り込みのみ許可されます。";
+        return FALSE;
+      }
+      // srcに指定するURLのチェック (#51)
+      if (!preg_match('|^https://nadesi.com/v3/cdn.php\?|', $src)) {
+        if (!preg_match('|^https://cdn.jsdelivr.net/npm/chart.js@|', $src)) {
+          $err = "カスタムヘッダに指定できるスクリプトのsrcはなでしこのCDNに制限されています。";
+          return FALSE;
+        }
+      }
       $rr = [
         "src" => $src, 
         "integrity" => $integrity, 
