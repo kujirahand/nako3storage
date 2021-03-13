@@ -139,95 +139,22 @@
 
 <!-- script for nako3storage-->
 <script>
-  //nako3storage_show.js から参照する変数
-  var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
-  var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
-  var editorObjects = null
+// nako3storage_show.js から参照する変数
+var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
+var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
+var editorObjects = null
 
-  function setupEditor() {
-      if (navigator.nako3 === undefined) {
-          setTimeout(function() { setupEditor() }, 100);
-          return
-      }
-      const nako3code = document.getElementById("nako3code")
-      if (navigator.nako3.setupEditor) {
-        // 3.1.17以上ならsetupEditor関数が存在する。
-        // textareaをdivで置換してからace editorとして使う。
-        const div = document.createElement("div")
-        div.id = "nako3code"
-        const parent = nako3code.parentElement
-        parent.removeChild(nako3code)
-        parent.appendChild(div)
-        div.dataset.nako3Resizable = "true"
-        div.textContent = nako3code.value
+// nako3storage info
+const baseurl = "{{ $baseurl | safe }}";
+const editlink = "{{ $editlink  | safe }}";
 
-        editorObjects = navigator.nako3.setupEditor("nako3code");
-        editorObjects.editor.on("change", function(e) {
-          localStorage["n3s_save_body"] = editorObjects.editor.getValue()
-        })
-        setValue = function(text) { editorObjects.editor.setValue(text) }
-        getValue = function() { return editorObjects.editor.getValue() }
-      } else {
-        // 3.1.17未満のときはtextareaで表示する。
-        nako3code.addEventListener("change", function(e) {
-          localStorage["n3s_save_body"] = nako3code.value
-        })
-        setValue = function(text) { nako3code.value = text }
-        getValue = function(text) { return nako3code.value }
-        return
-      }
-  }
-
-  function setupShortcut() {
-    // setup shortcut key
-    document.addEventListener("keydown", function(e) {
-      switch (e.keyCode) {
-        case 120: // [F9]
-          e.preventDefault()
-          const runButton = document.getElementById('runButton')
-          runButton.click()
-          break;
-        case 121: // [F11]
-          e.preventDefault()
-          const clearButton = document.getElementById('clearButton')
-          clearButton.click()
-          break;
-      }
-    });
-  }
-  
-  function setupEditorSize() {
-    const sizeSwitch = document.querySelector('#sizeSwitch');
-    const nako3code = document.querySelector('#nako3code');
-    const full_h = nako3code.style.height;
-    const mini_h = '200px';
-    sizeSwitch.onclick = function () {
-      if (nako3code.style.height == full_h) {
-        nako3code.style.height = mini_h;
-        sizeSwitch.innerHTML = '(→大)';
-      } else {
-        nako3code.style.height = full_h;
-        sizeSwitch.innerHTML = '(→小)';
-      }
-    };
-  }
-
-  // nako3storage info
-  const baseurl = "{{ $baseurl | safe }}";
-  const editlink = "{{ $editlink  | safe }}";
-  // nako3 program info
-  const app_id = {{ $app_id }};
-  const nako_version = "{{ $version }}" + ".0.0.0"
-  const runbox_c = document.getElementById('runbox')
-  runbox_c.style.display = 'none'
-  // check modified
-  document.addEventListener("DOMContentLoaded", function() {
-    setupEditor();
-    setupShortcut();
-    setupEditorSize();
-  });
-
+// nako3 program info
+const app_id = {{ $app_id }};
+const nako_version = "{{ $version }}" + ".0.0.0"
+const runbox_c = document.getElementById('runbox')
+runbox_c.style.display = 'none'
 </script>
+<script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
 {{ include parts_html_footer.html }}
