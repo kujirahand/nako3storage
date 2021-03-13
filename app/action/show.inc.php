@@ -134,6 +134,7 @@ function n3s_show_get($agent, $useEditor = TRUE)
     $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
+    $a['mtime_nako3storage_edit'] = filemtime($n3s_config['dir_template']."/nako3storage_edit.js");
     if (!isset($a['user_id'])) { $a['user_id'] = 0; }
     if (!isset($a['ctime'])) { $a['ctime'] = 0; }
     if (!isset($a['mtime'])) { $a['mtime'] = 0; }
