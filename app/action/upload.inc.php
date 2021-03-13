@@ -32,7 +32,9 @@ function n3s_web_upload() {
         list_image();
         return;
     }
-    n3s_template_fw('upload.html', []);
+    n3s_template_fw('upload.html', [
+        "edit_token" => n3s_getEditToken(),
+    ]);
 }
 
 function go_upload() {
@@ -40,6 +42,11 @@ function go_upload() {
     $dir_images = n3s_get_config('dir_images', '');
     if (!$dir_images) {
         n3s_error('アップロードできません', 'システムで保存フォルダが設定されていません');
+        return;
+    }
+    // edit_tokenのチェック
+    if (!n3s_checkEditToken()) {
+        n3s_error('アップロードできません', 'トークンが無効です。再度アップロードしてください。');
         return;
     }
     // ログインチェック
@@ -133,7 +140,7 @@ function show_image() {
         }
     }
     // set token to session
-    $n3s_acc_token = $_SESSION['n3s_acc_token_upload'] = gen_acc_token();
+    $n3s_acc_token = $_SESSION['n3s_acc_token_upload'] = n3s_getEditToken();
     // template
     n3s_template_fw('upload-ok.html', [
         'image_id' => $im['image_id'],
@@ -145,11 +152,6 @@ function show_image() {
         'can_edit' => $can_edit,
         'acc_token' => $n3s_acc_token,
     ]);
-}
-
-function gen_acc_token() {
-    $s = md5(uniqid(mt_rand(), true));
-    return 'acc_token::'.$s;
 }
 
 function delete_image() {
@@ -195,7 +197,7 @@ function delete_image() {
     db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
     // delete file
     $image_file = "{$dir_images}/{$filename}";
-    unlink($image_file);
+    @unlink($image_file);
     //
     n3s_template_fw('basic.html',[
         'contents' => "ファイルを削除しました。",
