@@ -9,7 +9,7 @@
     <p class="memo">{{ $memo }}</p>
   </div>
   <div>
-    <label>プログラム: <span id="sizeSwitch">(→小サイズ)</span><br />
+    <label>プログラム: <span id="sizeSwitch">(→小)</span><br />
     
     <textarea id="nako3code">{{ $body }}</textarea>
     </label><br />
@@ -195,6 +195,22 @@
       }
     });
   }
+  
+  function setupEditorSize() {
+    const sizeSwitch = document.querySelector('#sizeSwitch');
+    const nako3code = document.querySelector('#nako3code');
+    const full_h = nako3code.style.height;
+    const mini_h = '200px';
+    sizeSwitch.onclick = function () {
+      if (nako3code.style.height == full_h) {
+        nako3code.style.height = mini_h;
+        sizeSwitch.innerHTML = '(→大)';
+      } else {
+        nako3code.style.height = full_h;
+        sizeSwitch.innerHTML = '(→小)';
+      }
+    };
+  }
 
   // nako3storage info
   const baseurl = "{{ $baseurl | safe }}";
@@ -211,21 +227,6 @@
     setupEditorSize();
   });
 
-  function setupEditorSize() {
-    const sizeSwitch = document.querySelector('#sizeSwitch');
-    const nako3code = document.querySelector('#nako3code');
-    const full_h = nako3code.style.height;
-    const mini_h = '200px';
-    sizeSwitch.onclick = function () {
-      if (nako3code.style.height == full_h) {
-        nako3code.style.height = mini_h;
-        sizeSwitch.innerHTML = '(→大サイズ)';
-      } else {
-        nako3code.style.height = full_h;
-        sizeSwitch.innerHTML = '(→小サイズ)';
-      }
-    };
-  }
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
