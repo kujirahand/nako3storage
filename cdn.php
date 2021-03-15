@@ -48,14 +48,18 @@ if (preg_match('#\.(css|html)$#', $file, $m)) {
   } else {
     $body = @file_get_contents($cache_file);
   }
+  // output
+  header('Access-Control-Allow-Origin: *');
   if ($m[1] == 'css') {
     header('content-type: text/css; charset=utf-8');
     echo $body;
+    exit;
   }
-  // header("location: $cache_url_file", TRUE, 307);
+  header("location: $cache_url_file", TRUE, 307);
   exit;
 }
 // redirect
+header('Access-Control-Allow-Origin: *');
 header("location: $url", TRUE, 307);
 exit;
 
