@@ -10,6 +10,11 @@ $CDN = 'https://cdn.jsdelivr.net/npm/nadesiko3';
 $cache_dir = __DIR__.'/cache-cdn';
 $uri = dirname($_SERVER['SCRIPT_NAME']);
 $cache_url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$uri."/cache-cdn";
+// for nadesi.com/v3/cdn.php
+if ($_SERVER['HTTP_HOST'] == 'nadesi.com' && $uri == '/v3') {
+  $cache_url = 'https://nadesi.com/v3/storage/cache-cdn';
+}
+
 
 // get parameters
 $ver = get('v', NAKO_DEFAULT_VERSION);
@@ -25,7 +30,7 @@ if (substr($file, 0, 1) == '/') {
 // redirect url
 $url = "{$CDN}@{$ver}/{$file}{$run}";
 // check mime (ex) cdn.php?f=src/wnako3_editor.css
-if (preg_match('#\.(css|html)$#', $file)) {
+if (preg_match('#\.(css|html)$#', $file, $m)) {
   // get from cdn
   $file = str_replace('..', '', $file);
   $file = str_replace('/', '___', $file);
@@ -40,8 +45,14 @@ if (preg_match('#\.(css|html)$#', $file)) {
       exit;
     }
     @file_put_contents($cache_file, $body);
+  } else {
+    $body = @file_get_contents($cache_file);
   }
-  header("location: $cache_url_file", TRUE, 307);
+  if ($m[1] == 'css') {
+    header('content-type: text/css; charset=utf-8');
+    echo $body;
+  }
+  // header("location: $cache_url_file", TRUE, 307);
   exit;
 }
 // redirect
