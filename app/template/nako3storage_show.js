@@ -38,6 +38,10 @@ function nako3_clear(s) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
   })
+  // プラグインのクリア処理
+  if (navigator.nako3 && navigator.nako3.clearPlugins) {
+    navigator.nako3.clearPlugins()
+  }
 }
 function to_html(s, br) {
   s = '' + s
@@ -81,8 +85,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
     "ここまで。;" + 
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
-    "カメ全消去;" +
-    "カメ画像URL=「" + baseurl + "/demo/turtle.png」;"
+    "カメ全消去;"
   if (verInt >= 3108) {
     preCode += "‰\n"
   } else {
@@ -101,7 +104,11 @@ function runButtonOnClick() { // 実行ボタンを押した時
       runCount++ // 正しく実行した回数をチェック
     } else {
       document.getElementById('nako3_output').style.display = 'none'
-      navigator.nako3.run(preCode + code);
+      if (navigator.nako3.runReset) {
+        navigator.nako3.runReset(preCode + code);
+      } else {
+        navigator.nako3.run(preCode + code);
+      }
       runCount++ // 正しく実行した回数をチェック
     }
   } catch (e) {
