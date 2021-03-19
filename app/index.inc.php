@@ -16,6 +16,7 @@ function n3s_check_config()
     $root = dirname(dirname(__FILE__));
     $url_root = dirname($_SERVER['REQUEST_URI']);
     $def_values = array(
+        "page_title" => "🏦なでしこ3貯蔵庫(nako3storage)",
         "admin_users" => [1],
         "admin_contact_link" => "(Please set admin_contact_link in config file.)",
         "dir_data" => "{$root}/data",
@@ -31,7 +32,6 @@ function n3s_check_config()
         "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
         "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
         "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
-        "page_title" => "nako3storage",
         "extra_header_html" => "",
         "search_word" => "",
         "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
