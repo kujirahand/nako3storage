@@ -2,23 +2,28 @@
 
 <!-- 説明 -->
 <div class="showblock">
-  <div class="memo">
-    『<a href="./">🏦なでしこ3貯蔵庫</a>』は<a href="https://nadesi.com/doc3/">日本語プログラミング言語「なでしこ3」</a>のプログラムを書き込んで共有する場所です。
+  <div class="memo setumei">
+    ここは<a href="https://nadesi.com/doc3/">日本語プログラミング言語「なでしこ3」</a>のプログラムを書き込んで共有する場所です。
   </div>
 </div>
 
 {{ if $find_user_id gt 0 }}
   <!-- ユーザー紹介 -->
   <div class="list">
-    <h1>
-      {{$find_user_info.name}} さんの投稿:
+    <h1 class="list_user_profile">
+      <a href="index.php?user_id={{$find_user_id}}&action=list">{{$find_user_info.name}}</a> さんの投稿:
     </h1>
-    <p>
+    <p style="padding-left:2em; padding-right:1em;">
       <a href="https://twitter.com/{{$find_user_info.screen_name}}">
-        <img src="{{$find_user_info.profile_url}}" width="48" style="border:1px solid silver;" /></a>
-      <a href="https://twitter.com/{{$find_user_info.screen_name}}">(Twitterより)</a>
-      {{$find_user_info.description}}
+        <img src="{{$find_user_info.profile_url}}" width="48"
+             style="border:1px solid silver; float:left; margin-right:8px;" />
+      </a>
+      <p class="memo setumei" style="margin:1em;">
+        {{$find_user_info.description}}
+        <a href="https://twitter.com/{{$find_user_info.screen_name}}">[Twitter]:</a><br/>
+      </p>
     </p>
+    <p style="clear:both"></p>
   </div>
 {{ endif }}
 
@@ -88,13 +93,13 @@
         <td>
             {{if $r.user_id gt 0}}
             <span class="dev">
-                <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
+                <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
             </span>
             {{else}}
             <span class="dev">{{$r.author | check_nanasi }} 作</span>
             {{endif}}
             <br>
-            <span>{{$r.memo | trim100 }}</span>
+            <span class="postmemo">{{$r.memo | trim100 }}</span>
             <span class="date">({{$r.mtime | date2}})</span><br>
         </td>
     </tr>
