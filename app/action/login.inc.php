@@ -23,7 +23,7 @@ function n3s_web_login()
 {
     global $n3s_config, $enabled_twitter;
     if (!$enabled_twitter) {
-        n3s_error('ログイン画面を利用できません', 'Twitterライブラリをインストールしてください。');
+        n3s_error('ログイン画面を利用できません', 'Twitterライブラリを<a href="https://github.com/kujirahand/nako3storage#%E8%A9%B3%E7%B4%B0%E3%81%AA%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E6%96%B9%E6%B3%95">インストール</a>してください。', TRUE);
         exit;
     }
 
