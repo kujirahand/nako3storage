@@ -123,9 +123,11 @@ function n3s_template_fw($name, $params)
     template_render($name, []);
 }
 
-function n3s_error($title, $msg)
+function n3s_error($title, $msg, $useHTML = FALSE)
 {
-    n3s_template_fw('error.html', array(
+    $template = 'error.html';
+    if ($useHTML) {$template = 'error_raw.html';}
+    n3s_template_fw($template, array(
         "title" => $title,
         "msg" => $msg
     ));
