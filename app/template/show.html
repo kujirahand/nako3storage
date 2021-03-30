@@ -9,7 +9,7 @@
     <p class="memo">{{ $memo }}</p>
   </div>
   <div>
-    <label>プログラム: <span id="sizeSwitch">(→小)</span><br />
+    <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
     
     <textarea id="nako3code">{{ $body }}</textarea>
     </label><br />
@@ -18,11 +18,10 @@
     <div id="runbox">
       <!-- 3.1.19以上 -->
       <div id="nako3_output" style="display:none"></div>
-
       <!-- 3.1.18以下 -->
       <div id="nako3_error" style="display:none"></div> 
-      <textarea class="nako3row nako3info" readonly
-            id="nako3_info" rows="5" style="display:none"></textarea>
+      <!-- info box -->
+      <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
   
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
