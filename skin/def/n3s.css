@@ -58,16 +58,22 @@ h2 {
   padding: 0.5em;
 }
 .list .date {
-  font-size: 0.8em;
+  font-size: 0.7em;
   color:silver;
 }
 .list .dev {
-  font-size: 0.8em;
+  font-size: 0.7em;
   color: gray;
 }
 .list .dev a {
-  font-size: 0.8em;
-  color: gray;
+  font-size: 0.9em;
+  color: #444499;
+  text-decoration: none;
+  background-color: #ffff99;
+}
+.list .postmemo {
+  font-size: 0.9em;
+  color: #555555;
 }
 
 .saveform {
@@ -286,4 +292,19 @@ textarea#nako3code {
   border-right: none;
   border-bottom: 1px solid #e0e0e0;
 }
+
+.setumei a {
+  background-color: #ffffaa;
+  color: black;
+  text-decoration: none;
+  border-bottom: 1px dotted silver;
+}
+
+.list_user_profile a {
+  background-color: #ffffaa;
+  color: black;
+  text-decoration: none;
+  border-bottom: 1px dotted silver;
+}
+
 
