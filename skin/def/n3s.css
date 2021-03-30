@@ -146,7 +146,8 @@ h2 {
 
 #nako3_output {
   border: 1px solid silver;
-  max-height: 200px;
+  height: 3em;
+  max-height: 10em;
   resize: vertical;
   box-sizing: content-box;
   background-color: #f0f0f04b;
@@ -157,13 +158,16 @@ h2 {
 
 .nako3info {
   border: 1px solid silver;
-  background-color: #f0f0ff;
+  background-color: #f9f5f0;
   margin: 4px;
   padding: 8px;
 }
 
 #nako3_info {
-  width: 99%;
+  max-height: 10em;
+  overflow-y: auto;
+  resize: vertical;
+  box-sizing: content-box;
 }
 
 #nako3_canvas {

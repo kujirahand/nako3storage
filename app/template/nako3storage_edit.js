@@ -57,7 +57,8 @@ function setupEditorSize() {
   const sizeSwitch = document.querySelector('#sizeSwitch');
   const nako3code = document.querySelector('#nako3code');
   const full_h = nako3code.style.height;
-  const mini_h = '200px';
+  const mini_h = '7em';
+  nako3code.style.height = mini_h
   sizeSwitch.onclick = function () {
     if (nako3code.style.height == full_h) {
       nako3code.style.height = mini_h;

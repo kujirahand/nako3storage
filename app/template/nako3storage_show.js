@@ -28,12 +28,21 @@ function nako3_print(s) {
   info.style.display = 'block'
 }
 function nako3_clear(s) {
-  $q('#nako3_info', function (e) { e.value ='' })
+  $q('#nako3_info', function (e) { 
+    if (e.tagName.toUpperCase() == 'TEXTAREA') {
+      e.value ='' 
+    } else {
+      e.innerHTML = ''
+    }
+  })
   $q('#nako3_error', function (e) {
     e.innerHTML =''
     e.style.display = 'none'
   })
-  $q('#nako3_output', function (e) { e.innerHTML = '' })
+  $q('#nako3_output', function (e) {
+    e.innerHTML = '' 
+    e.style.display = 'none'
+  })
   $q('#nako3_canvas', function (canvas) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
