@@ -1,3 +1,3 @@
 <?php
-define("N3S_APP_VERSION", "0.6.2");
+define("N3S_APP_VERSION", "0.6.3");
 
