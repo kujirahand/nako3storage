@@ -108,7 +108,10 @@ function runButtonOnClick() { // 実行ボタンを押した時
     // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える。
     if (editorObjects && verInt >= 3119) {
       document.getElementById('nako3_output').style.display = 'block'
-      const logger = editorObjects.run({ preCode, outputContainer: document.getElementById('nako3_output') || undefined }).logger
+      const logger = editorObjects.run({ 
+        'preCode': preCode, 
+        'outputContainer': document.getElementById('nako3_output') || undefined
+      }).logger
       logger.addListener('error', (data) => { if (data.level === 'error') { runCount = 0 } }) // エラーが飛んだらrunCountを0に戻す
       runCount++ // 正しく実行した回数をチェック
     } else {
