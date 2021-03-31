@@ -12,6 +12,16 @@ function $q(query, callback) {
   }
   return el
 }
+// IE対策
+var isIE = function() {
+  var userAgent = window.navigator.userAgent.toUpperCase();
+  var msie = false;
+  if (userAgent.indexOf('MSIE') >= 0 || userAgent.indexOf('TRIDENT') >= 0) {
+    return true
+  }
+  return false
+}
+
 // なでしこ本体に登録する関数
 function nako3_print(s) {
   var info = $q('#nako3_info')
@@ -94,25 +104,21 @@ function runButtonOnClick() { // 実行ボタンを押した時
     "ここまで。;" + 
     "「#nako3_canvas」へ描画開始;" +
     "カメ描画先=「nako3_canvas」;" +
-    "カメ全消去;"
-  if (verInt >= 3108) {
-    preCode += "‰\n"
-  } else {
-    preCode += ";\n"
-  }
+    "カメ全消去;\n"
   // プログラムを実行
   try {
     runbox.style.display = 'block'
     nako3_clear();
 
-    // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える。
-    if (editorObjects && verInt >= 3119) {
+    // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える
+    // 但しmsieであればeditor.runを使わない (#61)
+    if (editorObjects && verInt >= 3119 && (!isIE)) {
       document.getElementById('nako3_output').style.display = 'block'
       const logger = editorObjects.run({ 
         'preCode': preCode, 
         'outputContainer': document.getElementById('nako3_output') || undefined
       }).logger
-      logger.addListener('error', (data) => { if (data.level === 'error') { runCount = 0 } }) // エラーが飛んだらrunCountを0に戻す
+      logger.addListener('error', function (data) { if (data.level === 'error') { runCount = 0 } }) // エラーが飛んだらrunCountを0に戻す
       runCount++ // 正しく実行した回数をチェック
     } else {
       document.getElementById('nako3_output').style.display = 'none'
