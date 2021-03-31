@@ -57,6 +57,10 @@ function n3s_show_get($agent, $useEditor = TRUE)
     $page = empty($_GET['page']) ? 'new' : $_GET['page'];
     $app_id = $_GET['app_id'] = intval(empty($_GET['app_id']) ? $page : 0);
     $n3s_config['app_id'] = $app_id;
+    // IE対策のためmsieパラメータをセット
+    $msie = FALSE;
+    $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
     
     $db = n3s_get_db();
     $a = ['result' => false];
@@ -89,7 +93,7 @@ function n3s_show_get($agent, $useEditor = TRUE)
             "<script defer src=\"$baseurl/release/wnako3.js\"></script>";
 
         // 3.1.17以上ならace editor用のHTMLタグを追加する。
-        if ($ver >= 30117 && $useEditor) {
+        if ($ver >= 30117 && $useEditor && (!$msie)) {
             if (!isset($a['extra_header_html'])) {
                 $a['extra_header_html'] = '';
             }

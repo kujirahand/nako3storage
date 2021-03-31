@@ -1,4 +1,13 @@
 // file: nako3storage_edit.js
+// IE対策
+var isIE = function() {
+  var userAgent = window.navigator.userAgent.toUpperCase();
+  var msie = false;
+  if (userAgent.indexOf('MSIE') >= 0 || userAgent.indexOf('TRIDENT') >= 0) {
+    return true
+  }
+  return false
+}
 
 function setupEditor() {
     if (navigator.nako3 === undefined) {
@@ -6,7 +15,7 @@ function setupEditor() {
         return
     }
     const nako3code = document.getElementById("nako3code")
-    if (navigator.nako3.setupEditor) {
+    if (navigator.nako3.setupEditor && (!isIE)) {
       // 3.1.17以上ならsetupEditor関数が存在する。
       // textareaをdivで置換してからace editorとして使う。
       const div = document.createElement("div")
