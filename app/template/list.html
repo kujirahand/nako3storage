@@ -13,17 +13,17 @@
     <h1 class="list_user_profile">
       <a href="index.php?user_id={{$find_user_id}}&action=list">{{$find_user_info.name}}</a> さんの投稿:
     </h1>
-    <p style="padding-left:2em; padding-right:1em;">
+    <div id="find_user_div" style="padding-left:2em; padding-right:1em;">
       <a href="https://twitter.com/{{$find_user_info.screen_name}}">
         <img src="{{$find_user_info.profile_url}}" width="48"
              style="border:1px solid silver; float:left; margin-right:8px;" />
       </a>
-      <p class="memo setumei" style="margin:1em;">
+      <p id="find_user_id_desc" class="memo setumei" style="margin:1em;">
         {{$find_user_info.description}}
         <a href="https://twitter.com/{{$find_user_info.screen_name}}">[Twitter]:</a><br/>
-      </p>
-    </p>
-    <p style="clear:both"></p>
+      </p><!-- #find_user_id_desc -->
+    </div><!-- #find_user_div -->
+    <div style="clear:both"></div>
   </div>
 {{ endif }}
 
