@@ -16,10 +16,12 @@ function $q(query, callback) {
 var isIE = function() {
   var userAgent = window.navigator.userAgent.toUpperCase();
   var msie = false;
+  var msie = false;
   if (userAgent.indexOf('MSIE') >= 0 || userAgent.indexOf('TRIDENT') >= 0) {
-    return true
+    msie = true
   }
-  return false
+  if (msie) {console.log("isIE")}
+  return msie
 }
 
 // なでしこ本体に登録する関数
