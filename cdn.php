@@ -1,6 +1,6 @@
 <?php
 // CDN.php --- redirect to cdn
-
+global $cache_dir, $CDN, $cache_url;
 // get nadesiko default version
 require_once __DIR__.'/nako_version.inc.php';
 
@@ -29,8 +29,23 @@ if (substr($file, 0, 1) == '/') {
 
 // redirect url
 $url = "{$CDN}@{$ver}/{$file}{$run}";
+
 // check mime (ex) cdn.php?f=src/wnako3_editor.css
 if (preg_match('#\.(css|html)$#', $file, $m)) {
+  $ext = $m[1];
+  useCache($ver, $url, $file, $ext);
+}
+if (basename($file) == 'wnako3webworker.js') {
+  useCache($ver, $url, $file, 'js');
+} 
+
+// redirect
+header('Access-Control-Allow-Origin: *');
+header("location: $url", TRUE, 307);
+exit;
+
+function useCache($ver, $url, $file, $ext) {
+  global $cache_dir, $CDN, $cache_url;
   // get from cdn
   $file = str_replace('..', '', $file);
   $file = str_replace('/', '___', $file);
@@ -38,6 +53,7 @@ if (preg_match('#\.(css|html)$#', $file, $m)) {
   $cache_file = $cache_dir."/{$ver}@{$file}";
   $cache_url_file = "$cache_url/{$ver}@{$file}";
   if (!file_exists($cache_file)) {
+    // fetch from web
     $body = @file_get_contents($url);
     if ($body == '') {
       header("HTTP/1.0 404 Not Found");
@@ -50,18 +66,17 @@ if (preg_match('#\.(css|html)$#', $file, $m)) {
   }
   // output
   header('Access-Control-Allow-Origin: *');
-  if ($m[1] == 'css') {
+  if ($ext == 'css') {
     header('content-type: text/css; charset=utf-8');
     echo $body;
-    exit;
+  } else if ($ext == 'js') {
+    header('content-type: text/javascript; charset=utf-8');
+    echo $body;
+  } else {
+    header("location: $cache_url_file", TRUE, 307);
   }
-  header("location: $cache_url_file", TRUE, 307);
   exit;
 }
-// redirect
-header('Access-Control-Allow-Origin: *');
-header("location: $url", TRUE, 307);
-exit;
 
 
 function get($key, $def = '') {
