@@ -1,0 +1,55 @@
+{{ include parts_html_header.html }}
+
+<!-- search box -->
+<div class="list">
+  <h1>検索</h1>
+  <form action="index.php" class="pure-form">
+    <span class="search_box">
+    <input type="hidden" name="action" value="search">
+    <input title="search word" name="search_word"
+        class="pure-input"
+        placeholder="作者か作品名を入力" 
+        value="{{ $search_word }}" size="28">
+    <input type="submit" value="検索" class="pure-button">
+    </span>
+  </form>
+</div>
+
+<!-- search result -->
+<div class="list search_list">
+  <h1>検索結果</h1>
+  {{ if !$list }}
+  <div>
+    『{{$search_word}}』は見つかりませんでした😭<br>
+    すみません。
+  </div>
+  {{ else }}
+    <table>
+    {{ for $list as $i }}
+      <tr>
+        <th>
+          <a class="pure-button" href="index.php?action=show&page={{$i.app_id}}">{{$i.app_id}}</a>
+        </th>
+        <td class="search_td">
+          <a href="index.php?action=show&page={{$i.app_id}}">{{$i.title | check_mudai}}</a>
+          {{if $i.fav > 0}}
+          ⭐{{$i.fav}}
+          {{endif}}
+          <br>
+          {{if $i.user_id > 0}}
+          <span class="setumei"><a href="index.php?user_id={{$i.user_id}}&action=list">{{$i.author}} 作</a></span>
+          {{else}}
+          &nbsp; {{$i.author}} 作
+          {{endif}}
+          <span class="memo">{{$i.mtime | date}}</span>
+        </td>
+      </tr>
+    {{ endfor }}
+    </table>
+  {{ endif }}
+</div>
+
+
+
+{{ include parts_html_footer.html }}
+
