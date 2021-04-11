@@ -99,7 +99,7 @@ function n3s_list_get()
     $ranking = null;
     if ($mode == 'list' && $find_user_id == 0 && $onlybad == 0 && $nofilter == 0) {
         // Nヶ月以内に更新されたアプリ
-        $mon = 6;
+        $mon = 3;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $h = $db->prepare('SELECT * FROM apps '.
           'WHERE (mtime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
