@@ -182,6 +182,7 @@ h2 {
 #n3s_footer {
   border-top: 1px dotted gray;
   padding: 1em;
+  font-size: 0.8em;
 }
 #n3s_footer .applink {
   text-align: center;
@@ -297,11 +298,14 @@ textarea#nako3code {
   border-bottom: 1px solid #e0e0e0;
 }
 
+.setumei {
+  padding: 4px;
+}
+
 .setumei a {
   background-color: #ffffaa;
   color: black;
   text-decoration: none;
-  border-bottom: 1px dotted silver;
 }
 
 .list_user_profile a {
@@ -311,4 +315,22 @@ textarea#nako3code {
   border-bottom: 1px dotted silver;
 }
 
+.search_list {
+}
+.search_list ul {
+  list-style: none;
+  padding:1em;
+  margin:0;
+}
+.search_list ul > li {
+  line-height: 2em;
+}
+.search_td {
+  line-height: 1.7em;
+}
+.search_td a {
+  text-decoration: none;
+  text-weight: bold;
+  border-bottom: 1px dotted silver;
+}
 
