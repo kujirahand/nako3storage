@@ -1,12 +1,5 @@
 {{ include parts_html_header.html }}
 
-<!-- 説明 -->
-<div class="showblock">
-  <div class="memo setumei">
-    ここは<a href="https://nadesi.com/doc3/">日本語プログラミング言語「なでしこ3」</a>のプログラムを書き込んで共有する場所です。
-  </div>
-</div>
-
 {{ if $find_user_id gt 0 }}
   <!-- ユーザー紹介 -->
   <div class="list">
@@ -31,7 +24,10 @@
   <!-- 人気のリスト -->
   <div class="list" id="ranking_list">
   <h1>人気の投稿</h1>
-  <p>半年以内に更新された人気の投稿です。(<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)</p>
+  <p>
+    3ヶ月以内に更新された人気の投稿です。
+    (<a href="index.php?action=list&mode=ranking&term=all">→全期間</a>)
+  </p>
   <table>
       <tr>
           <th>ID</th>
@@ -67,9 +63,13 @@
   </div><!-- end of #ranking_list -->
 {{ endif /* end of ranking */ }}
 
-
 <div class="list" id="recent_list">
+{{ if $mode == 'ranking' }}
+  <h1>人気順の表示</h1>
+{{ else }}
   <h1>最新の投稿</h1>
+{{ endif }}
+
 {{ if count($list) == 0 }}
   <div class="showblock">😔 見つかりませんでした。</div>
 {{ else }}
