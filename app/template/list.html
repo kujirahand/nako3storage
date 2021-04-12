@@ -20,25 +20,21 @@
   </div>
 {{ endif }}
 
-{{ if $ranking }}
+{{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
   <!-- 人気のリスト -->
   <div class="list" id="ranking_list">
   <h1>人気の投稿</h1>
   <p>
-    3ヶ月以内に更新された人気の投稿です。
-    (<a href="index.php?action=list&mode=ranking&term=all">→全期間</a>)
+    最近の人気の投稿です。
+    (<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)
   </p>
   <table width="100%">
       <tr>
-          <th class="list_app_id">ID</th>
           <th>タイトル</th>
           <th>説明</th>
       </tr>
       {{ for $ranking as $r }}
       <tr>
-          <td class="list_app_id">
-              <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
-          </td>
           <td>
               <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
               {{if $r.fav gt 0}}
@@ -60,6 +56,7 @@
       </tr>
       {{ endfor }}
   </table>
+  <p class="memo" style="text-align:right; padding:0.5em;"><a href="index.php?action=list&mode=ranking">→もっと見る...</a></p>
   </div><!-- end of #ranking_list -->
 {{ endif /* end of ranking */ }}
 
@@ -75,15 +72,11 @@
 {{ else }}
 <table width="100%">
     <tr>
-        <th class="list_app_id">ID</th>
         <th>タイトル</th>
         <th>説明</th>
     </tr>
     {{ for $list as $r }}
     <tr>
-        <td class="list_app_id">
-            <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
-        </td>
         <td>
             <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
             {{if $r.fav gt 0}}
