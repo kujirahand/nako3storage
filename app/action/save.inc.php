@@ -76,7 +76,7 @@ function n3s_action_save_load_body(&$a) {
   if ($material_id > 0) {
     $material_db = n3s_get_db('material');
     $m = $material_db->query("SELECT * FROM materials WHERE material_id=$material_id")->fetch();
-    $a['body'] = $m['body'];
+    $a['body'] = $m['body']."\n\n\n"; // エディタに余白が必要
   } else {
     $a['body'] = '';
   }
