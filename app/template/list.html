@@ -28,15 +28,15 @@
     3ヶ月以内に更新された人気の投稿です。
     (<a href="index.php?action=list&mode=ranking&term=all">→全期間</a>)
   </p>
-  <table>
+  <table width="100%">
       <tr>
-          <th>ID</th>
+          <th class="list_app_id">ID</th>
           <th>タイトル</th>
           <th>説明</th>
       </tr>
       {{ for $ranking as $r }}
       <tr>
-          <td>
+          <td class="list_app_id">
               <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
           </td>
           <td>
@@ -73,15 +73,15 @@
 {{ if count($list) == 0 }}
   <div class="showblock">😔 見つかりませんでした。</div>
 {{ else }}
-<table>
+<table width="100%">
     <tr>
-        <th>ID</th>
+        <th class="list_app_id">ID</th>
         <th>タイトル</th>
         <th>説明</th>
     </tr>
     {{ for $list as $r }}
     <tr>
-        <td>
+        <td class="list_app_id">
             <a href="id.php?{{$r.app_id}}" class="pure-button">{{ $r.app_id }}</a>
         </td>
         <td>
