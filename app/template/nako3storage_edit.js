@@ -113,6 +113,8 @@ const bad_button = document.getElementById('bad_button')
 const bad = document.getElementById('bad')
 if (bad_button) { //  非表示になることがあるので
   bad_button.onclick = function () {
+    var b = confirm('本当に通報しますか？')
+    if (!b) {return}
     bad_button.disabled = true
     ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
