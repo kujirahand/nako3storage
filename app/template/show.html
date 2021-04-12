@@ -10,8 +10,7 @@
   </div>
   <div>
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
-    
-    <textarea id="nako3code">{{ $body }}</textarea>
+    <textarea id="nako3code" readonly>{{ $body }}</textarea>
     </label><br />
     <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
     <button id="clearButton" class="pure-button">クリア</button>
@@ -76,25 +75,16 @@
 </div>
 
 <!-- 編集ボタン -->
+{{ if $app_id gt 0}}
 <div class="ctrl_block">
-  {{if $app_id == 0}}
-    <p><button onclick="saveClick(true)" class="pure-button">新規保存</button></p>
-  {{else}}
-    {{if n3s_is_login()}}
-      {{if ($my_user_id === $user_id) || n3s_is_admin()}}
-      <p><button onclick="saveClick(false)" class="pure-button">編集</button></p>
-      {{endif}}
-    {{endif}}
-  {{endif}}
-  {{ if n3s_is_login() }}
-  <p><a href="index.php?action=upload" class="pure-button">素材アップロード</a></p>
-  {{ else }}
-  <p><a href="index.php?action=login">ログイン</a>するとファイルをアップロードできます。</p>
-  {{ endif }}
+  <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝作品を編集</a>
 </div>
+{{ endif}}
 
 {{ if $app_id gt 0 }}
 <!-- URLを表示 -->
+<div class="ctrl_block">
+<h1>作品公開情報</h1>
 <div class="blogparts">
   {{ if $is_private }}
     {{ if $access_key != "" }}
@@ -113,7 +103,7 @@
     <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
   <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}">
   {{ endif }}
-</div>
+</div></div>
 {{ endif }}
 
 {{if $app_id gt 0}}

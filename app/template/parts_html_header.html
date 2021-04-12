@@ -15,14 +15,5 @@
         <a href="https://nadesi.com/doc3/">「なでしこ3」</a> &gt; プログラム共有
     </div>
     <h1 class="title"><a href="./index.php">{{ $page_title }}</a></h1>
-    <div class="header-right">
-        <a href="index.php?page=all&amp;action=list" class="pure-button">📒一覧</a>
-        <a href="index.php?page=new&amp;action=show" class="pure-button">🌟新規</a>
-        <a href="index.php?page=all&amp;action=search" class="pure-button">🔍検索</a>
-        {{if n3s_is_login()}}
-        <a href="index.php?page=my&amp;action=mypage" class="pure-button">🐕マイページ</a>
-        {{else}}
-        <a href="index.php?page=my&amp;action=login" class="pure-button">🚪ログイン</a>
-        {{endif}}
-    </div>
+    {{ include parts_html_menu.html }}
 </div>

@@ -3,7 +3,7 @@ include_once dirname(__FILE__) . '/save.inc.php';
 
 function n3s_web_show()
 {
-    $a = n3s_show_get('web');
+    $a = n3s_show_get('web', TRUE, TRUE);
     n3s_template_fw('show.html', $a);
 }
 
@@ -49,7 +49,7 @@ function n3s_check_private(&$a, $agent)
     }
 }
 
-function n3s_show_get($agent, $useEditor = TRUE)
+function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
 {
     global $n3s_config;
 
@@ -170,7 +170,8 @@ function n3s_show_get($agent, $useEditor = TRUE)
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
     $a['widget_url_run'] = $wurl_run;
     $a['root_url'] = n3s_get_config('baseurl', '');
-    $a['url_images'] = n3s_get_config('url_images', ''); 
+    $a['url_images'] = n3s_get_config('url_images', '');
+    $a['readonly'] = $readonly;
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);
