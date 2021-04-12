@@ -13,7 +13,7 @@
       </a>
       <p id="find_user_id_desc" class="memo setumei" style="margin:1em;">
         {{$find_user_info.description}}
-        <a href="https://twitter.com/{{$find_user_info.screen_name}}">[Twitter]:</a><br/>
+        <a href="https://twitter.com/{{$find_user_info.screen_name}}">[Twitter]</a><br/>
       </p><!-- #find_user_id_desc -->
     </div><!-- #find_user_div -->
     <div style="clear:both"></div>
@@ -54,7 +54,7 @@
               <span class="dev">{{$r.author | check_nanasi }} 作</span>
               {{endif}}
               <br>
-              <span>{{$r.memo | trim100 }}</span>
+              <span class="memo">{{$r.memo | trim50 }}</span>
               <span class="date">({{$r.mtime | date2}})</span><br>
           </td>
       </tr>

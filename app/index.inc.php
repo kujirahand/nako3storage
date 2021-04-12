@@ -16,7 +16,7 @@ function n3s_check_config()
     $root = dirname(dirname(__FILE__));
     $url_root = dirname($_SERVER['REQUEST_URI']);
     $def_values = array(
-        "page_title" => "🏦なでしこ3貯蔵庫",
+        "page_title" => "🏦なでしこ3貯蔵庫(nako3storage)",
         "admin_users" => [1],
         "admin_contact_link" => "(Please set admin_contact_link in config file.)",
         "dir_data" => "{$root}/data",

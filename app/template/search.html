@@ -25,24 +25,32 @@
     すみません。
   </div>
   {{ else }}
-    <table>
+    <table width="100%">
     {{ for $list as $i }}
       <tr>
-        <th>
+        <td style="width:4em;text-align:center">
           <a class="pure-button" href="index.php?action=show&page={{$i.app_id}}">{{$i.app_id}}</a>
-        </th>
+        </td>
         <td class="search_td">
-          <a href="index.php?action=show&page={{$i.app_id}}">{{$i.title | check_mudai}}</a>
-          {{if $i.fav > 0}}
-          ⭐{{$i.fav}}
-          {{endif}}
-          <br>
-          {{if $i.user_id > 0}}
-          <span class="setumei"><a href="index.php?user_id={{$i.user_id}}&action=list">{{$i.author}} 作</a></span>
-          {{else}}
-          &nbsp; {{$i.author}} 作
-          {{endif}}
-          <span class="memo">{{$i.mtime | date}}</span>
+          <div class="pure-g" style="letter-spacing:normal;">
+            <div class="pure-u-md-1-2">
+              <a href="index.php?action=show&page={{$i.app_id}}">{{$i.title | check_mudai}}</a>
+              {{if $i.fav > 0}}
+              ⭐{{$i.fav}}
+              {{endif}}
+            </div>
+            <div class="pure-u-md-1-2">
+              {{if $i.user_id > 0}}
+              <span class="setumei"><a href="index.php?user_id={{$i.user_id}}&action=list">{{$i.author}} 作</a></span>
+              {{else}}
+              &nbsp; {{$i.author}} 作
+              {{endif}}
+              <span class="memo">{{$i.mtime | date}}</span>
+            </div>
+            <div class="pure-u-md-1-2">
+              <span class="memo">{{$i.memo | trim40}}</span>
+            </div>
+          </div>
         </td>
       </tr>
     {{ endfor }}
