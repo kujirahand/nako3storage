@@ -1,0 +1,98 @@
+{{ include parts_html_header.html }}
+
+{{ if !n3s_is_login() }}
+<div class="showblock" style="background-color:#fff0f0;">
+  <span class="error">
+    <a href="index.php?action=login">ログイン</a>していません。
+  </span>
+</div>
+{{ endif }}
+
+<div class="showblock">
+  <div>
+    <h1>
+      [編集モード]
+      {{ $title | check_mudai }}
+      {{if $is_private}}🔒{{endif}}
+    </h1>
+    <p class="memo">{{ $memo }}</p>
+  </div>
+  <div>
+    <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
+      <textarea id="nako3code">{{ $body }}</textarea>
+    </label><br />
+    <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
+    <button id="clearButton" class="pure-button">クリア</button>
+    <div id="runbox">
+      <!-- 3.1.19以上 -->
+      <div id="nako3_output" style="display:none"></div>
+      <!-- 3.1.18以下 -->
+      <div id="nako3_error" style="display:none"></div> 
+      <!-- info box -->
+      <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
+  
+      <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
+      <div id='nako3_div' class='nako3_div'></div>
+      <div>
+        <span class="memo">
+          Canvas:
+          幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3"> ×
+          高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 編集ボタン -->
+<div class="ctrl_block">
+  {{if $app_id == 0}}
+    <p><button onclick="saveClick(true)" class="pure-button">新規保存</button></p>
+  {{else}}
+    {{if n3s_is_login()}}
+      {{if ($my_user_id === $user_id) || n3s_is_admin()}}
+      <p><button onclick="saveClick(false)" class="pure-button">上書き保存</button></p>
+      {{endif}}
+    {{endif}}
+  {{endif}}
+</div>
+<div class="ctrl_block">
+  <h1>素材のアップロード</h1>
+  {{ if n3s_is_login() }}
+  <p><a target="new" href="index.php?action=upload" class="pure-button">アップロード画面を開く</a></p>
+  {{ else }}
+  <p><a href="index.php?action=login">ログイン</a>するとファイルをアップロードできます。</p>
+  {{ endif }}
+</div>
+
+<!-- script for ace editor -->
+{{ $import_editor | raw }}
+<!-- script for nadesiko3 -->
+{{ if $custom_head eq '' }}
+{{   $import_nako | raw }}
+{{ else }}
+{{   $custom_head | raw }}
+{{ endif }}
+
+<!-- script for nako3storage-->
+<script>
+// nako3storage_show.js から参照する変数
+var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
+var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
+var editorObjects = null
+var msie = {{e:echo ($msie)?'true':'false'}};
+
+// nako3storage info
+const baseurl = "{{ $baseurl | safe }}";
+const editlink = "{{ $editlink  | safe }}";
+
+// nako3 program info
+const app_id = {{ $app_id }};
+const nako_version = "{{ $version }}" + ".0.0.0"
+const runbox_c = document.getElementById('runbox')
+runbox_c.style.display = 'none'
+</script>
+<script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
+<script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+
+{{ include parts_html_footer.html }}

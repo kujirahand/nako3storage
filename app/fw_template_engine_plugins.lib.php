@@ -22,6 +22,18 @@ function t_check_nanasi($v) {
   $v = mb_strimwidth($v, 0, 100, ' ... ');
   return t_echo($v);
 }
+function t_trim40($v) {
+  if (empty($v)) { $v = '(なし)'; }
+  $v = trim_url($v);
+  $v = mb_strimwidth($v, 0, 40, ' ... ');
+  return t_echo($v);
+}
+function t_trim50($v) {
+  if (empty($v)) { $v = '(なし)'; }
+  $v = trim_url($v);
+  $v = mb_strimwidth($v, 0, 50, ' ... ');
+  return t_echo($v);
+}
 function t_trim100($v) {
   if (empty($v)) { $v = '(なし)'; }
   $v = trim_url($v);

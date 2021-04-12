@@ -28,6 +28,9 @@ function setupEditor() {
       div.textContent = nako3code.value
 
       editorObjects = navigator.nako3.setupEditor("nako3code");
+      if (nako3code.readOnly) {
+        editorObjects.editor.setReadOnly(true)
+      }
       editorObjects.editor.on("change", function(e) {
         localStorage["n3s_save_body"] = editorObjects.editor.getValue()
       })
@@ -67,7 +70,7 @@ function setupEditorSize() {
   const sizeSwitch = document.querySelector('#sizeSwitch');
   const nako3code = document.querySelector('#nako3code');
   const full_h = nako3code.style.height;
-  const mini_h = '7em';
+  const mini_h = '10em';
   nako3code.style.height = mini_h
   sizeSwitch.onclick = function () {
     if (nako3code.style.height == full_h) {
