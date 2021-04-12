@@ -22,6 +22,9 @@ function echo_file() {
         header( "HTTP/1.1 404 Not Found" );
         exit;
     }
+    if (preg_match('#\.css$#', $file)) {
+        header('content-type:text/css; charset=utf-8');
+    }
     if (preg_match('#\.js$#', $file)) {
         header('content-type:text/javascript; charset=utf-8');
     }

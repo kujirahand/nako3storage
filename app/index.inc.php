@@ -14,6 +14,7 @@ function n3s_check_config()
 {
     global $n3s_config;
     $root = dirname(dirname(__FILE__));
+    $app_dir = __DIR__;
     $url_root = dirname($_SERVER['REQUEST_URI']);
     $def_values = array(
         "page_title" => "🏦なでしこ3貯蔵庫(nako3storage)",
@@ -34,7 +35,7 @@ function n3s_check_config()
         "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
         "extra_header_html" => "",
         "search_word" => "",
-        "n3s_css_mtime" => filemtime("$root/skin/def/n3s.css"),
+        "n3s_css_mtime" => filemtime("$app_dir/template/basic.css"),
         "nako3storage_version" => N3S_APP_VERSION,
         "nako_default_version" => NAKO_DEFAULT_VERSION,
         // for twitter login
