@@ -333,4 +333,9 @@ textarea#nako3code {
   text-weight: bold;
   border-bottom: 1px dotted silver;
 }
+.list_app_id {
+  width: 5em;
+  text-align: center;
+}
+
 
