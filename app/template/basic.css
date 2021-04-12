@@ -1,0 +1,344 @@
+/* nako3storage - basic.css */
+
+#n3s_header {
+  margin: 0;
+  padding: 4px;
+  background-color: white;
+  font-size: 0.8em;
+  border-bottom: 1px dotted gray;
+}
+
+#n3s_header h1.title {
+  margin: 0;
+  font-size: 1.2em;
+  padding: 1em;
+  background-color: #fff0f0;
+}
+
+#n3s_header h1.title a {
+  text-decoration: none;
+  color: black;
+}
+
+#n3s_header .search_box {
+  padding-left: 1em;
+}
+
+.header-right {
+  text-align: right;
+  padding: 0.5em;
+}
+
+h1 {
+  padding: 0.3em;
+  font-size: 1em;
+  border-left: 1em solid #ffc0c0;
+}
+h2 {
+  padding: 0.3em;
+  font-size: 1em;
+}
+
+.list {
+  padding: 1em;
+}
+.list table {
+  border-top: 1px solid silver;
+  border-left: 1px solid silver;
+}
+.list table td {
+  border-right: 1px solid silver;
+  border-bottom: 1px solid silver;
+  padding: 0.5em;
+}
+.list table th {
+  border-right: 1px solid silver;
+  border-bottom: 1px solid silver;
+  background-color: #f0f0f0;
+  padding: 0.5em;
+}
+.list .date {
+  font-size: 0.7em;
+  color:silver;
+}
+.list .dev {
+  font-size: 0.7em;
+  color: gray;
+}
+.list .dev a {
+  font-size: 0.9em;
+  color: #444499;
+  text-decoration: none;
+  background-color: #ffff99;
+}
+.list .postmemo {
+  font-size: 0.9em;
+  color: #555555;
+}
+
+.saveform {
+  padding:1em;
+}
+
+.saveform label {
+  color: #707090;
+  font-size: 0.8em;
+}
+
+.saveform input {
+  width: 300px;
+  margin: 8px;
+}
+.saveform input[type=checkbox] {
+  width: 2em;
+}
+
+.saveform textarea {
+  width: 300px;
+  height: 150px;
+  margin: 8px;
+}
+
+.showblock {
+  padding: 1em;
+}
+.showblock .memo {
+  color: gray;
+  font-size: 0.8em;
+}
+.showblock label {
+  color: gray;
+  font-size: 0.8em;
+}
+.showblock textarea {
+  width: 300px;
+  height: 150px;
+  background-color: #f0f0f0;
+}
+
+.showblock ul li {
+  line-height: 1.8em;
+}
+
+
+.ctrl_block {
+  border-top: 1px dotted gray;
+  padding: 1em;
+}
+
+.showinfo {
+  font-size: 0.8em;
+  color: gray;
+}
+
+.error {
+  color: red;
+}
+
+.info {
+  color: gray;
+  font-size: 0.8em;
+}
+
+#runbox {
+  padding: 1em;
+}
+
+#nako3_output {
+  border: 1px solid silver;
+  height: 3em;
+  max-height: 10em;
+  resize: vertical;
+  box-sizing: content-box;
+  background-color: #f0f0f04b;
+  margin: 4px;
+  padding: 4px 4px 16px 16px;
+  overflow-y: auto;
+}
+
+.nako3info {
+  border: 1px solid silver;
+  background-color: #f9f5f0;
+  margin: 4px;
+  padding: 8px;
+}
+
+#nako3_info {
+  max-height: 10em;
+  overflow-y: auto;
+  resize: vertical;
+  box-sizing: content-box;
+}
+
+#nako3_canvas {
+  margin: 4px;
+  border: 1px dotted silver;
+}
+
+.next_button_div {
+  padding: 1em;
+}
+
+#n3s_footer {
+  border-top: 1px dotted gray;
+  padding: 1em;
+  font-size: 0.8em;
+}
+#n3s_footer .applink {
+  text-align: center;
+  font-size: 0.8em;
+}
+
+.nako3_div {
+  font-size: 1em;
+  line-height: 1.1em;
+}
+.nako3_div > button {
+  margin: 4px;
+  padding: 4px;
+  font-size: 0.9em;
+}
+.nako3_div input[type=checkbox] {
+  padding: 4px;
+  margin: 4px;
+}
+
+.fav_block {
+  padding: 1em;
+}
+
+.fav_block #fav {
+  font-size: 1.0em;
+  color: #ffb0b0;
+}
+
+.memo {
+  color: gray;
+  font-size: 0.8em;
+}
+
+.addon_block {
+  padding: 1em;
+  font-size: 0.8em;
+  line-height: 1.8em;
+}
+
+.devblock {
+  color: gray;
+  padding: 2em;
+  margin: 1em;
+  font-size: 0.8em;
+}
+
+.devblock a {
+  text-decoration: none;
+}
+
+/* ace editor の場合 */
+div#nako3code {
+  width: 99%;
+  height: 450px;
+}
+
+/* 古いバージョンのなでしこを使う場合 */
+textarea#nako3code {
+  margin: 0;
+  padding: 0.5em;
+  font-size: 1.2em;
+  line-height: 1.4em;
+  width: 99%;
+  height: 150px;
+  background-color: #f0f0f0;
+  border: 1px solid silver;
+}
+
+#nako3_error {
+  color: red;
+  padding: 0.5em;
+  margin: 0.5em;
+  border: 1px solid silver;
+  background-color: #fff0f0;
+}
+
+.info_box {
+  padding: 1em;
+  font-size: 0.8em;
+  color: black;
+  background-color: #ffe0e0;
+  line-height: 1.7em;
+}
+
+.crown {
+  color: #ffb0b0;
+}
+
+.blogparts {
+  line-height: 1.3em;
+  margin: 1em;
+  border: 1px dotted #e0e0e0;
+  padding: 1em;
+  background-color: #fffff0;
+}
+
+.blogparts input {
+  background-color: #fffff0;
+  padding: 8px;
+  margin-left: 1em;
+  width: 90%;
+}
+
+.info_link {
+  background-color:white;
+  color: gray;
+  font-size: 0.8em;
+  width: 100%;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.setumei {
+  padding: 4px;
+}
+
+.setumei a {
+  background-color: #ffffaa;
+  color: black;
+  text-decoration: none;
+}
+
+.list_user_profile a {
+  background-color: #ffffaa;
+  color: black;
+  text-decoration: none;
+  border-bottom: 1px dotted silver;
+}
+
+.search_list {
+}
+.search_list ul {
+  list-style: none;
+  padding:1em;
+  margin:0;
+}
+.search_list ul > li {
+  line-height: 1.8em;
+  padding-bottom: 1em;
+}
+.search_title a {
+  font-size: 1.1em;
+  color: blue;
+  text-decoration: none;
+  text-weight: bolder;
+}
+.search_info {
+  padding-left: 1em;
+}
+.search_info a {
+  font-size: 0.9em;
+  color: blue;
+  text-decoration: none;
+  text-weight: bolder;
+}
+
