@@ -1,6 +1,7 @@
 <?php
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
+@session_start(); // APIだとセッションが開始されないので
 
 function n3s_web_bad()
 {
@@ -30,6 +31,10 @@ function echo_bad() {
     try {
         $r = $db->query("SELECT bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
         if ($q === 'up') {
+            if (!n3s_is_login()) {
+              echo "error, please login.";
+              return;
+            }
             $ip = $_SERVER["REMOTE_ADDR"];
             // for test ?
             $ip_a = explode('.', $ip.'.0.0.0.0');

@@ -106,16 +106,21 @@
 </div></div>
 {{ endif }}
 
-{{if $app_id gt 0}}
 <div class="ctrl_block" style="text-align:right;">
   <div class="memo">
-    <a href="{{$badlink}}">通報って何？</a>
-    <span id="bad">-</span>&nbsp;
-    <button id="bad_button" class="pure-button">通報</button>
+    通報数:<span id="bad">-</span>
   </div>
+  <div class="memo">
+    <a href="{{$badlink}}">通報って何？</a>
+  </div>
+{{if $app_id gt 0 && n3s_is_login()}}
+  <br>
+  <div>
+    <button id="bad_button" class="pure-button">通報する</button>
+  </div>
+{{endif}}
   <div>&nbsp;</div>
 </div>
-{{endif}}
 
 <!-- script for ace editor -->
 {{ $import_editor | raw }}
