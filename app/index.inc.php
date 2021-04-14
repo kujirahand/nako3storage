@@ -6,7 +6,8 @@ n3s_main();
 function n3s_main()
 {
     n3s_check_config();
-    n3s_parseURI();
+    n3s_db_init(); // n3s_lib.inc.php
+    n3s_parseURI(); // n3s_lib.inc.php
     n3s_action();
 }
 
@@ -62,9 +63,6 @@ function n3s_action()
     // モジュールを取得
     $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $func_action = "n3s_{$agent}_{$action}";
-
-    // DBを初期化
-    n3s_get_db();
 
     // WEBであればセッションを使う
     if ($agent === 'web') {
