@@ -5,12 +5,10 @@ global $FW_DB_INFO; // 設定
 
 function database_set($file_db, $file_sql, $dbname = 'main') {
   global $FW_DB_INFO;
-  $FW_DB_INFO = [
-    $dbname => [
-      'file_db' => $file_db,
-      'file_sql' => $file_sql,
-      'handle' => null,
-    ]
+  $FW_DB_INFO[$dbname] = [
+    'file_db' => $file_db,
+    'file_sql' => $file_sql,
+    'handle' => null,
   ];
 }
 
