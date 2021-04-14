@@ -149,6 +149,7 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
         $a['screen_name'] = $user['screen_name'];
     } else {
         $a['profile_url'] = 'skin/def/user-icon.png';
+        $a['screen_name'] = '';
     }
     $a['my_user_id'] = $my_user_id;
     $n3s_url = $a['n3s_baseurl'] = $n3s_config['baseurl'];

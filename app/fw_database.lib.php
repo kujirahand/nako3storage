@@ -2,6 +2,7 @@
 // DATABASE
 global $FW_DB_MAIN; // PDOオブジェクトの配列
 global $FW_DB_INFO; // 設定
+$FW_DB_INFO = [];
 
 function database_set($file_db, $file_sql, $dbname = 'main') {
   global $FW_DB_INFO;
@@ -27,9 +28,8 @@ function database_get($dbname = 'main') {
   // Open
   $file_db = $FW_DB_INFO[$dbname]['file_db'];
   $file_sql = $FW_DB_INFO[$dbname]['file_sql'];
-  if (substr($file_db, 0, 7) == 'sqlite:') {
-    $file_db = substr($file_db, 7);
-  }
+  // for konawiki2.2.x
+  $file_db = preg_replace('#^(pdosqlite|sqlite)\:#', '', $file_db);
   $need_init = FALSE;
   if (!file_exists($file_db)) {
     $need_init = TRUE;
@@ -43,47 +43,72 @@ function database_get($dbname = 'main') {
   // 生成
   if ($need_init) {
     $sql = file_get_contents($file_sql);
-    $pdo->exec($sql);
+    try {
+      $pdo->exec($sql);
+    } catch(Exception $e) {
+      echo "<pre><h1>DB CREATED ERROR : $dbname</h1>";
+      print_r($e);
+      unlink($file_db);
+      exit;
+    }
   }
   return $pdo;
 }
 
-function db_exec($sql, $params = array()) {
-  $db = database_get();
+function db_begin($dbname = 'main') {
+  $db = database_get($dbname);
+  $db->beginTransaction();
+  return $db;
+}
+
+function db_commit($dbname = 'main') {
+  $db = database_get($dbname);
+  $db->commit();
+  return $db;
+}
+
+function db_rollback($dbname = 'main') {
+  $db = database_get($dbname);
+  $db->rollback();
+  return $db;
+}
+
+function db_exec($sql, $params = array(), $dbname = 'main') {
+  $db = database_get($dbname);
   $stmt = $db->prepare($sql);
   $stmt->execute($params);
   return $db;
 }
 
-function db_insert($sql, $params = array()) {
-  $db = database_get();
+function db_insert($sql, $params = array(), $dbname = 'main') {
+  $db = database_get($dbname);
   $stmt = $db->prepare($sql);
   $stmt->execute($params);
   $id = $db->lastInsertId();
   return $id;
 }
 
-function db_get($sql, $params = array()) {
-  $db = database_get();
+function db_get($sql, $params = array(), $dbname = 'main') {
+  $db = database_get($dbname);
   $stmt = $db->prepare($sql);
   $stmt->execute($params);
   $r = $stmt->fetchAll();
   return $r;
 }
 
-function db_get1($sql, $params = array()) {
-  $r = db_get($sql, $params);
-  if ($r != null && count($r) > 0) {
-    return $r[0];
-  }
-  return null;
+function db_get1($sql, $params = array(), $dbname = 'main') {
+  $db = database_get($dbname);
+  $stmt = $db->prepare($sql);
+  $stmt->execute($params);
+  $r = $stmt->fetch();
+  return $r;
 }
 
-function db_table_exists($table) {
+function db_table_exists($table, $dbname = 'main') {
   $r = db_get1(
     "SELECT * FROM sqlite_master ".
     "WHERE type='table' AND name=?",
-    [$table]);
+    [$table], $dbname);
   return (isset($r['name']));
 }
 
