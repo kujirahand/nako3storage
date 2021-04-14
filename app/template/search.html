@@ -3,21 +3,41 @@
 <!-- search box -->
 <div class="list">
   <h1>検索</h1>
-  <form action="index.php" class="pure-form">
-    <span class="search_box">
-    <input type="hidden" name="action" value="search">
-    <input title="search word" name="search_word"
-        class="pure-input"
-        placeholder="作者か作品名を入力" 
-        value="{{ $search_word }}" size="28">
-    <input type="submit" value="検索" class="pure-button">
-    </span>
+  <form method="get" action="index.php" class="pure-form">
+    <fieldset>
+      <div class="search_box">
+        <input title="search word" name="search_word"
+            class="pure-input"
+            placeholder="作者か作品名を入力" 
+            value="{{ $search_word }}" size="28">
+        <input type="submit" value="検索" class="pure-button">
+        <input type="hidden" name="action" value="search">
+      </div><!-- .search_box -->
+      <div class="search_box memo">
+        <label class="pure-radio">
+          <input type="radio" name="target" value="normal"
+            {{if $target eq 'normal'}}checked="true"{{endif}}>
+          作品名と作者
+        </label>
+        <label class="pure-radio">
+          <input type="radio" name="target" value="program"
+            {{if $target eq 'program'}}checked="true"{{endif}}>
+          プログラム
+        </label>
+        </div>
+      </div>
+    </fieldset>
   </form>
 </div>
 
 <!-- search result -->
 {{ if $search_word != '' }}
 <div class="list search_list">
+  {{ if $error != '' }}
+  <div style="color:gray; border:1px solid #ffa0a0; padding:0.7em;">
+    {{$error}}</div>
+  {{ endif }}
+  
   <h1>検索結果</h1>
   {{ if !$list }}
   <div>

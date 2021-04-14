@@ -16,6 +16,23 @@ require_once __DIR__ . '/fw_database.lib.php';
 // database version
 define("N3S_DB_VERSION", 3);
 
+function n3s_db_init() {
+    global $n3s_config;
+    $dir_sql = $n3s_config['dir_sql'];
+
+    // set main db
+    database_set(
+      $n3s_config["file_db_main"], 
+      $dir_sql.'/init-main.sql', 
+      'main');
+    
+    // set material db
+    database_set(
+      $n3s_config["file_db_material"], 
+      $dir_sql.'/init-material.sql', 
+      'material');
+}
+
 /**
  * get config value
  */
@@ -95,21 +112,8 @@ function n3s_parseURI()
     );
 }
 
-function n3s_get_db($type = 'main')
-{
-    global $n3s_config;
-    global $n3s_db_handle;
-    global $FW_DB_INFO;
-    if (empty($n3s_db_handle)) $n3s_db_handle = array();
-    if (isset($n3s_db_handle[$type])) return $n3s_db_handle[$type];
-    // open db
-    $file_db = $n3s_config["file_db_{$type}"];
-    $file_init_sql = $n3s_config['dir_sql'] . "/init-{$type}.sql";
-    database_set($file_db, $file_init_sql, $type);
-    $db = database_get($type);
-    // memorize db
-    $n3s_db_handle[$type] = $db;
-    return $db;
+function n3s_get_db($type = 'main') {
+    return database_get($type);
 }
 
 function n3s_template_fw($name, $params)

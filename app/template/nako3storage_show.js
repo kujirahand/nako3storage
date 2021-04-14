@@ -115,7 +115,6 @@ function runButtonOnClick() { // 実行ボタンを押した時
     // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える
     // 但しmsieであればeditor.runを使わない (#61)
     if (editorObjects && verInt >= 3119 && !isIE()) {
-      document.getElementById('nako3_output').style.display = 'block'
       const logger = editorObjects.run({ 
         'preCode': preCode, 
         'outputContainer': document.getElementById('nako3_output') || undefined
