@@ -51,7 +51,6 @@ function n3s_list_search()
     }
     // プログラムを全部検索
     else if ($target == 'program') {
-        $error = '現在実装中です';
         $list = [];
         $sql_material = 
           'SELECT * FROM materials '.
