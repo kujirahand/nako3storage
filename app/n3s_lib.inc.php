@@ -31,6 +31,7 @@ function n3s_db_init() {
       $n3s_config["file_db_material"], 
       $dir_sql.'/init-material.sql', 
       'material');
+    $f = $n3s_config["file_db_material"];
 }
 
 /**
