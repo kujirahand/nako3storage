@@ -1,7 +1,7 @@
 <?php
-global $MAX_APP;
+global $MAX_APP, $MAX_ZENBUN_SEARCH;
 $MAX_APP = 200; // 何件まで表示するか
-$MAX_ZENBUN_SEARCH = 20;
+$MAX_ZENBUN_SEARCH = 30;
 
 function n3s_web_search()
 {
@@ -53,24 +53,41 @@ function n3s_list_search()
     else if ($target == 'program') {
         $error = '現在実装中です';
         $list = [];
-        /*
         $sql_material = 
           'SELECT * FROM materials '.
-          'WHERE body=? LIMIT ?';
-        $materials = db_get($sql_material, [
-          $search_wc, 
-          $MAX_ZENBUN_SEARCH],
+          'WHERE body LIKE ? '.
+          'ORDER BY material_id DESC '.
+          'LIMIT ?';
+        $materials = db_get(
+          $sql_material, [
+            $search_wc,
+            $MAX_ZENBUN_SEARCH,
+          ],
           'material');
-        $list = [];
         foreach ($materials as $m) {
           $app_id = $m['app_id'];
-          $row = db_get(
+          $material_id = $m['material_id'];
+          $body = $m['body'];
+          $body_a = preg_split('#(\r\n|\r|\n)#', $body);
+          $body_a = array_filter($body_a,
+            function($s)use($search_word){
+              return strpos($s, $search_word);
+            });
+          $body_a = array_slice($body_a, 0, 3);
+          $body_a = array_map(function($s){
+            return trim(str_replace('　', '', $s));
+          }, $body_a);
+          $row = db_get1(
             'SELECT * FROM apps '.
-            'WHERE app_id=? LIMIT 1',
-            [$app_id]);
-          $list[] = $row;
+            'WHERE (material_id=?) '.
+            '  AND (is_private=0) '.
+            'LIMIT 1',
+            [$material_id]);
+          if ($row) {
+            $row['body'] = implode('\n', $body_a);
+            $list[] = $row;
+          }
         }
-        */
     }
     return [
         "search_word" => $search_word,
@@ -79,3 +96,5 @@ function n3s_list_search()
         "error" => $error,
     ];
 }
+
+
