@@ -66,7 +66,13 @@
           </span>
         </div>
         <div>
+          {{if isset($i['body'])}}
+          <div class='search_code'><code>
+              {{$i.body | multiline}}
+          </code></div>
+          {{else}}
           <span class="memo">{{$i.memo | trim100}}</span>
+          {{endif}}
         </div>
       </div>
     </li>
