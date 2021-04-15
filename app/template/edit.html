@@ -21,8 +21,20 @@
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
       <textarea id="nako3code">{{ $body }}</textarea>
     </label><br />
-    <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
-    <button id="clearButton" class="pure-button">クリア</button>
+    
+    <div id="controll_buttons">
+      <span style="float:left;">
+        <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
+        <button id="clearButton" class="pure-button">クリア</button>
+      </span>
+      <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
+          キャンバス:
+          幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3">×
+          高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
+      </span>
+    </div><!-- /#controll_buttons -->
+    <div style="clear:both;"></div>
+    
     <div id="runbox">
       <!-- 3.1.19以上 -->
       <div id="nako3_output" style="display:none"></div>
@@ -33,13 +45,6 @@
   
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
-      <div>
-        <span class="memo">
-          Canvas:
-          幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3"> ×
-          高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
-        </span>
-      </div>
     </div>
   </div>
 </div>

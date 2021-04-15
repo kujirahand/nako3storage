@@ -344,4 +344,10 @@ textarea#nako3code {
 .search_code {
   background-color: #fff0f0;
 }
+#controll_buttons {
+  line-height:2.0em;
+  border-top: 1px dotted silver;
+  padding-top: 8px;
+}
+
 
