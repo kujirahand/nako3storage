@@ -59,7 +59,8 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $n3s_config['app_id'] = $app_id;
     // IE対策のためmsieパラメータをセット
     $msie = FALSE;
-    $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    $agent = strtolower($useragent);
     if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
     
     $db = n3s_get_db();
