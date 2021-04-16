@@ -125,7 +125,8 @@ function n3s_template_fw($name, $params)
     $DIR_TEMPLATE_CACHE = $n3s_config['dir_cache'];
     $p = $params + $n3s_config;
     // IE対策のためmsieパラメータをセット
-    $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+    $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    $agent = strtolower($useragent);
     $msie = FALSE;
     if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
     $p['msie'] = $msie;
