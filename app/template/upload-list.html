@@ -3,11 +3,11 @@
 {{ if $images }}
 <div class="showblock">
   <h1>素材の一覧</h1>
-  <p>以下の素材はパブリックドメイン(CC0)のものです。</p>
+  <p>他人の素材を利用する際はライセンスに注意してください。</p>
   <ul>
     {{ for $images as $i }}
     <li>
-      <a href="{{$i.info_url}}">{{$i.title}} - {{$i.filename}}<br>
+      <a href="{{$i.info_url}}">『{{$i.title}}』({{$i.filename}}) : {{$i.copyright_name}}<br>
       {{ if $i['is_image'] }}
         <img src="{{$i.image_url}}" width="200">
       {{ else }}

@@ -1,5 +1,11 @@
 {{ include parts_html_header.html }}
 
+
+<style>
+  input[type=radio] {
+    width:2em;
+  }
+</style>
 <div class="saveform">
   <p>画像/音声/テキストのアップロード:</p>
   <div>
@@ -18,10 +24,23 @@
           <input type="text" name="title">
         </label><br>
         <label>
-          著作権の同意:<br>
-          <input type="checkbox" name="copyright" id="copyright" value="cc0">このファイルを
-          <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja">パブリックドメイン(CC0)</a>として提供します。
-        </label>
+          著作権の確認:<br>
+          <input type="checkbox" name="copyright" id="copyright" value="ok">
+            このファイルは著作権的に問題のないファイルです。
+        </label><br>
+        <label>
+          著作権の種類:<br>
+          <input type="radio" name="copyright_type" value="CC0" checked="checked">
+          パブリックドメイン(CC0)
+          <a target="new" href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja">(説明)</a>
+        </label><br>
+        <label>
+          <input type="radio" name="copyright_type" value="CC-BY">CC BY(著作権表示すれば誰でも使えます)
+          <a target="new" href="https://creativecommons.org/licenses/by/4.0/deed.ja">(説明)</a>
+        </label><br>
+        <label>
+          <input type="radio" name="copyright_type" value="SELF">自分専用(他人の使用の認めません)
+        </label><br>
       </div>
       <div style="padding:6px;">
         <input type="hidden" name="edit_token" value="{{$edit_token}}" />
