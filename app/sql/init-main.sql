@@ -66,12 +66,16 @@ CREATE TABLE images (
   user_id       INTEGER DEFAULT 0,
   fav           INTEGER DEFAULT 0,
   fav_id        TEXT DEFAULT '',
+  copyright     TEXT DEFAULT 'CC0',
   bad           INTEGER DEFAULT 0,
   ctime         INTEGER DEFAULT 0,
   mtime         INTEGER DEFAULT 0
 );
 
 /*
+2021/04/20
+ALTER TABLE images ADD COLUMN copyright TEXT DEFAULT 'CC0'
+
 2021/03/06
 ALTER TABLE apps ADD COLUMN custom_head TEXT DEFAULT ''
 

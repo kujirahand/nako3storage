@@ -64,6 +64,18 @@ function setupShortcut() {
                 break;
         }
     });
+    const recover_btn = document.querySelector('#recover_btn')
+    if (recover_btn) {
+      recover_btn.onclick = function () {
+        if (!localStorage['nako3storage_temp']) {
+          alert('直前に何も実行していません。')
+          return
+        }
+        const b = confirm('本当に復元しますか？')
+        if (!b) { return }
+        setValue(localStorage['nako3storage_temp'])
+      }
+    }
 }
 
 function setupEditorSize() {

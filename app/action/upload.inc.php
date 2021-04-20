@@ -58,8 +58,15 @@ function go_upload() {
     $copyright = isset($_POST['copyright']) ? $_POST['copyright'] : '';
     $title = isset($_POST['title']) ? $_POST['title'] : '';
     // 各種チェック
-    if ($copyright != 'cc0') {
+    if ($copyright != 'ok') {
         n3s_error('アップロードできません', '著作権に同意しないとアップロードできません。');
+        return;
+    }
+    $copyright_type = isset($_POST['copyright_type']) ? $_POST['copyright_type'] : '';
+    if ($copyright_type == 'SELF' || $copyright_type == 'CC0' || $copyright_type == 'MIT') {
+        // ok
+    } else {
+        n3s_error('アップロードできません', '著作権が不明です。');
         return;
     }
     $title = mb_substr($title, 0, 512); // size_field_max で弾きたいけど、アップロードし直すのは嫌なのでとりあえず適当にトリム
@@ -97,8 +104,8 @@ function go_upload() {
     $db = n3s_get_db('main');
     db_exec('begin');
     $image_id = db_insert(
-        'INSERT INTO images (title,user_id,ctime,mtime)VALUES(?,?,?,?)', 
-        [$title, $user_id, time(), time()]);
+        'INSERT INTO images (title,user_id,copyright,ctime,mtime)VALUES(?,?,?,?,?)', 
+        [$title, $user_id, $copyright_type, time(), time()]);
     $filename = "{$image_id}{$ext}";
     db_exec("UPDATE images SET filename=? WHERE image_id=?", [$filename, $image_id]);
     $path = "{$dir_images}/$filename";
@@ -145,6 +152,7 @@ function show_image() {
     n3s_template_fw('upload-ok.html', [
         'image_id' => $im['image_id'],
         'title' => $im['title'],
+        'copyright' => getCopyrightName($im['copyright']),
         'image_url' => $image_url,
         'image_url_abs' => $image_url_abs,
         'msg' => 'ファイルの情報',
@@ -152,6 +160,23 @@ function show_image() {
         'can_edit' => $can_edit,
         'acc_token' => $n3s_acc_token,
     ]);
+}
+
+function getCopyrightName($type) {
+    switch ($type) {
+        case 'SELF': return '自分専用(他人の仕様は認めません)';
+        case 'CC0': return 'CC0(パブリックドメイン)';
+        case 'CC-BY': return 'CC-BY(著作権表示すれば誰でも使えます)';
+    }
+    return '著作権表示不明:'.$type;
+}
+function getCopyrightName2($type) {
+    switch ($type) {
+        case 'SELF': return '自分専用';
+        case 'CC0': return 'CC0';
+        case 'CC-BY': return 'CC-BY';
+    }
+    return '著作権表示不明:'.$type;
 }
 
 function delete_image() {
@@ -220,6 +245,7 @@ function list_image() {
         $i['is_image'] = $is_image;
         $i['image_url'] = n3s_get_config('url_images', 'images/')."/{$fname}";
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id'=>$i['image_id'], 'mode'=>'show']);
+        $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
     $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode'=>'list']);
     n3s_template_fw('upload-list.html', [
