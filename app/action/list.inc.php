@@ -103,9 +103,13 @@ function n3s_list_get()
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $h = $db->prepare('SELECT * FROM apps '.
           'WHERE (mtime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
-          'ORDER BY fav DESC LIMIT 5');
+          'ORDER BY fav DESC LIMIT 15');
         $h->execute([$mtime]);
         $ranking = $h->fetchAll();
+        // shuffle
+        shuffle($ranking);
+        // 上位5件を取る
+        $ranking = array_splice($ranking, 0, 5);
     }
 
     return [
