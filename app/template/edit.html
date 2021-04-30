@@ -58,10 +58,13 @@
   {{if $app_id == 0}}
     <p><button onclick="saveClick(true)" class="pure-button">新規保存</button></p>
   {{else}}
+    <!-- 保存ボタン -->
     {{if n3s_is_login()}}
       {{if ($my_user_id === $user_id) || n3s_is_admin()}}
       <p><button onclick="saveClick(false)" class="pure-button">上書き保存</button></p>
       {{endif}}
+    {{else}}
+      <p><button onclick="saveClick(false)" class="pure-button">上書き保存</button></p>
     {{endif}}
   {{endif}}
   <p style="text-align:right;font-size:0.7em;"><a href="#" id="recover_btn">→直前に実行したプログラムを復元</a></p>

@@ -81,12 +81,12 @@ h2 {
 }
 
 .saveform label {
-  color: #707090;
-  font-size: 0.8em;
+  color: black;
+  font-size: 1em;
 }
 
 .saveform input {
-  width: 300px;
+  width: 20em;
   margin: 8px;
 }
 .saveform input[type=checkbox] {
@@ -94,9 +94,11 @@ h2 {
 }
 
 .saveform textarea {
-  width: 300px;
+  width: 95%;
   height: 150px;
   margin: 8px;
+  padding: 8px;
+  background-color: #f9f0f0;
 }
 
 .showblock {
