@@ -24,7 +24,9 @@ function n3s_web_save() {
   if ($app_id > 0) {
     n3s_web_save_check($app_id, $a);
   }
+  // パラメータチェックを行う (ここでチェックは行わない)
   n3s_action_save_check_param($a, FALSE);
+  
   // rewrite ... show.html ページで実行したプログラムを保存するか？
   $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
   // load material
@@ -51,9 +53,14 @@ function n3s_web_save_check($app_id, &$a) {
     n3s_jump(0, 'save'); // 新規保存のページを表示
     exit;
   }
-  if (!n3s_is_login()) {
-    n3s_error('ログインが必要', '編集するにはログインしてください。');
-    exit;
+  // ログインしていない投稿
+  if ($a['user_id'] == 0) {
+    // エラーにしない
+  } else {
+    if (!n3s_is_login()) {
+      n3s_error('ログインが必要', '編集するにはログインしてください。');
+      exit;
+    }
   }
   if (n3s_is_admin()) {
     // ok
@@ -134,10 +141,16 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
-      throw new Exception('プログラムが空です。');
+      throw new Exception('プログラムが空だと保存できません。');
   }
   if (strlen($a['body']) < 30) {
-      throw new Exception('プログラムが30文字以下です');
+      throw new Exception('プログラムは30字以上にしてください。');
+  }
+  if (strlen($a['author']) < 2) {
+      throw new Exception('作者名は2文字以上にしてください。');
+  }
+  if (strlen($a['author']) > 50) {
+      throw new Exception('作者名が50文字以下にしてください。');
   }
 }
 
@@ -151,16 +164,16 @@ function n3s_action_save_data($data, $agent = 'web') {
   }
   try {
     $app_id = n3s_action_save_data_raw($data, $agent);
-    if ($agent === 'api') {
-      n3s_api_output(true, array("msg"=>"ok", "app_id"=>$app_id));
-      return;
-    } else {
-      $url = $n3s_config['baseurl']."/id.php?{$app_id}";
-      header("location: $url");
-    }
+    $url = n3s_getURL($app_id, 'show');
+    n3s_info('プログラムを保存しました',
+      "<a href='$url'>→公開ページを見る</a>",
+      TRUE);
   } catch(Exception $e) {
-    n3s_error("保存に失敗", $e->getMessage());
-    return;
+    n3s_error("保存に失敗", 
+      "<p>".$e->getMessage()."</p>".
+      "<p><button onclick='window.history.back()'>戻る".
+      "</button></p>",
+      true);
   }
 }
 
@@ -187,7 +200,8 @@ function n3s_action_save_data_raw($data, $agent) {
   if (!check_custom_head($a, $err)) {
     throw new Exception("カスタムヘッダに指定したJavaScriptが許可されていません。".$err);
   }
-
+  
+  // 上書き保存か？
   if ($app_id > 0) {
     // check editkey
     $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
@@ -199,6 +213,11 @@ function n3s_action_save_data_raw($data, $agent) {
         $user_id = n3s_get_user_id();
         if ($user_id != $b_user_id) {
           throw new Exception('他人の投稿です。自分の投稿しか編集できません！');
+        }
+      } else {
+        // user_id = 0、つまりログインしていないユーザー
+        if ($b['editkey'] != $a['editkey']) {
+          throw new Exception('編集キーが間違っています。');
         }
       }
     }
@@ -266,9 +285,13 @@ EOS;
   } else {
     $sql = <<< EOS
 UPDATE apps SET
-  title=:title, author=:author, email=:email, url=:url, memo=:memo,
-  canvas_w=:canvas_w, canvas_h=:canvas_h, access_key=:access_key,
-  version=:version, is_private=:is_private, custom_head=:custom_head,
+  title=:title, author=:author, email=:email, 
+  url=:url, memo=:memo,
+  canvas_w=:canvas_w, canvas_h=:canvas_h, 
+  access_key=:access_key,
+  version=:version, is_private=:is_private, 
+  custom_head=:custom_head,
+  editkey=:editkey,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
@@ -291,7 +314,7 @@ EOS;
       ":app_id"     => $a['app_id'],
       ":access_key" => $a['access_key'],
       ":custom_head"=> $a['custom_head'],
-      // editkey は更新しない
+      ":editkey"    => $a['editkey'],
     ));
     // update body
     $db_material = n3s_get_db('material');
@@ -392,82 +415,11 @@ function randomStr($length = 8) {
 
 // カスタムヘッダ
 function check_custom_head(&$a, &$err) {
-  // (ex) $a['custom_head'] = '<script src="a.js" integrity="abcd" crossorigin="anonymous"></script>'."\n".'<script src="b.js"></script>';
-  $err = '';
-  $head = $a['custom_head'];
-  if ($head === '') {
-    return TRUE;
-  }
-  // コメント一覧を得る
-  $comment = "";
-  $i = preg_match_all('|<!--(.*?)-->|', $head, $m);
-  if ($i) {
-    $comment = trim(implode("\n", $m[0]))."\n";
-  }
-  // スクリプト一覧を得る
-  $i = preg_match_all('|<script [^>]+>|', $head, $m);
-  if (!$i) {
-    $err = '利用できるのは<script>タグのみです。';
-    return FALSE;
-  }
-  // スクリプトタグを解析する
-  $scr_res = [];
-  $scr_list = $m[0];
-  foreach ($scr_list as $script) {
-    $script = str_replace("'", '"', $script);
-    $i = preg_match_all('|([a-zA-Z]+)\="([^"]+)"|', $script, $m);
-    if ($i) {
-      $res = [];
-      foreach ($m[1] as $n => $key) {
-        $res[$key] = $m[2][$n];
-      }
-      $src = isset($res["src"]) ? $res["src"] : '';
-      $integrity = isset($res["integrity"]) ? $res["integrity"] : '';
-      $crossorigin = isset($res["crossorigin"]) ? $res["crossorigin"] : '';
-      if (!$src) {
-        $err = "scriptタグにはsrc属性が必要です。外部スクリプトの取り込みのみ許可されます。";
-        return FALSE;
-      }
-      // srcに指定するURLのチェック (#51)
-      if (!preg_match('|^https://nadesi.com/v3/cdn.php\?|', $src)) {
-        if (!preg_match('|^https://cdn.jsdelivr.net/npm/chart.js@|', $src)) {
-          $err = "カスタムヘッダに指定できるスクリプトのsrcはなでしこのCDNに制限されています。";
-          return FALSE;
-        }
-      }
-      $rr = [
-        "src" => $src, 
-        "integrity" => $integrity, 
-        "crossorigin" => $crossorigin
-      ];
-      if (strpos($script, "defer") !== FALSE) {
-        $rr["_sync"] = "defer";
-      } else if (strpos($script, "async") !== FALSE) {
-        $rr["_sync"] = "async";
-      } else {
-        $rr["_sync"] = "";
-      }
-      $scr_res[] = $rr;
-    }
-  }
-  // タグを再構築
-  $script = "";
-  foreach ($scr_res as $r) {
-    $src = $r['src'];
-    $sync = $r['_sync'];
-    $integrity = $r['integrity'];
-    $crossorigin = $r['crossorigin'];
-
-    $script .= "<script {$sync} src=\"{$src}\"";
-    if ($integrity != '') {
-      $script .= " integrity=\"{$integrity}\"";
-    }
-    if ($crossorigin != '') {
-      $script .= " crossorigin=\"{$crossorigin}\"";
-    }
-    $script .= "></script>\n";
-  }
-  // 結果を指定
-  $a['custom_head'] = $comment.$script;
+  // 現在カスタムヘッダを許可しない (#29)
+  $a['cusom_head'] = '';
   return TRUE;
 }
+
+
+
+
