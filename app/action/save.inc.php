@@ -1,4 +1,6 @@
 <?php
+// license
+require_once dirname(__DIR__).'/license.inc.php';
 
 function n3s_api_save() {
   n3s_api_output(false, ["msg" => 'API経由のアクセスは停止中です。']);
@@ -130,6 +132,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['body'] = isset($a['body']) ? $a['body'] : '';
   $a['version'] = isset($a['version']) ? $a['version'] : NAKO_DEFAULT_VERSION;
   $a['ip'] = isset($a['ip']) ? $a['ip'] : '';
+  $a['copyright'] = isset($a['copyright']) ? $a['copyright'] : '未指定';
   $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
   $a['ref_id'] = isset($a['ref_id']) ? intval($a['ref_id']) : -1;
   $a['canvas_w'] = isset($a['canvas_w']) ? intval($a['canvas_w']) : 300;
@@ -138,6 +141,13 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['access_key'] = isset($a['access_key']) ? $a['access_key'] : '';
   $a['custom_head'] = isset($a['custom_head']) ? $a['custom_head'] : '';
   $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
+  // check copyright
+  global $copyright_list, $copyright_desc;
+  $a['copyright_list'] = $copyright_list;
+  $a['copyright_desc'] = $copyright_desc;
+  if (!isset($copyright_list[$a['copyright']])) {
+    $a['copyright'] = '未指定';
+  }
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
@@ -245,6 +255,7 @@ INSERT INTO apps (
   material_id, version, nakotype, tag,
   is_private,
   user_id, access_key, custom_head,
+  editkey, copyright,
   ref_id, ip, ctime, mtime
 ) VALUES (
   :title, :author, :email, :url, :memo,
@@ -252,6 +263,7 @@ INSERT INTO apps (
   :material_id, :version, :nakotype, :tag,
   :is_private,
   :user_id, :access_key, :custom_head,
+  :editkey, :copyright,
   :ref_id, :ip, :ctime, :mtime
 )
 EOS;
@@ -276,6 +288,8 @@ EOS;
       ":ip"         => $a['ip'],
       ":ctime"      => $a['ctime'],
       ":mtime"      => $a['mtime'],
+      ":editkey"    => $a['editkey'],
+      ":copyright"  => $a['copyright'],
     ));
     $app_id = $db->lastInsertId();
     // update material_id
@@ -291,6 +305,7 @@ UPDATE apps SET
   access_key=:access_key,
   version=:version, is_private=:is_private, 
   custom_head=:custom_head,
+  copyright=:copyright,
   editkey=:editkey,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
@@ -315,6 +330,7 @@ EOS;
       ":access_key" => $a['access_key'],
       ":custom_head"=> $a['custom_head'],
       ":editkey"    => $a['editkey'],
+      ":copyright"  => $a['copyright'],
     ));
     // update body
     $db_material = n3s_get_db('material');

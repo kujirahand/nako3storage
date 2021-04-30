@@ -30,6 +30,7 @@ CREATE TABLE apps (
   view        INTEGER DEFAULT 0, /* 閲覧数 */
   canvas_w    INTEGER DEFAULT 300,
   canvas_h    INTEGER DEFAULT 300,
+  copyright   TEXT DEFAULT '',
   bad         INTEGER DEFAULT 0,
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
@@ -73,6 +74,9 @@ CREATE TABLE images (
 );
 
 /*
+2021/04/30
+ALTER TABLE apps ADD COLUMN copyright TEXT DEFAULT ''
+
 2021/04/20
 ALTER TABLE images ADD COLUMN copyright TEXT DEFAULT 'CC0'
 
