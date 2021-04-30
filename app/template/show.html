@@ -59,6 +59,10 @@
       {{ endif }}
     </li>
     {{endif}}
+    <li>
+      ライセンス: {{ $copyright }}
+      ({{e:echo $copyright_desc[$copyright]}})
+    </li>
     {{if $is_private}}
     <li>🔒 非公開の投稿</li>
     {{endif}}
