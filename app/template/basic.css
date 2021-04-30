@@ -121,7 +121,22 @@ h2 {
 .showblock ul li {
   line-height: 1.8em;
 }
+.showblock table td {
+  line-height: 1.5em;
+  font-size: 1em;
+  padding: 4px;
+  border-bottom: 1px solid silver;
+}
+.showblock table tr:nth-child(odd) td {
+  background-color: #f0f0ff;
+}
 
+.linkblock {
+  border-bottom: 1px dotted silver;
+  padding: 1em; margin: 0;
+  font-size: 0.8em;
+  background-color: #fff0ff;
+}
 
 .ctrl_block {
   border-top: 1px dotted gray;
@@ -350,6 +365,13 @@ textarea#nako3code {
   line-height:2.0em;
   border-top: 1px dotted silver;
   padding-top: 8px;
+}
+
+.public {
+  color: green;
+}
+.private {
+  color: red;
 }
 
 
