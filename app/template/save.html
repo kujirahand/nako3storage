@@ -69,6 +69,18 @@
       </label>
     </p>
     <p>
+    <label>ライセンスの指定:</label><br />
+      <blockquote>
+      {{ for $copyright_list as $key => $val }}
+      {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
+      <label for='{{$key}}'>
+        <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
+        ({{e: echo $copyright_desc[$key] }})
+      </label>&nbsp;
+      {{ endfor }}
+      </blockquote>
+    </p>
+    <p>
       <label>非公開設定:<br />
       {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
       <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
