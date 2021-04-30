@@ -145,6 +145,16 @@ function n3s_error($title, $msg, $useHTML = FALSE)
     ));
 }
 
+function n3s_info($title, $msg, $useHTML = FALSE)
+{
+    $template = 'info.html';
+    if ($useHTML) {$template = 'info_raw.html';}
+    n3s_template_fw($template, array(
+        "title" => $title,
+        "msg" => $msg
+    ));
+}
+
 function n3s_api_output($result, $data)
 {
     $data['result'] = $result;

@@ -31,7 +31,7 @@
     action="index.php?action=save&page={{$app_id}}&mode=edit">
     <p>
       <label>プログラム本体(30文字以上):<br />
-      <textarea id="body" name="body">{{ $body }}</textarea>
+      <textarea id="body" name="body" readonly>{{ $body }}</textarea>
       </label>
     </p>
     <p>
@@ -76,20 +76,23 @@
       </label>
     </p>
     <p>
-      <label>一時アクセスキー(非公開の作品を他人に見せたい時に以下のキーを設定します。空ならアクセス不可。):<br />
-      <input name="access_key" type="text" value="{{$access_key}}" />
-      </label>
-    </p>
-    <p>
-      <label>利用中しているなでしこバージョン:<br />
+      <label>利用なでしこバージョン:
+        <span class="info">通常は変更の必要はありません。</span>
+        <br />
         <input name="version" type="text" value="{{$version}}" />
       </label>
     </p>
+    {{ if !n3s_is_login() }}
     <p>
-      <label>プラグイン宣言カスタマイズ(普通は空にしてください)[<a target="_blank" href="https://github.com/kujirahand/nako3storage/issues/29">説明</a>]:<br />
-        <textarea name="custom_head" style="height:3em;">{{$custom_head}}</textarea>
+      <label>編集キー:
+        <span class="info">プログラムの編集に使うキーです。忘れないようにしてください。</span>
+        <br />
+        <input id="editkey" name="editkey" type="text" value="" />
       </label>
     </p>
+    {{ else }}
+    <input id="editkey" name="editkey" type="hidden" value="" />
+    {{ endif }}
     <p>
       <input name="mode" type="hidden" value="edit" />
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
@@ -159,6 +162,11 @@ function loadFromLocalStorage() {
     const e = document.getElementById(key)
     e.value = v
   }
+  // editkey
+  if (localStorage['n3s_editkey']) {
+    const ek = document.getElementById('editkey')
+    ek.value = xx_dec(localStorage['n3s_editkey'], 30)
+  }
 }
 function saveToLocalStorage() {
   console.log('save to storage')
@@ -197,7 +205,30 @@ function checkSubmit() {
       'どうぞ、ご協力よろしくお願いします。')
     return false
   }
+  // editkey をブラウザに保存
+  const editkey = document.getElementById('editkey').value
+  localStorage['n3s_editkey'] = xx_enc(editkey, 30)  
+  //
+  return true
 }
+
+function xx_dec(val, key) {
+  val = encodeURIComponent(val);
+  var result = "";
+  for (var i = 0; i < val.length; i++) {
+    result += String.fromCharCode(val.charCodeAt(i) + key);
+  }
+  return result;
+}
+function xx_enc(val, key) {
+  var result = "";
+  for (var i = 0; i < val.length; i++) {
+    result += String.fromCharCode(val.charCodeAt(i) - key);
+  }
+  return decodeURIComponent(result) ;
+}
+
+
 </script>
 
 {{ include parts_html_footer.html }}
