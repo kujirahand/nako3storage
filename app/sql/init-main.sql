@@ -73,6 +73,15 @@ CREATE TABLE images (
   mtime         INTEGER DEFAULT 0
 );
 
+CREATE TABLE bookmarks (
+  bookmark_id   INTEGER PRIMARY KEY,
+  user_id       INTEGER,
+  app_id        INTEGER,
+  ctime         INTEGER DEFAULT 0,
+  UNIQUE(user_id, app_id)
+);
+
+
 /*
 2021/04/30
 ALTER TABLE apps ADD COLUMN copyright TEXT DEFAULT ''

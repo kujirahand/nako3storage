@@ -31,6 +31,21 @@ function n3s_web_mypage()
     // 作品一覧を取得
     $apps = db_get('SELECT * FROM apps WHERE user_id=? ORDER BY app_id DESC', [$user_id]);
     $images = db_get('SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC', [$user_id]);
+    // お気に入り一覧を取得
+    $bookmark_ids = db_get(
+      'SELECT * FROM bookmarks WHERE user_id=? '.
+      'ORDER BY bookmark_id DESC LIMIT 30',
+      [$user_id]);
+    $bookmarks = [];
+    if ($bookmark_ids) {
+      foreach ($bookmark_ids as $aid) {
+        $a = db_get1(
+          'SELECT app_id, title, author FROM apps '.
+          'WHERE app_id=?',
+          [intval($aid['app_id'])]);
+        $bookmarks[] = $a;
+      }
+    }
     // ユーザー情報
     n3s_template_fw('mypage.html', [
         'user_id' => $user_id,
@@ -40,6 +55,7 @@ function n3s_web_mypage()
         'user' => $user,
         'images' => $images,
         'url_images' => n3s_get_config('url_images', '/images'),
+        'bookmarks' => $bookmarks,
     ]);
 }
 

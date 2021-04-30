@@ -138,6 +138,13 @@ h2 {
   background-color: #fff0ff;
 }
 
+.favblock {
+  background-color: #fff0f0;
+  font-size: 0.8em;
+  padding: 1em;
+  line-height: 1.4em;
+}
+
 .ctrl_block {
   border-top: 1px dotted gray;
   padding: 1em;

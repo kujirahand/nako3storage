@@ -172,7 +172,10 @@ function n3s_is_login() {
 
 function n3s_get_user_id() {
     if (!n3s_is_login()) { return 0; }
-    return empty($_SESSION['user_id']) ? 0 : intval($_SESSION['user_id']);
+    if (isset($_SESSION['user_id'])) {
+        return intval($_SESSION['user_id']);
+    }
+    return 0;
 }
 
 function n3s_get_login_info() {
