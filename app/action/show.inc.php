@@ -71,6 +71,9 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
         $a = db_get1($sql);
         n3s_check_private($a, $agent);
     }
+    // bookmarks
+    $fav = db_get1('SELECT * FROM bookmarks WHERE app_id=? AND user_id=? LIMIT 1', [$app_id, $my_user_id]);
+    $a['bookmark'] = ($fav) ? TRUE : FALSE;
 
     // check include url
     $a['baseurl'] = '';
