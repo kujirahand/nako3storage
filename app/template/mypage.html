@@ -1,5 +1,10 @@
 {{ include parts_html_header.html }}
 
+<div class="linkblock">
+  [<a href="#apps">私のアプリ</a>]
+  [<a href="#sozai">私の素材</a>]
+</div>
+
 <div class="showblock">
     <h1>
         {{$user_id}}: {{$name}} さんのマイページ
@@ -7,49 +12,74 @@
     </h1>
 </div>
 
+
+
 <div class="showblock">
-    <h3>投稿したアプリの一覧</h3>
-    {{if $apps }}
-        <div><ul>
+  <h3><a name="apps">投稿したアプリの一覧</a></h3>
+  {{if $apps }}
+    <div style="padding:0.5em">
+      <table border=0>
+        <tr bgcolor="#f0f0f0">
+          <td style="text-align:center;">編集</td>
+          <td style="text-align:center;">🌱作品名</td>
+        </tr>
         {{for $apps as $r}}
-            <li>
-                <!-- button -->
-                <a href="id.php?{{$r.app_id}}" class="pure-button">{{$r.app_id}}</a>
-                {{if $r.is_private}}【非公開】{{else}}【公開中】{{endif}}
-                <!-- title -->
-                <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
-                <!-- memo -->
-                {{if $r.memo}}→{{$r.memo}}{{endif}}
-                <!-- date -->
-                <span class="memo">{{$r.mtime | date2}}</span>
-                <!-- fav -->
-                {{$r.fav | star}}
-            </li>
+        <tr>
+          <td>
+            <!-- button -->
+            <a href="index.php?action=edit&page={{$r.app_id}}" class="pure-button">{{$r.app_id}}</a>
+          </td>
+          <td>
+            {{if $r.is_private}}
+              <span class="private">【非公開】</span>
+            {{else}}
+              <span class="public">【公開中】</span>
+            {{endif}}
+            <!-- title -->
+            <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
+            <!-- date -->
+            <span class="memo">{{$r.mtime | date2}}</span>
+            <!-- fav -->
+            {{$r.fav | star}}
+          </td>
+        </tr>
         {{endfor}}
-        </ul></div>
-    {{else}}
+      </table>
+    </div>
+  {{else}}
     <div>ありません。</div>
-    {{endif}}
+  {{endif}}
 </div>
 
 <div class="showblock">
-    <h3>素材のアップロード</h3>
-    <div>
-        <ul>
-            <!-- files -->
-            {{ for $images as $i }}
-            <li>
-                <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
-                {{$i.title}} - 
-                <span class="memo">{{$r.mtime | date2}}</span>
-            </li>
-            {{ endfor }}
-        </ul>
-        <!-- button -->
-        <p style="padding-left: 1em;">
-            <a href="index.php?action=upload" class="pure-button">👆ファイルのアップロード</a>
-        </p>
-    </div>
+  <h3><a name="sozai">私の素材</a></h3>
+  <div>
+    {{ if !$images }}
+      まだ素材をアップロードしていません。
+    {{ else }}
+    <!-- files -->
+    <table>
+      <tr><td>ID</td><td>ファイル名</td></tr>
+      {{ for $images as $i }}
+      <tr>
+        <td>
+          <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
+        </td>
+        <td>
+          {{$i.title}} - 
+          <span class="memo">{{$r.mtime | date2}}</span>
+        </td>
+      </tr>
+      {{ endfor }}
+    </table>
+    {{ endif }}
+  </div>
+  <div>
+    <!-- button -->
+    <p style="padding-left: 1em;">
+      <a href="index.php?action=upload" class="pure-button">👆ファイルのアップロード</a>
+    </p>
+  </div>
 </div>
     
 <div class="showblock" style="border-top: 1px dotted silver;">
