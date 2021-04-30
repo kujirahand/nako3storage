@@ -3,6 +3,7 @@
 <div class="linkblock">
   [<a href="#apps">私のアプリ</a>]
   [<a href="#sozai">私の素材</a>]
+  [<a href="#fav">最近のお気に入り</a>]
 </div>
 
 <div class="showblock">
@@ -12,6 +13,17 @@
     </h1>
 </div>
 
+<div class="showblock">
+  <h3><a name="fav">最近のお気に入り</a></h3>
+  <div class='favblock'>
+    {{ for $bookmarks as $i }}
+    <span>
+      [<a href="id.php?{{$i.app_id}}">
+        {{$i.title}} by {{$i.author}}</a>]
+    </span>
+    {{ endfor }}
+  </div>
+</div>
 
 
 <div class="showblock">

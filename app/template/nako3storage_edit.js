@@ -1,4 +1,7 @@
 // file: nako3storage_edit.js
+// =======================================
+// エディタ＋表示ページで表示する際に使うファイル
+// =======================================
 // IE対策
 var isIE = function() {
   var userAgent = window.navigator.userAgent.toUpperCase();
@@ -101,13 +104,26 @@ const fav_button = document.getElementById('fav_button')
 if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
   fav_button.onclick = function () {
+    /*
     if (runCount == 0) {
       alert('最初に実行してください')
       return
     }
+    */
     fav_button.disabled = true
     ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
+      fav_button.disabled = false
       fav.innerHTML = txt
+      // プロパティを変更
+      let b = fav_button.getAttribute('data-bookmark')
+      console.log('bookmark=', b)
+      if (b == 1) {
+        fav_button.innerHTML = '🌟 気に入った'
+        fav_button.setAttribute('data-bookmark', 0)
+      } else {
+        fav_button.innerHTML = '🌟 解除'
+        fav_button.setAttribute('data-bookmark', 1)
+      }
     })
   
   }

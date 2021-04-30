@@ -34,7 +34,6 @@
     </div>
   </div>
   <ul class="devblock">
-    {{if $app_id gt 0}}
     <li>
       <span>
         {{if $user_id gt 0}}
@@ -48,29 +47,36 @@
         {{ if $url }}
           (<a href="{{$url}}">関連URL</a>)
         {{ endif }}
-    </span></li>
-    {{endif}}
+      </span>
+    </li>
     <li>利用バージョン: {{ $version }}</li>
-    {{if $app_id gt 0}}
     <li>
       投稿日時: {{ $ctime | datetime }}
       {{ if $ctime != $mtime }}
         (編集: {{$mtime | datetime}})
       {{ endif }}
     </li>
-    {{endif}}
     <li>
       ライセンス: {{ $copyright }}
       ({{e:echo $copyright_desc[$copyright]}})
     </li>
     {{if $is_private}}
-    <li>🔒 非公開の投稿</li>
+    <li><span class="private">🔒 非公開の投稿</span></li>
     {{endif}}
   </ul>
-  {{if $app_id gt 0}}
   <div class="fav_block">
-    <button id="fav_button" class="pure-button">気に入った 😋</button>
-    &nbsp;<span id="fav">{{ $fav | star }}</span>
+    {{if n3s_is_login()}}
+    <button id="fav_button" class="pure-button"
+      data-bookmark="{{if $bookmark}}1{{else}}0{{endif}}">
+      🌟 {{if $bookmark}}解除{{else}}気に入った{{endif}}
+    </button>
+    {{endif}}
+    &nbsp;
+    <span>
+      <a style="text-decoration:none;" 
+        href="index.php?action=fav&page={{$app_id}}&m=who">
+        <span id="fav">{{ $fav | star }}</span>
+      </a>
   </div>
   <div class="fav_block">
     <!-- twwiter button -->
@@ -78,40 +84,32 @@
     <a class="pure-button" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&text=@{{$screen_name}}%20{{$title}}">Twitterに投稿</a>
     {{endif}}
   </div>
-  {{endif}}
 </div>
 
 <!-- 編集ボタン -->
-{{ if $app_id gt 0}}
 <div class="ctrl_block">
   <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝作品を編集</a>
 </div>
-{{ endif}}
 
-{{ if $app_id gt 0 }}
 <!-- URLを表示 -->
 <div class="ctrl_block">
-<h1>作品公開情報</h1>
-<div class="blogparts">
-  {{ if $is_private }}
-    {{ if $access_key != "" }}
-    <span class="memo"><a href="{{$widget_url}}">→一時公開用ブログパーツのURL</a>: </span><br>
+  <h1>作品公開情報</h1>
+  <div class="blogparts">
+    {{ if $is_private }}
+      <span>非公開の作品です。</span>
+    {{ else }}
+    <span class="memo">→この作品のURL: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
-    value="{{$widget_url}}"><br>
+      value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
+    <span class="memo">
+      <a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
+    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
+    <span class="memo">
+      <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
+    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}">
     {{ endif }}
-  {{ else }}
-  <span class="memo">→この作品のURL: </span><br>
-  <input class="info_link" type="text" onclick="this.select()"
-    value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
-  <span class="memo">
-    <a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
-  <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
-  <span class="memo">
-    <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
-  <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}">
-  {{ endif }}
-</div></div>
-{{ endif }}
+  </div>
+</div><!-- /ctrl_block --><!-- /URL -->
 
 <div class="ctrl_block" style="text-align:right;">
   <div class="memo">
@@ -132,11 +130,7 @@
 <!-- script for ace editor -->
 {{ $import_editor | raw }}
 <!-- script for nadesiko3 -->
-{{ if $custom_head eq '' }}
-{{   $import_nako | raw }}
-{{ else }}
-{{   $custom_head | raw }}
-{{ endif }}
+{{ $import_nako | raw }}
 
 <!-- script for nako3storage-->
 <script>
