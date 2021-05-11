@@ -127,9 +127,10 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
             $src = "{$baseurl}release/{$p}.js";
             $js_a[] = "<script defer src=\"$src\"></script>";
         }
-        // add Chart.js and Mocha.js
-        $js_a[] = "<script defer src='https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js'></script>";
-        $js_e[] = '<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.3.0/mocha.min.js" integrity="sha512-LA/TpBXau/JNubKzHQhdi5vGkRLyQjs1vpuk2W1nc8WNgf/pCqBplD8MzlzeKJQTZPvkEZi0HqBDfRC2EyLMXw==" crossorigin="anonymous"></script>';
+        // add Chart.js (将来的にはなでしこのリポジトリのものを使う)
+        // $js_a[] = "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
+        // 古いバージョンだとJSを含んでいないので...
+        $js_a[] = "<script defer src=\"https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
         // add
         $a['import_nako'] = implode("\n", $js_a);
         $a['import_editor'] = implode("\n", $js_e);
