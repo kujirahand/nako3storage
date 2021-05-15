@@ -63,7 +63,7 @@ function go_upload() {
         return;
     }
     $copyright_type = isset($_POST['copyright_type']) ? $_POST['copyright_type'] : '';
-    if ($copyright_type == 'SELF' || $copyright_type == 'CC0' || $copyright_type == 'MIT') {
+    if ($copyright_type == 'SELF' || $copyright_type == 'CC0' || $copyright_type == 'MIT' || $copyright_type == 'CC-BY') {
         // ok
     } else {
         n3s_error('アップロードできません', '著作権が不明です。');
