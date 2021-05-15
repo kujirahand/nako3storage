@@ -3,6 +3,8 @@ global $MAX_APP, $MAX_ZENBUN_SEARCH;
 $MAX_APP = 200; // 何件まで表示するか
 $MAX_ZENBUN_SEARCH = 30;
 
+require_once __DIR__.'/save.inc.php';
+
 function n3s_web_search()
 {
     $r = n3s_list_search();
@@ -52,17 +54,28 @@ function n3s_list_search()
     // プログラムを全部検索
     else if ($target == 'program') {
         $list = [];
-        $sql_material = 
-          'SELECT * FROM materials '.
-          'WHERE body LIKE ? '.
-          'ORDER BY material_id DESC '.
-          'LIMIT ?';
-        $materials = db_get(
-          $sql_material, [
-            $search_wc,
-            $MAX_ZENBUN_SEARCH,
-          ],
-          'material');
+        $r = db_get1('SELECT max(app_id) FROM apps', []);
+        if (!$r) { echo 'db error'; exit; }
+        $max_id = $r['max(app_id)'];
+        $materials = [];
+        $tid = $max_id;
+        for ($i = 0; $i < 3; $i++) {
+            $dbname = getMaterialDB($tid);
+            $sql_material = 
+              'SELECT * FROM materials '.
+              'WHERE body LIKE ? '.
+              'ORDER BY material_id DESC '.
+              'LIMIT ?';
+            $ma = db_get(
+              $sql_material, [
+                $search_wc,
+                $MAX_ZENBUN_SEARCH,
+              ],
+              $dbname);
+            $materials = $materials + $ma;
+            $tid -= 100;
+            if ($tid < 0) break;
+        }
         foreach ($materials as $m) {
           $app_id = $m['app_id'];
           $material_id = $m['material_id'];

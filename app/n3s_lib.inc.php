@@ -25,7 +25,8 @@ function n3s_db_init() {
       $n3s_config["file_db_main"], 
       $dir_sql.'/init-main.sql', 
       'main');
-    
+
+    // v0.7未満で利用(過去のDB参照のため) #80
     // set material db
     database_set(
       $n3s_config["file_db_material"], 
