@@ -12,79 +12,115 @@ var isIE = function() {
   if (msie) {console.log("isIE")}
   return msie
 }
+// AceEditorを使う
+var useAce = !isIE() 
+var initAce = false
+var setValue = null
+var getValue = null
+var qid = function (id) { return document.getElementById(id) }
 
 function setupEditor() {
-    if (navigator.nako3 === undefined) {
-        setTimeout(function() { setupEditor() }, 100);
-        return
-    }
-    const nako3code = document.getElementById("nako3code")
-    if (navigator.nako3.setupEditor && (!isIE())) {
-      // 3.1.17以上ならsetupEditor関数が存在する。
-      // textareaをdivで置換してからace editorとして使う。
-      const div = document.createElement("div")
-      div.id = "nako3code"
-      const parent = nako3code.parentElement
-      parent.removeChild(nako3code)
-      parent.appendChild(div)
-      div.dataset.nako3Resizable = "true"
-      div.textContent = nako3code.value
-
-      editorObjects = navigator.nako3.setupEditor("nako3code");
-      if (nako3code.readOnly) {
-        editorObjects.editor.setReadOnly(true)
-      }
-      editorObjects.editor.on("change", function(e) {
-        localStorage["n3s_save_body"] = editorObjects.editor.getValue()
-      })
-      setValue = function(text) { editorObjects.editor.setValue(text) }
-      getValue = function() { return editorObjects.editor.getValue() }
-    } else {
-      // 3.1.17未満のときはtextareaで表示する。
-      nako3code.addEventListener("change", function(e) {
-        localStorage["n3s_save_body"] = nako3code.value
-      })
-      setValue = function(text) { nako3code.value = text }
-      getValue = function(text) { return nako3code.value }
-      return
-    }
+  // loaded?
+  if (navigator.nako3 === undefined) {
+    setTimeout(function() { setupEditor() }, 100);
+    return
+  }
+  // setup editor
+  if (navigator.nako3.setupEditor && useAce) {
+    setupAceEditor()
+  } else {
+    setupTextEditor()
+  }
+  setupEditorSize() 
 }
 
+function setupAceEditor() {
+  // get textarea
+  const nako3code = document.getElementById('nako3code')
+  // textareaをdivで置換してからace editorとして使う。
+  const div = document.createElement('div')
+  div.id = 'nako3code'
+  const parent = nako3code.parentElement
+  parent.removeChild(nako3code)
+  parent.appendChild(div)
+  div.dataset.nako3Resizable = true
+  div.textContent = nako3code.value
+
+  editorObjects = navigator.nako3.setupEditor("nako3code");
+  if (nako3code.readOnly) {
+    editorObjects.editor.setReadOnly(true)
+  }
+  editorObjects.editor.on("change", function(e) {
+    localStorage["n3s_save_body"] = editorObjects.editor.getValue()
+  })
+  setValue = function(text) { editorObjects.editor.setValue(text) }
+  getValue = function() { return editorObjects.editor.getValue() }
+  initAce = true
+}
+
+function setupTextEditor() {
+  // textareaを使う場合
+  var body = ''
+  if (initAce) {
+    // ace と textarea を置換して textarea として使う
+    body = getValue()
+    const ace = qid('nako3code')
+    const txt = document.createElement('textarea')
+    txt.id = 'nako3code'
+    txt.value = body
+    const parent = ace.parentElement
+    parent.removeChild(ace)
+    parent.appendChild(txt)
+  }
+  const nako3code = qid('nako3code')
+  nako3code.addEventListener("change", function(e) {
+    localStorage["n3s_save_body"] = nako3code.value
+  })
+  setValue = function(text) {
+    nako3code.value = text 
+  }
+  getValue = function() {
+    return nako3code.value
+  }
+}
+
+
 function setupShortcut() {
-    // setup shortcut key
-    document.addEventListener("keydown", function(e) {
-        if (e.isComposing === true) return; // 変換中なら何もしない
-        switch (e.code) {
-            case 'F9':
-                e.preventDefault()
-                const runButton = document.getElementById('runButton')
-                runButton.click()
-                break;
-            case 'F10':
-                e.preventDefault()
-                const clearButton = document.getElementById('clearButton')
-                clearButton.click()
-                break;
-        }
-    });
-    const recover_btn = document.querySelector('#recover_btn')
-    if (recover_btn) {
-      recover_btn.onclick = function () {
-        if (!localStorage['nako3storage_temp']) {
-          alert('直前に何も実行していません。')
-          return
-        }
-        const b = confirm('本当に復元しますか？')
-        if (!b) { return }
-        setValue(localStorage['nako3storage_temp'])
-      }
+  // setup shortcut key
+  document.addEventListener("keydown", function(e) {
+    if (e.isComposing === true) return; // 変換中なら何もしない
+    switch (e.code) {
+      case 'F9':
+        e.preventDefault()
+        const runButton = document.getElementById('runButton')
+        runButton.click()
+        break;
+      case 'F10':
+        e.preventDefault()
+        const clearButton = document.getElementById('clearButton')
+        clearButton.click()
+        break;
     }
+  });
+  const recover_btn = document.querySelector('#recover_btn')
+  if (recover_btn) {
+    recover_btn.onclick = function () {
+      if (!localStorage['nako3storage_temp']) {
+        alert('直前に何も実行していません。')
+        return
+      }
+      const b = confirm('本当に復元しますか？')
+      if (!b) { return }
+      setValue(localStorage['nako3storage_temp'])
+    }
+  }
 }
 
 function setupEditorSize() {
+  // sizeSwitch
   const sizeSwitch = document.querySelector('#sizeSwitch');
   const nako3code = document.querySelector('#nako3code');
-  const full_h = nako3code.style.height;
+  const full_h = '25em';
   const mini_h = '10em';
   nako3code.style.height = mini_h
   sizeSwitch.onclick = function () {
@@ -96,6 +132,20 @@ function setupEditorSize() {
       sizeSwitch.innerHTML = '(→小)';
     }
   };
+  
+  // editSwitch
+  const editSwitch = document.querySelector('#editSwitch');
+  editSwitch.onclick = function () {
+    useAce = !useAce
+    editSwitch.innerHTML = useAce ? '(→textarea)' : '(→AceEditor)'
+    setupEditor()
+  };
+
+  // isIE
+  if (isIE()) {
+    sizeSwitch.style.display = 'none';
+    editSwitch.style.display = 'none';
+  }
 }
 
 //--------------------------
@@ -104,12 +154,6 @@ const fav_button = document.getElementById('fav_button')
 if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
   fav_button.onclick = function () {
-    /*
-    if (runCount == 0) {
-      alert('最初に実行してください')
-      return
-    }
-    */
     fav_button.disabled = true
     ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
       fav_button.disabled = false
@@ -173,5 +217,4 @@ function ajax(url, callback) {
   document.addEventListener("DOMContentLoaded", function() {
     setupEditor();
     setupShortcut();
-    setupEditorSize();
   });
