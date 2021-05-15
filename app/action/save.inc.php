@@ -142,6 +142,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['access_key'] = isset($a['access_key']) ? $a['access_key'] : '';
   $a['custom_head'] = isset($a['custom_head']) ? $a['custom_head'] : '';
   $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
+  $a['fav'] = intval(isset($a['fav']) ? $a['fav'] : 0);
   // check copyright
   global $copyright_list, $copyright_desc;
   $a['copyright_list'] = $copyright_list;
