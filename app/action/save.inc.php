@@ -11,17 +11,16 @@ function n3s_web_save() {
   $mode = empty($_GET['mode']) ? '' : $_GET['mode'];
   switch ($mode) {
     case 'edit':
-      n3s_action_save_data($_POST, 'web');
-      return;
+      return n3s_action_save_data($_POST, 'web');
     case 'delete':
-      n3s_action_save_delete($_POST, 'web');
-      return;
+      return n3s_action_save_delete($_POST, 'web');
     case 'reset_bad':
-      n3s_action_save_reset_bad($_POST, 'web');
-      return;
+      return n3s_action_save_reset_bad($_POST, 'web');
+    case 'verup_0_7': // update database (#80)
+      return n3s_action_save_verup_0_7();
   }
   // show form
-  $app_id = intval($_GET['page']);
+  $app_id = intval(isset($_GET['page']) ? $_GET['page'] : 0);
   $a = array();
   if ($app_id > 0) {
     n3s_web_save_check($app_id, $a);
@@ -81,11 +80,13 @@ function n3s_action_save_post_by_web() {
 }
 
 function n3s_action_save_load_body(&$a) {
-  $material_id = intval(isset($a['material_id']) ? $a['material_id'] : 0);
+  $material_id = intval(isset($a['app_id']) ? $a['app_id'] : 0);
   if ($material_id > 0) {
-    $material_db = n3s_get_db('material');
-    $m = $material_db->query("SELECT * FROM materials WHERE material_id=$material_id")->fetch();
-    $a['body'] = $m['body']."\n\n\n"; // エディタに余白が必要
+    $dbname = getMaterialDB($material_id);
+    $m = db_get1('SELECT * FROM materials WHERE material_id=?', [$material_id], $dbname);
+    if ($m) {
+      $a['body'] = $m['body']."\n\n\n"; // エディタに余白が必要
+    }
   } else {
     $a['body'] = '';
   }
@@ -206,11 +207,6 @@ function n3s_action_save_data_raw($data, $agent) {
       '保存に失敗しました。別のページを開いていれば閉じてください。改めて保存ボタンをクリックしてください。');
   }
 
-  // カスタムヘッダのチェック
-  if (!check_custom_head($a, $err)) {
-    throw new Exception("カスタムヘッダに指定したJavaScriptが許可されていません。".$err);
-  }
-  
   // 上書き保存か？
   if ($app_id > 0) {
     // check editkey
@@ -234,7 +230,7 @@ function n3s_action_save_data_raw($data, $agent) {
   }
   $a['mtime'] = time();
   $ph = null;
-  // 新規投稿の場合
+  // 新規投稿の場合適当なデータを挿入してupdateで全部を更新
   if ($app_id == 0) {
     $a['ctime'] = time();
     // ログインしていれば強制的にuser_idを書き換える
@@ -242,62 +238,18 @@ function n3s_action_save_data_raw($data, $agent) {
       $a['user_id'] = n3s_get_user_id();
       $a['author'] = $user['name'];
     }
-    // save material
-    $db_material = n3s_get_db('material');
-    $mp = $db_material->prepare(
-      'INSERT INTO materials (body) VALUES (?)');
-    $mp->execute(array($a['body']));
-    $material_id = $db_material->lastInsertId();
-    $sql = <<< EOS
-INSERT INTO apps (
-  title, author, email, url, memo,
-  canvas_w, canvas_h,
-  material_id, version, nakotype, tag,
-  is_private,
-  user_id, access_key, custom_head,
-  editkey, copyright,
-  ref_id, ip, ctime, mtime
-) VALUES (
-  :title, :author, :email, :url, :memo,
-  :canvas_w, :canvas_h,
-  :material_id, :version, :nakotype, :tag,
-  :is_private,
-  :user_id, :access_key, :custom_head,
-  :editkey, :copyright,
-  :ref_id, :ip, :ctime, :mtime
-)
-EOS;
-    $ph = $db->prepare($sql);
-    $ph->execute(array(
-      ":title"      => $a['title'],
-      ":author"     => $a['author'],
-      ":url"        => $a['url'],
-      ":email"      => $a['email'],
-      ":memo"       => $a['memo'],
-      ":material_id" => $material_id,
-      ":version"    => $a['version'],
-      ":nakotype"   => $a['nakotype'],
-      ":tag"        => $a['tag'],
-      ":is_private" => $a['is_private'],
-      ":user_id"    => $a['user_id'],
-      ":access_key" => $a['access_key'],
-      ":custom_head"=> $a['custom_head'],
-      ":ref_id"     => $a['ref_id'],
-      ":canvas_w"   => $a['canvas_w'],
-      ":canvas_h"   => $a['canvas_h'],
-      ":ip"         => $a['ip'],
-      ":ctime"      => $a['ctime'],
-      ":mtime"      => $a['mtime'],
-      ":editkey"    => $a['editkey'],
-      ":copyright"  => $a['copyright'],
-    ));
-    $app_id = $db->lastInsertId();
-    // update material_id
-    $mp = $db_material->prepare(
-      'UPDATE materials SET  app_id=? WHERE material_id=?');
-    $mp->execute(array($a['body'], $material_id));
-  } else {
-    $sql = <<< EOS
+    // update で正しい値を入れるので適当にタイトルだけ挿入
+    $sql = 'INSERT INTO apps (title, user_id, ctime) VALUES (?,?,?)';
+    $app_id = db_insert($sql, [$a['title'], $a['user_id'], $a['ctime']]);
+    $dbname = getMaterialDB($app_id);
+    db_insert(
+      'INSERT INTO materials (material_id) VALUES (?)', 
+      [$app_id], $dbname);
+    $a['app_id'] = $app_id;
+  }
+  // update
+  // update info
+  $sql = <<< EOS
 UPDATE apps SET
   title=:title, author=:author, email=:email, 
   url=:url, memo=:memo,
@@ -310,8 +262,7 @@ UPDATE apps SET
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
-    $ph = $db->prepare($sql);
-    $ph->execute(array(
+  db_exec($sql, [
       ":title"      => $a['title'],
       ":author"     => $a['author'],
       ":url"        => $a['url'],
@@ -331,13 +282,14 @@ EOS;
       ":custom_head"=> $a['custom_head'],
       ":editkey"    => $a['editkey'],
       ":copyright"  => $a['copyright'],
-    ));
-    // update body
-    $db_material = n3s_get_db('material');
-    $mp = $db_material->prepare(
-      'UPDATE materials SET body=? WHERE material_id=?');
-    $mp->execute(array($a['body'], $b['material_id']));
-  }
+  ]);
+  // update body
+  $app_id = $a['app_id'];
+  $dbname = getMaterialDB($app_id);
+  db_exec(
+    'UPDATE materials SET body=? WHERE material_id=?',
+    [$a['body'], $app_id],
+    $dbname);
   // saved
   return $app_id;
 }
@@ -429,12 +381,38 @@ function randomStr($length = 8) {
     return substr(bin2hex(random_bytes($length)), 0, $length);
 }
 
-// カスタムヘッダ
-function check_custom_head(&$a, &$err) {
-  // 現在カスタムヘッダを許可しない (#29)
-  $a['cusom_head'] = '';
-  return TRUE;
+function getMaterialDB($material_id) {
+  $dir_app = n3s_get_config('dir_app', dirname(__DIR__));
+  $dir_data = n3s_get_config('dir_data', "{$dir_app}/data");
+  $db_id = floor($material_id / 100);
+  $file_db = "{$dir_data}/sub_material_{$db_id}.sqlite3";
+  $file_sql = "{$dir_app}/sql/init-material.sql";
+  $dbname = basename($file_db);
+  database_set($file_db, $file_sql, $dbname);
+  return $dbname;
 }
+
+function n3s_action_save_verup_0_7() {
+  $apps = db_get('SELECT app_id, material_id FROM apps ORDER BY app_id', [], 'main');
+  foreach ($apps as $app) {
+    $app_id = $app['app_id'];
+    $m_id = $app['material_id'];
+    $r = db_get1('SELECT * FROM materials WHERE material_id=?', [$m_id], 'material');
+    if (!$r) continue;
+    $body = $r['body'];
+    $dbname = getMaterialDB($app_id);
+    db_insert(
+      'INSERT INTO materials (material_id, body)'.
+      'VALUES(?,?)',
+      [$app_id, $body], 
+      $dbname);
+    db_exec('UPDATE apps SET material_id=? WHERE app_id=?', [$app_id,$app_id]); 
+    echo "($app_id: $m_id)\n";
+  }
+  echo "ok.\n";
+  exit;
+}
+
 
 
 
