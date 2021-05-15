@@ -397,6 +397,7 @@ function n3s_action_save_verup_0_7() {
   foreach ($apps as $app) {
     $app_id = $app['app_id'];
     $m_id = $app['material_id'];
+    if ($app_id == $m_id) continue;
     $r = db_get1('SELECT * FROM materials WHERE material_id=?', [$m_id], 'material');
     if (!$r) continue;
     $body = $r['body'];
