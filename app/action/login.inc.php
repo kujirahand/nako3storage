@@ -46,8 +46,10 @@ function n3s_web_login()
     try {
         // callback url
         $http = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 'https' : 'http';
-        $url_root = "{$http}://".$_SERVER['HTTP_HOST'].dirname($_SERVER['REQUEST_URI']);
-        $login_callback = $url_root.'/callback.php';
+        $host = "{$http}://".$_SERVER['HTTP_HOST'];
+        $uri = dirname($_SERVER['REQUEST_URI']);
+	if ($uri == '/') { $uri = ''; }
+        $login_callback = "{$host}{$uri}/callback.php";
         // start
         $connection = new TwitterOAuth($apikey, $secret, $access_token, $access_token_secret);
         // $request_token = $connection->oauth('oauth/request_token', array('oauth_callback' => $login_callback));
