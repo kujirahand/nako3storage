@@ -135,11 +135,13 @@ function setupEditorSize() {
   
   // editSwitch
   const editSwitch = document.querySelector('#editSwitch');
-  editSwitch.onclick = function () {
-    useAce = !useAce
-    editSwitch.innerHTML = useAce ? '(→textarea)' : '(→AceEditor)'
-    setupEditor()
-  };
+  if (editSwitch) {
+    editSwitch.onclick = function () {
+      useAce = !useAce
+      editSwitch.innerHTML = useAce ? '(→textarea)' : '(→AceEditor)'
+      setupEditor()
+    };
+  }
 
   // isIE
   if (isIE()) {
