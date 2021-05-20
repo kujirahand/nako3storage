@@ -13,6 +13,10 @@ function n3s_web_mypage()
     // ログインが必須
     $login_url = n3s_getURL('my', 'login');
     $logout_url = n3s_getURL('my', 'logout');
+    $back = isset($_GET['back']) ? $_GET['back']: '';
+    if ($back == 'list') {
+      n3s_setBackURL(n3s_getURL('all', 'list'));
+    }
     if (!n3s_is_login()) {
         header('location:'.$login_url);
         exit;
