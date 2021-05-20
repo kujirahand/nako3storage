@@ -42,6 +42,8 @@ function n3s_web_save() {
   }
   $a['presave'] = 'no';
   $a['edit_token'] = n3s_getEditToken();
+  // set backurl
+  n3s_setBackURL(n3s_getURL($app_id, 'save', ['rewrite'=>$a['rewrite']]));
   n3s_template_fw('save.html', $a);
 }
 
