@@ -109,15 +109,17 @@ function go_upload() {
         return;
     }
     $user_id = n3s_get_user_id();
-    //
+    // todo: MINE check
+    // $mime = @mime_content_type($path);
     $db = n3s_get_db('main');
     db_exec('begin');
     $image_id = db_insert(
         'INSERT INTO images (title,user_id,copyright,ctime,mtime)VALUES(?,?,?,?,?)', 
         [$title, $user_id, $copyright_type, time(), time()]);
+    // detect filename
     $filename = "{$image_id}{$ext}";
+    $path = n3s_getImageFile($image_id, $ext, TRUE);
     db_exec("UPDATE images SET filename=? WHERE image_id=?", [$filename, $image_id]);
-    $path = "{$dir_images}/$filename";
     if (!move_uploaded_file($tmp_name, $path)) {
         db_exec('rollback');
         n3s_error('アップロード失敗', "サーバーにファイル保存に失敗しました。やり直してください。");
@@ -143,8 +145,7 @@ function show_image() {
     $filename = $im['filename'];
     $user_id = $im['user_id'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
-    $image_url = n3s_get_config('url_images', 'images')."/{$filename}";
-    $image_url_abs = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
+    $image_url = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
     // can_edit
     $can_edit = FALSE;
     if (n3s_is_admin()) {
@@ -163,7 +164,6 @@ function show_image() {
         'title' => $im['title'],
         'copyright' => getCopyrightName($im['copyright']),
         'image_url' => $image_url,
-        'image_url_abs' => $image_url_abs,
         'msg' => 'ファイルの情報',
         'user' => $user,
         'can_edit' => $can_edit,
@@ -189,11 +189,6 @@ function getCopyrightName2($type) {
 }
 
 function delete_image() {
-    $dir_images = n3s_get_config('dir_images', '');
-    if ($dir_images == '') {
-        n3s_error('削除不可','システムでファイルフォルダが設定されていません。');
-        return;
-    }
     // check params
     $really = isset($_POST['really']) ? $_POST['really'] : '';
     if ($really != "delete") {
@@ -206,7 +201,11 @@ function delete_image() {
         n3s_error('削除できません', 'トークンの有効期限が切れています。ページを戻ってやり直してください。');
         return;
     }
-    $image_id = isset($_POST['image_id']) ? $_POST['image_id'] : '';
+    $image_id = intval(isset($_POST['image_id']) ? $_POST['image_id'] : '0');
+    if ($image_id == 0) {
+        n3s_error('削除できません', 'パラメータが不正です。');
+        return;
+    }
     $db = database_get();
     $im = db_get1('SELECT * FROM images WHERE image_id=? LIMIT 1', [$image_id]);
     if (!$im) {
@@ -214,9 +213,9 @@ function delete_image() {
         return;
     }
     // url
-    $filename = $im['filename'];
     $user_id = $im['user_id'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
+    
     // can_edit
     $can_edit = FALSE;
     if (n3s_is_admin()) {
@@ -227,15 +226,21 @@ function delete_image() {
             $can_edit = TRUE;
         }
     }
+    if (!$can_edit) {
+        n3s_error('削除権限がありません。', '他人のリソースは削除できません。');
+        return;
+    }
+    $filename = $im['filename'];
+    $dir = n3s_getImageDir($image_id);
     // delete from db
     db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
     // delete file
-    $image_file = "{$dir_images}/{$filename}";
-    @unlink($image_file);
-    //
-    n3s_template_fw('basic.html',[
-        'contents' => "ファイルを削除しました。",
-    ]);
+    $image_file = "{$dir}/{$filename}";
+    if (file_exists($image_file)) {
+        @unlink($image_file);
+    }
+    $back = n3s_getURL('my', 'mypage');
+    n3s_info("ファイルを削除しました。", "ファイルを削除しました。<a href='$back'>戻る</a>", TRUE);
 }
 
 function list_image() {
