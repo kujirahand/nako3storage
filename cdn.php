@@ -68,7 +68,7 @@ function useCache($ver, $url, $file, $ext = '') {
   $file = preg_replace('#[^a-zA-Z0-9\-\_\.]+#','',$file);
   $save_dir = $cache_dir."/{$ver}";
   $cache_file = $save_dir."/{$file}";
-  $cache_url_file = "$cache_url/{$file}";
+  $cache_url_file = "$cache_url/{$ver}/{$file}";
   if (!file_exists($cache_file)) {
     // fetch from web
     $body = @file_get_contents($url);
