@@ -236,12 +236,12 @@ function n3s_checkEditToken($key = 'default')
 }
 
 function n3s_setBackURL($url) {
-    $_SESSION['nako3storage_backurl'] = $url;
+    $_SESSION['n3s_backurl'] = $url;
 }
 
 function n3s_getBackURL() {
-    $url = isset($_SESSION['nako3storage_backurl']) ? $_SESSION['nako3storage_backurl'] : '';
-    unset($_SESSION['nako3storage_backurl']);
+    $url = isset($_SESSION['n3s_backurl']) ? $_SESSION['n3s_backurl'] : '';
+    unset($_SESSION['n3s_backurl']);
     return $url;
 }
 
