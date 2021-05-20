@@ -26,7 +26,7 @@
         <label>
           著作権の確認:<br>
           <input type="checkbox" name="copyright" id="copyright" value="ok">
-            このファイルは著作権的に問題のないファイルです。
+            このファイルは著作権的に問題のないファイルです。そして、<a href="index.php?action=kiyaku" target="new">利用規約</a>に同意します。
         </label><br>
         <label>
           著作権の種類:<br>
@@ -73,7 +73,7 @@
     // 著作権のチェック
     const copyright = document.getElementById('copyright')
     if (!copyright.checked) {
-      alert('著作権の欄にチェックを入れてください。')
+      alert('著作権と利用規約の同意の欄にチェックを入れてください。')
       return false
     }
     return true

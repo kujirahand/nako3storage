@@ -244,3 +244,21 @@ function n3s_getBackURL() {
     unset($_SESSION['nako3storage_backurl']);
     return $url;
 }
+
+function n3s_getImageDir($id) {
+    $dir_images = n3s_get_config('dir_images', '');
+    $dir_id = floor($id / 100);
+    $dir = $dir_images.'/'.sprintf('%03d', $dir_id);
+    return $dir;
+}
+
+function n3s_getImageFile($id, $ext, $create = FALSE) {
+    $dir = n3s_getImageDir($id);
+    if ($create) {
+        if (!file_exists($dir)) { mkdir($dir); }
+    }
+    if (substr($ext, 0, 1) != '.') { $ext = '.'.$ext; }
+    $file = $dir."/{$id}{$ext}";
+    return $file;
+}
+

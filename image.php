@@ -9,11 +9,13 @@ if (!preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {
   echo '404 not found';
   exit;
 }
-$id = $m[1];
+$id = intval($m[1]);
 $ext = $m[2];
+$dir_id = floor($id / 100);
+$dir = sprintf('%03d', $dir_id);
 
 // check path
-$path = __DIR__.'/images/'.$fname;
+$path = __DIR__."/images/$dir/{$id}.{$ext}";
 if (!file_exists($path)) {
   header("HTTP/1.0 404 Not Found");
   echo '404 not found';
@@ -23,8 +25,6 @@ if (!file_exists($path)) {
 // アクセスコントロール
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: '.get_mime($ext));
-
-
 
 // output
 readfile($path);
