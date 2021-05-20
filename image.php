@@ -1,57 +1,20 @@
 <?php
+// [nako3srorage] image.php
 
-// id
-$fname = empty($_GET['f']) ? '' : $_GET['f'];
+// デフォルトを読む
+require_once __DIR__.'/app/n3s_config.def.php';
 
-// match
-if (!preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {
-  header("HTTP/1.0 404 Not Found");
-  echo '404 not found';
-  exit;
-}
-$id = intval($m[1]);
-$ext = $m[2];
-$dir_id = floor($id / 100);
-$dir = sprintf('%03d', $dir_id);
+// デフォルトとの差分を指定する
+$config_file = __DIR__."/n3s_config.ini.php";
+if (file_exists($config_file)) include_once($config_file);
 
-// check path
-$path = __DIR__."/images/$dir/{$id}.{$ext}";
-if (!file_exists($path)) {
-  header("HTTP/1.0 404 Not Found");
-  echo '404 not found';
-  exit;
-}
+// index.php 固有の設定
+global $n3s_config;
+$n3s_config['agent'] = 'api';
+$_GET['page'] = isset($_GET['f']) ? $_GET['f'] : '';
+$_GET['action'] = 'image';
 
-// アクセスコントロール
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: '.get_mime($ext));
-
-// output
-readfile($path);
-
-function get_mime($ext) {
-  $mime = [
-    "jpg" => "image/jpeg",
-    "jpeg" => "image/jpeg",
-    "jpe" => "image/jpeg",
-    "gif" => "image/gif",
-    "png" => "image/png",
-    "mp3" => "audio/mpeg",
-    "ogg" => "audio/ogg",
-    "oga" => "audio/ogg",
-    "txt" => "text/plain",
-    "csv" => "text/csv",
-    "tsv" => "text/tsv",
-    "xml" => "text/xml",
-    "json" => "application/json",
-    "js" => "text/javascreipt",
-  ];
-  $ext = strtolower($ext);
-  if (isset($mime[$ext])) {
-    return $mime[$ext];
-  }
-  return "application/octet-stream";
-}
-
-
+// execute main file
+$main_file = $n3s_config['dir_app'].'/index.inc.php';
+include_once($main_file);
 

@@ -1,56 +1,21 @@
 <?php
-require_once __DIR__ . '/n3s_lib.inc.php';
+// redirect HTTP => HTTPS
+if (empty($_SERVER['HTTPS']) &&
+    ($_SERVER['HTTP_HOST'] == 'n3s.nadesi.com')) {
+  $url = 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+  header("location: $url");
+  exit;
+}
+
+require_once __DIR__.'/n3s_lib.inc.php';
 
 n3s_main();
 
 function n3s_main()
 {
-    n3s_check_config();
     n3s_db_init(); // n3s_lib.inc.php
     n3s_parseURI(); // n3s_lib.inc.php
     n3s_action();
-}
-
-function n3s_check_config()
-{
-    global $n3s_config;
-    $root = dirname(dirname(__FILE__));
-    $app_dir = __DIR__;
-    $url_root = dirname($_SERVER['REQUEST_URI']);
-    $def_values = [
-        "page_title" => "🍯 なでしこ3貯蔵庫",
-        "top_message" => "",
-        "admin_users" => [1],
-        "admin_contact_link" => "(Please set admin_contact_link in config file.)",
-        "dir_data" => "{$root}/data",
-        "dir_images" => "{$root}/images",
-        "url_images" => "{$url_root}/images",
-        "dir_app" => "{$root}/app",
-        "dir_template" => "{$root}/app/template",
-        'dir_cache' => $root.'/cache',
-        "dir_action" => "{$root}/app/action",
-        "dir_sql" => "{$root}/app/sql",
-        "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
-        "file_db_material" => "sqlite:{$root}/data/n3s_material.sqlite",
-        "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
-        "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
-        "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
-        "extra_header_html" => "",
-        "search_word" => "",
-        "n3s_css_mtime" => filemtime("$app_dir/template/basic.css"),
-        "nako3storage_version" => N3S_APP_VERSION,
-        "nako_default_version" => NAKO_DEFAULT_VERSION,
-        // for twitter login
-        "twitter_api_key" => "",
-        "twitter_api_secret" => "",
-        "twitter_acc_token" => "",
-        "twitter_acc_secret" => "",
-        // for analytics
-        "analytics" => "",
-    ];
-    foreach ($def_values as $key => $def) {
-        if (!isset($n3s_config[$key])) $n3s_config[$key] = $def;
-    }
 }
 
 function n3s_action()

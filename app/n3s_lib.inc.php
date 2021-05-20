@@ -6,8 +6,9 @@
 global $n3s_config;
 
 // include version
-include_once dirname(__DIR__).'/nako3storage_version.inc.php';
-include_once dirname(__DIR__).'/nako_version.inc.php';
+require_once dirname(__DIR__).'/nako3storage_version.inc.php';
+require_once dirname(__DIR__).'/nako_version.inc.php';
+require_once __DIR__.'/mime.inc.php';
 
 // fw_template_engine
 require_once __DIR__ . '/fw_template_engine.lib.php';
@@ -58,17 +59,16 @@ function get_param($name, $def = '') {
       return $_GET[$name];
     }
     return $def;
-  }
+}
   
-  function post_param($name, $def = '') {
+function post_param($name, $def = '') {
     if (isset($_POST[$name])) {
       return $_POST[$name];
     }
     return $def;
-  }
+}
 
-function n3s_getURL($page, $action, $params = array())
-{
+function n3s_getURL($page, $action, $params = array()) {
     global $n3s_config;
     $baseurl = $n3s_config['baseurl'];
     $url = "{$baseurl}/index.php?page=$page&action=$action";
@@ -261,4 +261,3 @@ function n3s_getImageFile($id, $ext, $create = FALSE) {
     $file = $dir."/{$id}{$ext}";
     return $file;
 }
-
