@@ -106,6 +106,13 @@
     <input id="editkey" name="editkey" type="hidden" value="" />
     {{ endif }}
     <p>
+      <label>利用規約:<br />
+        <input id="agree" name="agree" type="checkbox" value="yes" />同意する
+        <span class="info">必ず<a target="new" href="index.php?action=kiyaku">利用規約</a>に同意してください。</span>
+      </label>
+    </p>
+    <p>
+      <!-- ■■■ 保存ボタン ■■■ -->
       <input name="mode" type="hidden" value="edit" />
       <input name="ref_id" type="hidden" value="{{$ref_id}}" />
       <input name="edit_token" type="hidden" value="{{$edit_token}}" />
@@ -193,6 +200,7 @@ function checkSubmit() {
   const title = document.getElementById('title').value
   const memo = document.getElementById('memo').value
   const author = document.getElementById('author').value
+  const agree = document.getElementById('agree').checked
   if (body.length < 30) {
     alert('お手数おかけします。\n' +
       '現在プログラムに最低文字数の制限をかけさせていただいています。\n' +
@@ -215,6 +223,11 @@ function checkSubmit() {
     alert('お手数おかけします。\n' +
       '作者名を記入してください。\n' +
       'どうぞ、ご協力よろしくお願いします。')
+    return false
+  }
+  if (!agree) {
+    alert('お手数おかけします。\n' +
+      '利用規約に同意のチェックをいれてください。同意しないと書き込めません。')
     return false
   }
   // editkey をブラウザに保存
