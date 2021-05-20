@@ -45,10 +45,9 @@ function n3s_web_login()
     }
     try {
         // callback url
-        $login_callback = 'https://nadesi.com/v3/storage/callback.php';
-        if ($_SERVER['HTTP_HOST'] === 'localhost') { // for test
-            $login_callback = 'http://localhost/repos/nako3storage/callback.php';
-        }
+        $http = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 'https' : 'http';
+        $url_root = "{$http}://".$_SERVER['HTTP_HOST'].dirname($_SERVER['REQUEST_URI']);
+        $login_callback = $url_root.'/callback.php';
         // start
         $connection = new TwitterOAuth($apikey, $secret, $access_token, $access_token_secret);
         // $request_token = $connection->oauth('oauth/request_token', array('oauth_callback' => $login_callback));
@@ -67,7 +66,7 @@ function n3s_web_login()
             'login_url' => $login_url,
         ]);
     } catch (Exception $e) {
-        n3s_error('Twitterと通信ができません', $e->getMessage());
+        n3s_error("Twitterと通信ができません。($login_callback)", $e->getMessage());
     }
 }
 
