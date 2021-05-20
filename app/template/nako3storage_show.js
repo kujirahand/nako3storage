@@ -62,6 +62,9 @@ function nako3_clear(s) {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
   })
+  $q('#nako3_div', function (e) {
+    e.innerHTML =''
+  })
   // プラグインのクリア処理
   if (navigator.nako3 && navigator.nako3.clearPlugins) {
     navigator.nako3.clearPlugins()
