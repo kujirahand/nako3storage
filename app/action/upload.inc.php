@@ -257,7 +257,7 @@ function list_image() {
             $is_image = True;
         }
         $i['is_image'] = $is_image;
-        $i['image_url'] = n3s_get_config('url_images', 'images/')."/{$fname}";
+        $i['image_url'] = "image.php?f={$fname}";
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id'=>$i['image_id'], 'mode'=>'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
