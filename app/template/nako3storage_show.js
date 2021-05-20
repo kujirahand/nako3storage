@@ -131,10 +131,20 @@ function runButtonOnClick() { // 実行ボタンを押した時
       runCount++ // 正しく実行した回数をチェック
     } else {
       document.getElementById('nako3_output').style.display = 'none'
-      if (navigator.nako3.runReset) {
-        navigator.nako3.runReset(preCode + code);
+      const nako3 = navigator.nako3
+      if (isIE() || !nako3.loadDependencies) {
+        if (nako3.runReset) {
+          nako3.runReset(preCode + code, 'main', preCode);
+        } else {
+          navigator.nako3.run(preCode + code);
+        }
       } else {
-        navigator.nako3.run(preCode + code);
+        const logger = nako3.replaceLogger()
+        logger.addListener('info', (html) => { nako3_print(html) })
+        const promise = nako3.loadDependencies(preCode + code, 'main', preCode)
+          .then(()=>{
+            nako3.runReset(preCode + code, 'main', preCode)
+          })
       }
       runCount++ // 正しく実行した回数をチェック
     }
