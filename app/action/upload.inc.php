@@ -32,6 +32,15 @@ function n3s_web_upload() {
         list_image();
         return;
     }
+    // ログインチェック #78
+    if (!n3s_is_login()) {
+        $loginurl = n3s_getURL('my', 'login');
+        $backurl = n3s_getURL('my','upload');
+        n3s_setBackURL($backurl);
+        n3s_error('アップロードできません', "<a href='$loginurl'>先にログインしてください。</a>", TRUE);
+        return;
+    }
+    // アップロードフォームを表示
     n3s_template_fw('upload.html', [
         "edit_token" => n3s_getEditToken(),
     ]);

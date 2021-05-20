@@ -140,8 +140,12 @@ function n3s_web_login_callback() {
     $_SESSION['profile_url'] = $profile_url;
     // message
     // n3s_template_fw('basic.html', ['contents'=>'ログインしました。']);
-    $mypage = n3s_getURL('my', 'mypage');
-    header('location:'.$mypage);
+    $backurl = n3s_getBackURL();
+    if ($backurl == '') {
+        $mypage = n3s_getURL('my', 'mypage');
+        $backurl = $mypage;
+    }
+    header('location:'.$backurl);
 }
 
 function iget($info, $key, $def = '') {
