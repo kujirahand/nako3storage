@@ -17,7 +17,7 @@ function n3s_check_config()
     $root = dirname(dirname(__FILE__));
     $app_dir = __DIR__;
     $url_root = dirname($_SERVER['REQUEST_URI']);
-    $def_values = array(
+    $def_values = [
         "page_title" => "🍯 なでしこ3貯蔵庫",
         "top_message" => "",
         "admin_users" => [1],
@@ -45,7 +45,9 @@ function n3s_check_config()
         "twitter_api_secret" => "",
         "twitter_acc_token" => "",
         "twitter_acc_secret" => "",
-    );
+        // for analytics
+        "analytics" => "",
+    ];
     foreach ($def_values as $key => $def) {
         if (!isset($n3s_config[$key])) $n3s_config[$key] = $def;
     }
