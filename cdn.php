@@ -1,8 +1,14 @@
 <?php
 // CDN.php --- redirect to cdn
-global $cache_dir, $CDN, $cache_url;
+global $cache_dir, $CDN, $cache_url, $cache_config;
+// cache_config
+$cache_config = [
+  'cache_all' => TRUE,
+];
+
 // get nadesiko default version
 require_once __DIR__.'/nako_version.inc.php';
+require_once __DIR__.'/app/mime.inc.php';
 
 // setting
 // ref) https://www.jsdelivr.com/
@@ -10,16 +16,23 @@ $CDN = 'https://cdn.jsdelivr.net/npm/nadesiko3';
 $cache_dir = __DIR__.'/cache-cdn';
 $uri = dirname($_SERVER['SCRIPT_NAME']);
 $cache_url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$uri."/cache-cdn";
-// for nadesi.com/v3/cdn.php
+
+// for n3s.nadesi.com/cdn.php
 if ($_SERVER['HTTP_HOST'] == 'nadesi.com' && $uri == '/v3') {
   $cache_url = 'https://nadesi.com/v3/storage/cache-cdn';
 }
-
+else if ($_SERVER['HTTP_HOST'] == 'n3s.nadesi.com') {
+  $cache_url = 'https://n3s.nadesi.com/cache-cdn';
+}
 
 // get parameters
 $ver = get('v', NAKO_DEFAULT_VERSION);
 $file = get('f', 'release/wnako3.js');
 $run = isset($_GET['run']) ? '?run' : '';
+// check ver
+if (!preg_match('#^3\.\d{1,3}\.\d{1,3}$#', $ver)) {
+  $ver = NAKO_DEFAULT_VERSION;
+}
 
 // check parameters
 // 先頭に/があれば削る
@@ -31,7 +44,10 @@ if (substr($file, 0, 1) == '/') {
 $url = "{$CDN}@{$ver}/{$file}{$run}";
 
 // check mime (ex) cdn.php?f=src/wnako3_editor.css
-if (preg_match('#\.(css|html)$#', $file, $m)) {
+if ($cache_config['cache_all']) {
+  useCache($ver, $url, $file);
+}
+else if (preg_match('#\.(css|html)$#', $file, $m)) {
   $ext = $m[1];
   useCache($ver, $url, $file, $ext);
 }
@@ -44,14 +60,15 @@ header('Access-Control-Allow-Origin: *');
 header("location: $url", TRUE, 307);
 exit;
 
-function useCache($ver, $url, $file, $ext) {
-  global $cache_dir, $CDN, $cache_url;
+function useCache($ver, $url, $file, $ext = '') {
+  global $cache_dir, $CDN, $cache_url, $cache_config;
   // get from cdn
   $file = str_replace('..', '', $file);
   $file = str_replace('/', '___', $file);
-  $file = preg_replace('|[^a-zA-Z0-9-\_.]+|','',$file);
-  $cache_file = $cache_dir."/{$ver}@{$file}";
-  $cache_url_file = "$cache_url/{$ver}@{$file}";
+  $file = preg_replace('#[^a-zA-Z0-9\-\_\.]+#','',$file);
+  $save_dir = $cache_dir."/{$ver}";
+  $cache_file = $save_dir."/{$file}";
+  $cache_url_file = "$cache_url/{$file}";
   if (!file_exists($cache_file)) {
     // fetch from web
     $body = @file_get_contents($url);
@@ -60,12 +77,21 @@ function useCache($ver, $url, $file, $ext) {
       echo "file not found.";
       exit;
     }
+    if (!file_exists($save_dir)) { mkdir($save_dir); }
     @file_put_contents($cache_file, $body);
   } else {
     $body = @file_get_contents($cache_file);
   }
   // output
   header('Access-Control-Allow-Origin: *');
+  // check ext
+  if ($ext == '') {
+    if (preg_match('#\.([a-z0-9_]+)$#', $file, $m)) {
+      $ext = $m[1];
+    }
+  }
+  // output content type
+  $mime = n3s_get_mime($ext);
   if ($ext == 'css') {
     header('content-type: text/css; charset=utf-8');
     echo $body;
