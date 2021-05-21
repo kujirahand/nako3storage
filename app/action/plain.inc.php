@@ -34,7 +34,7 @@ function n3s_web_plain() {
   // アクセスコントロール
   header('Access-Control-Allow-Origin: *');
   // 内容を出力
-  $body = trim($b['body']);
+  $body = trim($b['body'])."\n\n";
   if (substr($body, 0, 2) == '#!') {
     $body = str_replace("\r\n", "\n", $body);
   }
