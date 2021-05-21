@@ -85,8 +85,7 @@ function n3s_action_save_post_by_web() {
 function n3s_action_save_load_body(&$a) {
   $material_id = intval(isset($a['app_id']) ? $a['app_id'] : 0);
   if ($material_id > 0) {
-    $dbname = getMaterialDB($material_id);
-    $m = db_get1('SELECT * FROM materials WHERE material_id=?', [$material_id], $dbname);
+    $m = n3s_getMaterialData($material_id);
     if ($m) {
       $a['body'] = $m['body']."\n\n\n"; // エディタに余白が必要
     }
@@ -94,6 +93,14 @@ function n3s_action_save_load_body(&$a) {
     $a['body'] = '';
   }
 }
+
+function n3s_getMaterialData($app_id) {
+  if ($app_id <= 0) return null;
+  $dbname = getMaterialDB($app_id);
+  $m = db_get1('SELECT * FROM materials WHERE material_id=?', [$app_id], $dbname);
+  return $m;
+}
+
 
 function n3s_check_field_size(&$a) {
   // get max size

@@ -112,7 +112,10 @@
     <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
     <span class="memo">
       <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
-    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}">
+    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}"></br>
+    <span class="memo">→直リンク(『!「***」を取込』で使える): </span><br>
+    <input class="info_link" type="text" onclick="this.select()"
+      value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
     {{ endif }}
   </div>
 </div><!-- /ctrl_block --><!-- /URL -->
