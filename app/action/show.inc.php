@@ -87,7 +87,8 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
         $v2 = intval($ver_a[1]); // 3_99_00
         $v3 = intval($ver_a[2]); // 3_11_99
         $ver = $v1 * 10000 + $v2 * 100 + $v3;
-        $baseurl = "https://nadesi.com/v3/cdn.php?v=$version&f=";
+        // WebWorker対応のため必ずローカルのcdn.phpを使う
+        $baseurl = "cdn.php?v={$version}&f=";
         $a['baseurl'] = $baseurl;
         // plugins
         $js_a = []; // for nako3
