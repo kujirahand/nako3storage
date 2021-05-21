@@ -70,7 +70,7 @@
     </p>
     <p>
     <label>ライセンスの指定:</label><br />
-      <blockquote>
+      <blockquote style="background-color: #f0f0f0;">
       {{ for $copyright_list as $key => $val }}
       {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
       <label for='{{$key}}'>
@@ -105,6 +105,12 @@
     {{ else }}
     <input id="editkey" name="editkey" type="hidden" value="" />
     {{ endif }}
+    <p>
+      <label>データの形式:
+        <span class="info">普通はwnakoを指定。必要ならcnako/json/csv/textを指定。</span><br />
+        <input id="nakotype" name="nakotype" type="text" value="wnako" />
+      </label>
+    </p>
     <p>
       <label>利用規約:<br />
         <input id="agree" name="agree" type="checkbox" value="yes" />同意する
@@ -200,6 +206,7 @@ function checkSubmit() {
   const title = document.getElementById('title').value
   const memo = document.getElementById('memo').value
   const author = document.getElementById('author').value
+  const fmt = document.getElementById('nakotype').value
   const agree = document.getElementById('agree').checked
   if (body.length < 30) {
     alert('お手数おかけします。\n' +
@@ -229,6 +236,12 @@ function checkSubmit() {
     alert('お手数おかけします。\n' +
       '利用規約に同意のチェックをいれてください。同意しないと書き込めません。')
     return false
+  }
+  if (fmt == 'wnako3' || fmt == 'cnako3' || fmt == 'text' || fmt == 'json' ||
+      fmt == 'css' || fmt == 'html' || fmt == 'csv' || fmt == 'js') { // ok
+  } else {
+      alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
+      return false
   }
   // editkey をブラウザに保存
   const editkey = document.getElementById('editkey').value

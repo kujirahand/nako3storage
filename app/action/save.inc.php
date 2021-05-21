@@ -16,8 +16,9 @@ function n3s_web_save() {
       return n3s_action_save_delete($_POST, 'web');
     case 'reset_bad':
       return n3s_action_save_reset_bad($_POST, 'web');
-    case 'verup_0_7': // update database (#80)
-      return n3s_action_save_verup_0_7();
+    // 安全のため無効にしている
+    // case 'verup_0_7': // update database (#80)
+    //   return n3s_action_save_verup_0_7();
   }
   // show form
   $app_id = intval(isset($_GET['page']) ? $_GET['page'] : 0);
@@ -145,6 +146,7 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   $a['custom_head'] = isset($a['custom_head']) ? $a['custom_head'] : '';
   $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
   $a['fav'] = intval(isset($a['fav']) ? $a['fav'] : 0);
+  $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : '';
   // check copyright
   global $copyright_list, $copyright_desc;
   $a['copyright_list'] = $copyright_list;
@@ -262,6 +264,7 @@ UPDATE apps SET
   custom_head=:custom_head,
   copyright=:copyright,
   editkey=:editkey,
+  nakotype=:nakotype,
   ref_id=:ref_id, ip=:ip, mtime=:mtime
 WHERE app_id=:app_id;
 EOS;
@@ -285,6 +288,7 @@ EOS;
       ":custom_head"=> $a['custom_head'],
       ":editkey"    => $a['editkey'],
       ":copyright"  => $a['copyright'],
+      ":nakotype"   => $a['nakotype'],
   ]);
   // update body
   $app_id = $a['app_id'];

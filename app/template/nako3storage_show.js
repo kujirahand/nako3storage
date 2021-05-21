@@ -192,12 +192,25 @@ function canvas_size_change() {
 //--------------------------
 // save button
 function saveClick(useCheck) {
+  var body = ''
+  try {
+    body = getValue()
+    body = body.replace(/^\s+/, '') // trim first
+    if (useCheck && length(body) < 10) {
+      alert('本文が短すぎると保存できません。')
+      return
+    }
+  } catch (e) {
+    console.log(e)
+  }
   if (runCount == 0 && useCheck) {
-    alert('一度エラーなしで実行しないと保存できません')
-    return
+    var b = confirm(
+      "エラーがないか確認してから保存することを推奨しています。\n" +
+      "強制的に保存しますか？")
+    if (!b) { return }
   }
   localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = getValue()
+  localStorage["n3s_save_body"] = body
   localStorage["n3s_action_time"] = (new Date()).getTime()
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value

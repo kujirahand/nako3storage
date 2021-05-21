@@ -12,8 +12,13 @@
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
     <textarea id="nako3code" readonly>{{ $body }}</textarea>
     </label><br />
-    <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
-    <button id="clearButton" class="pure-button">クリア</button>
+    {{ if $nakotype eq 'wnako' }}
+      <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
+      <button id="clearButton" class="pure-button">クリア</button>
+    {{ else }}
+      <button id="runButton" style="display:none"></button>
+      <button id="clearButton" style="display:none"></button>
+    {{ endif }}
     <div id="runbox">
       <!-- 3.1.19以上 -->
       <div id="nako3_output" style="display:none"></div>
@@ -49,17 +54,18 @@
         {{ endif }}
       </span>
     </li>
-    <li>利用バージョン: {{ $version }}</li>
+    <li><span class="lbl">利用バージョン:</span> {{ $version }}</li>
     <li>
-      投稿日時: {{ $ctime | datetime }}
+      <span class="lbl">投稿日時:</span> {{ $ctime | datetime }}
       {{ if $ctime != $mtime }}
         (編集: {{$mtime | datetime}})
       {{ endif }}
     </li>
     <li>
-      ライセンス: {{ $copyright }}
+      <span class="lbl">ライセンス:</span> {{ $copyright }}
       ({{e:echo $copyright_desc[$copyright]}})
     </li>
+    <li><span class="lbl">タイプ:</span> {{ $nakotype }}</li>
     {{if $is_private}}
     <li><span class="private">🔒 非公開の投稿</span></li>
     {{endif}}
