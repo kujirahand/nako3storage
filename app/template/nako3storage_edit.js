@@ -15,9 +15,10 @@ var isIE = function() {
 // AceEditorを使う
 var useAce = !isIE() 
 var initAce = false
-var setValue = null
-var getValue = null
 var qid = function (id) { return document.getElementById(id) }
+// ライブラリ読み込みに失敗してもgetValueが使えるようにする
+var setValue = null
+var getValue = function () { return qid('nako3code').value } 
 
 function setupEditor() {
   // loaded?
@@ -82,6 +83,7 @@ function setupTextEditor() {
   getValue = function() {
     return nako3code.value
   }
+  console.log('setupTextEditor')
 }
 
 
@@ -216,7 +218,9 @@ function ajax(url, callback) {
 }
 
 // check modified
-  document.addEventListener("DOMContentLoaded", function() {
-    setupEditor();
-    setupShortcut();
-  });
+document.addEventListener("DOMContentLoaded", function() {
+  setupEditor();
+  setupShortcut();
+});
+
+
