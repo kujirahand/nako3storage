@@ -381,4 +381,18 @@ textarea#nako3code {
   color: red;
 }
 
+ul.devblock {
+  background-color: #f0f0f0; 
+  padding: 1em;
+  list-style: none;
+}
+ul.devblock li {
+  padding-left: 1em;
+  border-bottom: 1px dotted #e0e0e0;
+  color: #404040;
+}
+ul.devblock span.lbl {
+  color: #808080;
+}
+
 

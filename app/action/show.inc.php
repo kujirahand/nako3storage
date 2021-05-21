@@ -80,62 +80,62 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $nakotype = empty($a['nakotype']) ? 'wnako' : $a['nakotype'];
     $version = empty($a['version']) ? NAKO_DEFAULT_VERSION : $a['version'];
     $a['import_nako'] = '';
-    if ($nakotype === "wnako") {
-        $version = preg_replace("/[^0-9.]/", "", $version);
-        $ver_a = explode(".", $version.'.0.0');
-        $v1 = intval($ver_a[0]); // 3_00_00
-        $v2 = intval($ver_a[1]); // 3_99_00
-        $v3 = intval($ver_a[2]); // 3_11_99
-        $ver = $v1 * 10000 + $v2 * 100 + $v3;
-        // WebWorker対応のため必ずローカルのcdn.phpを使う
-        $baseurl = "cdn.php?v={$version}&f=";
-        $a['baseurl'] = $baseurl;
-        // plugins
-        $js_a = []; // for nako3
-        $js_e = []; // for ace editor
-        // add wanko3.js
-        $js_a[] =
-            "<script defer src=\"$baseurl/release/wnako3.js\"></script>";
+    
+    // 必ず wnako としてエディタなど取り込む
+    $version = preg_replace("/[^0-9.]/", "", $version);
+    $ver_a = explode(".", $version.'.0.0');
+    $v1 = intval($ver_a[0]); // 3_00_00
+    $v2 = intval($ver_a[1]); // 3_99_00
+    $v3 = intval($ver_a[2]); // 3_11_99
+    $ver = $v1 * 10000 + $v2 * 100 + $v3;
+    // WebWorker対応のため必ずローカルのcdn.phpを使う
+    $baseurl = "cdn.php?v={$version}&f=";
+    $a['baseurl'] = $baseurl;
+    // plugins
+    $js_a = []; // for nako3
+    $js_e = []; // for ace editor
+    // add wanko3.js
+    $js_a[] = "<script defer src=\"$baseurl/release/wnako3.js\"></script>";
 
-        // 3.1.17以上ならace editor用のHTMLタグを追加する。
-        if ($ver >= 30117 && $useEditor && (!$msie)) {
-            if (!isset($a['extra_header_html'])) {
-                $a['extra_header_html'] = '';
-            }
-            $a['extra_header_html'] .= "<link rel=\"stylesheet\" href=\"$baseurl/src/wnako3_editor.css\">";
-            $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>';
-            $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>';
-            $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>';
-            $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-code_lens.min.js" integrity="sha512-gsDyyKTnOmSWRDzUbpYcPjzVsEyFGSWeWefzVKvbMULPR2ElIlKKsOtU3ycfybN9kncZXKLFSsUiG3cgJUbc/g==" crossorigin="anonymous"></script>';
+    // 3.1.17以上ならace editor用のHTMLタグを追加する。
+    if ($ver >= 30117 && $useEditor && (!$msie)) {
+        if (!isset($a['extra_header_html'])) {
+            $a['extra_header_html'] = '';
         }
-
-        // add other plugins
-        $pname_list = [
-            'plugin_turtle',
-            'plugin_csv', 
-            'plugin_datetime',
-            'plugin_markup', 
-            'plugin_kansuji', 
-            'plugin_caniuse',
-            'plugin_webworker'
-        ];
-        if (30105 > $ver) {
-            $pname_list = array_slice($pname_list, 0, 1);
-        } else if (30109 > $ver) {
-            $pname_list = array_slice($pname_list, 0, 4);
-        }
-        foreach ($pname_list as $p) {
-            $src = "{$baseurl}release/{$p}.js";
-            $js_a[] = "<script defer src=\"$src\"></script>";
-        }
-        // add Chart.js (将来的にはなでしこのリポジトリのものを使う)
-        // $js_a[] = "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
-        // 古いバージョンだとJSを含んでいないので...
-        $js_a[] = "<script defer src=\"https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
-        // add
-        $a['import_nako'] = implode("\n", $js_a);
-        $a['import_editor'] = implode("\n", $js_e);
+        $a['extra_header_html'] .= "<link rel=\"stylesheet\" href=\"$baseurl/src/wnako3_editor.css\">";
+        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>';
+        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>';
+        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>';
+        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-code_lens.min.js" integrity="sha512-gsDyyKTnOmSWRDzUbpYcPjzVsEyFGSWeWefzVKvbMULPR2ElIlKKsOtU3ycfybN9kncZXKLFSsUiG3cgJUbc/g==" crossorigin="anonymous"></script>';
     }
+
+    // add other plugins
+    $pname_list = [
+        'plugin_turtle',
+        'plugin_csv', 
+        'plugin_datetime',
+        'plugin_markup', 
+        'plugin_kansuji', 
+        'plugin_caniuse',
+        'plugin_webworker'
+    ];
+    if (30105 > $ver) {
+        $pname_list = array_slice($pname_list, 0, 1);
+    } else if (30109 > $ver) {
+        $pname_list = array_slice($pname_list, 0, 4);
+    }
+    foreach ($pname_list as $p) {
+        $src = "{$baseurl}release/{$p}.js";
+        $js_a[] = "<script defer src=\"$src\"></script>";
+    }
+    // add Chart.js (将来的にはなでしこのリポジトリのものを使う)
+    // $js_a[] = "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
+    // 古いバージョンだとJSを含んでいないので...
+    $js_a[] = "<script defer src=\"https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
+    // add
+    $a['import_nako'] = implode("\n", $js_a);
+    $a['import_editor'] = implode("\n", $js_e);
+    
     // check author
     $url = empty($a['url']) ? '' : $a['url'];
     if (!preg_match('/^https?:\/\//', $url)) $url = '';
