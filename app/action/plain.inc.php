@@ -31,6 +31,9 @@ function n3s_web_plain() {
     // header("Content-Disposition: attachment; filename=\"$page\"");
     header("Content-Disposition: inline; filename=\"$page\"");
   }
+  // アクセスコントロール
+  header('Access-Control-Allow-Origin: *');
+  // 内容を出力
   echo $b['body'];
 }
 
