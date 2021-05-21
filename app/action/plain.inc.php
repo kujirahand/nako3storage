@@ -34,7 +34,11 @@ function n3s_web_plain() {
   // アクセスコントロール
   header('Access-Control-Allow-Origin: *');
   // 内容を出力
-  echo $b['body'];
+  $body = trim($b['body']);
+  if (substr($body, 0, 2) == '#!') {
+    $body = str_replace("\r\n", "\n", $body);
+  }
+  echo $body;
 }
 
 function error403() {
