@@ -8,7 +8,7 @@
 
 # 現在運用中の『なでしこ3貯蔵庫(nako3storage)』
 
- - [基本URL] https://nadesi.com/v3/storage/
+ - [基本URL] https://n3s.nadesi.com/
 
 ## 簡単なインストール方法
 
