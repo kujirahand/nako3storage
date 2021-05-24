@@ -10,8 +10,8 @@ RewriteRule ^plain/([0-9]+).js$ /index.php?page=$1&action=plain [L]
 RewriteRule ^nako_version.json$ /nako_version.php [L]
 # list / edit / show
 RewriteRule ^list$ /index.php?page=all&action=list [L]
-RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L]
-RewriteRule ^show/([0-9]+)$ /index.php?page=$1&action=show [L]
+RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L,R]
+RewriteRule ^show/([0-9]+)$ /index.php?page=$1&action=show [L,R]
 </IfModule>
 
 
