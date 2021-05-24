@@ -1,6 +1,10 @@
 php_value error_log php_error_nadesi.log
 
 # for "id.nako3"
+<IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule ^plain/([0-9]+).nako3$ /index.php?page=$1&action=plain [L]
+RewriteRule ^nako_version.json$ /nako_version.php [L]
+</IfModule>
+
 
