@@ -3,8 +3,15 @@ php_value error_log php_error_nadesi.log
 # for "id.nako3"
 <IfModule mod_rewrite.c>
 RewriteEngine On
+# plain
 RewriteRule ^plain/([0-9]+).nako3$ /index.php?page=$1&action=plain [L]
+RewriteRule ^plain/([0-9]+).js$ /index.php?page=$1&action=plain [L]
+# version
 RewriteRule ^nako_version.json$ /nako_version.php [L]
+# list / edit / show
+RewriteRule ^list$ /index.php?page=all&action=list [L]
+RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L]
+RewriteRule ^show/([0-9]+)$ /index.php?page=$1&action=show [L]
 </IfModule>
 
 
