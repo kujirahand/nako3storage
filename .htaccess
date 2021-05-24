@@ -8,7 +8,8 @@ RewriteRule ^plain/([0-9]+).nako3$ /index.php?page=$1&action=plain [L]
 RewriteRule ^plain/([0-9]+).js$ /index.php?page=$1&action=plain [L]
 # version
 RewriteRule ^nako_version.json$ /nako_version.php [L]
-# list / edit / show
+# new / list / edit / show
+RewriteRule ^new$ /index.php?action=edit&page=new [L,R]
 RewriteRule ^list$ /index.php?page=all&action=list [L]
 RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L,R]
 RewriteRule ^show/([0-9]+)$ /index.php?page=$1&action=show [L,R]
