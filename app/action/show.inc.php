@@ -88,6 +88,10 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $v2 = intval($ver_a[1]); // 3_99_00
     $v3 = intval($ver_a[2]); // 3_11_99
     $ver = $v1 * 10000 + $v2 * 100 + $v3;
+    if ($ver < 30119) { # バージョンが低すぎる場合、v3.1.19にする #89
+      $ver = 30119;
+      $a['version'] = $version = '3.1.19';
+    }
     // WebWorker対応のため必ずローカルのcdn.phpを使う
     $baseurl = "cdn.php?v={$version}&f=";
     $a['baseurl'] = $baseurl;
