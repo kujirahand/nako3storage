@@ -161,6 +161,19 @@ function n3s_action_save_check_param(&$a, $check_error = FALSE) {
   if (!isset($copyright_list[$a['copyright']])) {
     $a['copyright'] = '未指定';
   }
+  // calc version int
+  $version = preg_replace("/[^0-9.]/", "", $a['version']);
+  $ver_a = explode(".", $version.'.0.0');
+  $major = intval($ver_a[0]); // 3_00_00
+  $minor = intval($ver_a[1]); // 3_99_00
+  $patch = intval($ver_a[2]); // 3_11_99
+  $ver_i = $major * 10000 + $minor * 100 + $patch;
+  if ($ver_i < 30119) { // 古すぎるバージョンは無視する #89
+    $ver_i = 30119;
+    $a['version'] = '3.1.19';
+  }
+  $a['version_int'] = $ver_i;
+
   // check params
   if (!$check_error) { return; }
   if ($a['body'] == '') {
