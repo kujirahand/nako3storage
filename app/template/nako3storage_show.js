@@ -196,8 +196,8 @@ function saveClick(useCheck) {
   try {
     body = getValue()
     body = body.replace(/^\s+/, '') // trim first
-    if (useCheck && length(body) < 10) {
-      alert('本文が短すぎると保存できません。')
+    if (useCheck && body.length < 30) {
+      alert('本文が短すぎると保存できません。30文字以上にしてください。')
       return
     }
   } catch (e) {
