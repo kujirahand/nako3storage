@@ -15,7 +15,9 @@ require_once __DIR__.'/app/mime.inc.php';
 $CDN = 'https://cdn.jsdelivr.net/npm/nadesiko3';
 $cache_dir = __DIR__.'/cache-cdn';
 $uri = dirname($_SERVER['SCRIPT_NAME']);
-$cache_url = $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['HTTP_HOST'].$uri."/cache-cdn";
+$scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : '';
+if ($scheme !== '') { $scheme .= ':'; }
+$cache_url = $scheme.'//'.$_SERVER['HTTP_HOST'].$uri."/cache-cdn";
 
 // for n3s.nadesi.com/cdn.php
 if ($_SERVER['HTTP_HOST'] == 'nadesi.com' && $uri == '/v3') {
