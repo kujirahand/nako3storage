@@ -128,6 +128,9 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     } else if (30109 > $ver) {
         $pname_list = array_slice($pname_list, 0, 4);
     }
+    if (30220 >= $ver) {
+      $pname_list[] = 'nako_gen_async';
+    }
     foreach ($pname_list as $p) {
         $src = "{$baseurl}release/{$p}.js";
         $js_a[] = "<script defer src=\"$src\"></script>";
