@@ -111,15 +111,15 @@
 <div class="addon_block">
   <ul>
     <li><a href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a></li>
-    <li>
-      <a href="index.php?action=list&onlybad=1">😭問題投稿のみ</a> /
-      <a href="index.php?action=list&nofilter=1">問題込みで表示</a>
-    </li>
     {{if n3s_is_login()}}
     <li><a href="index.php?action=mypage&page=my">🐕自分の投稿(マイページ)を表示</a></li>
     {{endif}}
+    <li>
+      <a href="index.php?action=list&onlybad=1&noindex=1">😭問題投稿のみ</a> /
+      <a href="index.php?action=list&nofilter=1&noindex=1">問題込みで表示</a>
+    </li>
   </ul>
-</div>
+</div><!-- /addon_block -->
 
 </div><!-- end of #recent_list -->
 {{ include parts_html_footer.html }}
