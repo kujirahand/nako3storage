@@ -42,6 +42,7 @@ function echo_bad() {
                 ($ip_a[0] == '100' && $ip_a[1] == '115')) {
                 $ip = time(); // かぶらないように
             }
+            if (n3s_is_admin()) { $ip = time(); }
             if ($r['fav_lastip'] != $ip) {
                 // 管理者の通報は100人分
                 $up_count = 1;
