@@ -93,6 +93,7 @@ function n3s_list_get()
         'app_id' => $min_id,
         'nofilter' => $nofilter,
         'user_id' => $find_user_id,
+        'onlybad' => $onlybad,
     ]);
     if ($app_id === 0) $next_url = ""; // トップなので次はない
     // ranking
