@@ -2,6 +2,8 @@
 <html>
 <head>
     <meta charset="utf-8">
+    {{if isset($noindex) && ($noindex>0)}}<meta name="robots" content="noindex">{{endif}}
+    
     <title>{{ $page_title }}</title>
     <meta name="description" content="なでしこ3貯蔵庫(nako3storage)">
     <meta name="viewport" content="width=device-width, initial-scale=1">

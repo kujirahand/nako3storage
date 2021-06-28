@@ -36,7 +36,9 @@ function n3s_list_get()
     $onlybad = empty($_GET['onlybad']) ? 0 : intval($_GET['onlybad']);
     $find_user_id = empty($_GET['user_id']) ? 0 : intval($_GET['user_id']);
     $mode = empty($_GET['mode']) ? 'list' : $_GET['mode'];
+    $noindex = empty($_GET['noindex']) ? 0 : intval($_GET['noindex']);
     if (!empty($search)) { $mode = "search";}
+    if ($onlybad || $nofilter) { $noindex = 1; }
     
     // get db
     $db = n3s_get_db();
@@ -94,6 +96,7 @@ function n3s_list_get()
         'nofilter' => $nofilter,
         'user_id' => $find_user_id,
         'onlybad' => $onlybad,
+        'noindex' => $noindex,
     ]);
     if ($app_id === 0) $next_url = ""; // トップなので次はない
     // ranking
@@ -120,5 +123,6 @@ function n3s_list_get()
         "ranking" => $ranking,
         "find_user_id" => $find_user_id,
         "find_user_info" => $find_user_info,
+        "noindex" => $noindex,
     ];
 }
