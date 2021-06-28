@@ -43,8 +43,12 @@ function echo_bad() {
                 $ip = time(); // かぶらないように
             }
             if ($r['fav_lastip'] != $ip) {
+                // 管理者の通報は100人分
+                $up_count = 1;
+                if (n3s_is_admin()) { $up_count = 100; }
+                // 通報数を加算する
                 $db->query('begin');
-                $db->query("UPDATE apps SET bad=bad+1 WHERE app_id={$app_id}");
+                $db->query("UPDATE apps SET bad=bad+{$up_count} WHERE app_id={$app_id}");
                 $stmt = $db->prepare("UPDATE apps SET fav_lastip=?  WHERE app_id={$app_id}");
                 $stmt->execute([$ip]);
                 $r = $db->query("SELECT bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
