@@ -34,7 +34,9 @@ function n3s_action()
 
     // WEBであればセッションを使う
     if ($agent === 'web') {
-        session_start();
+        session_start([
+          'cookie_lifetime' => 60 * 60 * 24 * 
+        ]);
     }
     if (file_exists($file_action)) {
         include_once $file_action;
