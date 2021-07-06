@@ -13,7 +13,7 @@ n3s_main();
 
 function n3s_main()
 {
-    n3s_db_init(); // n3s_lib.inc.php
+    n3s_db_init();  // n3s_lib.inc.php
     n3s_parseURI(); // n3s_lib.inc.php
     n3s_action();
 }
