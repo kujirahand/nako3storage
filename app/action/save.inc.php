@@ -94,14 +94,6 @@ function n3s_action_save_load_body(&$a) {
   }
 }
 
-function n3s_getMaterialData($app_id) {
-  if ($app_id <= 0) return null;
-  $dbname = getMaterialDB($app_id);
-  $m = db_get1('SELECT * FROM materials WHERE material_id=?', [$app_id], $dbname);
-  return $m;
-}
-
-
 function n3s_check_field_size(&$a) {
   // get max size
   $size_source_max = n3s_get_config('size_source_max', 1024 * 1024 * 5); // 5MB
@@ -254,71 +246,13 @@ function n3s_action_save_data_raw($data, $agent) {
     }
   }
   $a['mtime'] = time();
-  $ph = null;
-  // 新規投稿の場合適当なデータを挿入してupdateで全部を更新
+  
+  // 新規投稿の場合
   if ($app_id == 0) {
-    $a['ctime'] = time();
-    // ログインしていれば強制的にuser_idを書き換える
-    if (n3s_is_login()) {
-      $a['user_id'] = n3s_get_user_id();
-      $a['author'] = $user['name'];
-    }
-    // update で正しい値を入れるので適当にタイトルだけ挿入
-    $sql = 'INSERT INTO apps (title, user_id, ctime) VALUES (?,?,?)';
-    $app_id = db_insert($sql, [$a['title'], $a['user_id'], $a['ctime']]);
-    $dbname = getMaterialDB($app_id);
-    db_insert(
-      'INSERT INTO materials (material_id) VALUES (?)', 
-      [$app_id], $dbname);
-    $a['app_id'] = $app_id;
+    return n3s_saveNewProgram($a);
   }
-  // update
-  // update info
-  $sql = <<< EOS
-UPDATE apps SET
-  title=:title, author=:author, email=:email, 
-  url=:url, memo=:memo,
-  canvas_w=:canvas_w, canvas_h=:canvas_h, 
-  access_key=:access_key,
-  version=:version, is_private=:is_private, 
-  custom_head=:custom_head,
-  copyright=:copyright,
-  editkey=:editkey,
-  nakotype=:nakotype,
-  ref_id=:ref_id, ip=:ip, mtime=:mtime
-WHERE app_id=:app_id;
-EOS;
-  db_exec($sql, [
-      ":title"      => $a['title'],
-      ":author"     => $a['author'],
-      ":url"        => $a['url'],
-      ":email"      => $a['email'],
-      ":memo"       => $a['memo'],
-      ":canvas_w"   => $a['canvas_w'],
-      ":canvas_h"   => $a['canvas_h'],
-      ":version"    => $a['version'],
-      ":is_private" => $a['is_private'],
-      ":ref_id"     => $a['ref_id'],
-      ":canvas_w"   => $a['canvas_w'],
-      ":canvas_h"   => $a['canvas_h'],
-      ":ip"         => $a['ip'],
-      ":mtime"      => $a['mtime'],
-      ":app_id"     => $a['app_id'],
-      ":access_key" => $a['access_key'],
-      ":custom_head"=> $a['custom_head'],
-      ":editkey"    => $a['editkey'],
-      ":copyright"  => $a['copyright'],
-      ":nakotype"   => $a['nakotype'],
-  ]);
-  // update body
-  $app_id = $a['app_id'];
-  $dbname = getMaterialDB($app_id);
-  db_exec(
-    'UPDATE materials SET body=? WHERE material_id=?',
-    [$a['body'], $app_id],
-    $dbname);
-  // saved
-  return $app_id;
+  // 更新の場合
+  return n3s_updateProgram($app_id, $a);
 }
 
 function n3s_action_save_delete($params) {
@@ -408,17 +342,6 @@ function randomStr($length = 8) {
     return substr(bin2hex(random_bytes($length)), 0, $length);
 }
 
-function getMaterialDB($material_id) {
-  $dir_app = n3s_get_config('dir_app', dirname(__DIR__));
-  $dir_data = n3s_get_config('dir_data', "{$dir_app}/data");
-  $db_id = floor($material_id / 100);
-  $file_db = "{$dir_data}/sub_material_{$db_id}.sqlite3";
-  $file_sql = "{$dir_app}/sql/init-material.sql";
-  $dbname = basename($file_db);
-  database_set($file_db, $file_sql, $dbname);
-  return $dbname;
-}
-
 function n3s_action_save_verup_0_7() {
   $apps = db_get('SELECT app_id, material_id FROM apps ORDER BY app_id', [], 'main');
   foreach ($apps as $app) {
@@ -428,7 +351,7 @@ function n3s_action_save_verup_0_7() {
     $r = db_get1('SELECT * FROM materials WHERE material_id=?', [$m_id], 'material');
     if (!$r) continue;
     $body = $r['body'];
-    $dbname = getMaterialDB($app_id);
+    $dbname = n3s_getMaterialDB($app_id);
     db_insert(
       'INSERT INTO materials (material_id, body)'.
       'VALUES(?,?)',
