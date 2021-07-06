@@ -50,6 +50,7 @@ function n3s_list_get()
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
       $wheres[] = 'bad <= 3';
+      $wheres[] = 'tag != "なでしこ3本"';
     }
     // check onlybad parameters
     if ($onlybad >= 1) { // 通報された投稿のみ表示
