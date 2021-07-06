@@ -316,6 +316,8 @@ function n3s_saveNewProgram(&$data) {
 
 function n3s_updateProgram($app_id, $data) {
     $a = $data;
+    // check
+    $data["mtime"] = time();
     // update info
     $sql = <<< EOS
         UPDATE apps SET
