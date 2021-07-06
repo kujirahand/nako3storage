@@ -41,10 +41,10 @@ function t_trim100($v) {
   return t_echo($v);
 }
 function trim_url($url) {
-  $url = preg_replace_callback('#([a-zA-Z0-9_\-\/\:\.]{11,})#', function($m) {
+  $url = preg_replace_callback('#([a-zA-Z0-9_\-\/\:\.]{20,})#', function($m) {
     $s = $m[1];
     $s = preg_replace('#(http://|https://)#', '', $s);
-    return substr($s, 0, 10).' ... ';
+    return substr($s, 0, 17).' ... ';
   }, $url);
   return $url;
 }
