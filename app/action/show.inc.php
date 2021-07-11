@@ -63,12 +63,16 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $agent = strtolower($useragent);
     if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
     
-    $db = n3s_get_db();
     $a = ['result' => false];
     $my_user_id = n3s_get_user_id();
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
         $a = db_get1($sql);
+        if (!$a) {
+          header("HTTP/1.1 404 Not Found");
+          n3s_error('作品が見当たりません。', "id={$app_id}の作品がありません。");
+          exit;
+        }
         n3s_check_private($a, $agent);
     }
     // bookmarks
