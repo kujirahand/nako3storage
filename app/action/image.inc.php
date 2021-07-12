@@ -23,9 +23,21 @@ function n3s_api_image() {
     
     // アクセスコントロール
     header('Access-Control-Allow-Origin: *');
-    header('Content-Type: '.n3s_get_mime($ext));
+    if ($ext == 'mp3' || $ext == 'ogg' || $ext == 'oga') {
+      // 音声ファイルはHTTP_RANGEに対応させるため、サーバーに任せる
+      $dir_images = n3s_get_config('dir_images', '');
+      $path2 = substr($path, strlen($dir_images));
+      $host = $_SERVER['HTTP_HOST'];
+      $proto = empty($_SERVER['HTTPS']) ? 'http' : 'https';
+      $self = empty($_SERVER['PHP_SELF']) ? './error' : $_SERVER['PHP_SELF'];
+      $self_dir = dirname($self);
+      $url = "{$proto}://{$host}{$self_dir}/images{$path2}";
+      header("Location: $url");
+      exit;
+    }
     
     // output
+    header('Content-Type: '.n3s_get_mime($ext));
     readfile($path);
 }
 
