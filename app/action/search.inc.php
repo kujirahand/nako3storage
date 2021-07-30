@@ -60,7 +60,7 @@ function n3s_list_search()
         $materials = [];
         $tid = $max_id;
         for ($i = 0; $i < 3; $i++) {
-            $dbname = getMaterialDB($tid);
+            $dbname = n3s_getMaterialDB($tid);
             $sql_material = 
               'SELECT * FROM materials '.
               'WHERE body LIKE ? '.
