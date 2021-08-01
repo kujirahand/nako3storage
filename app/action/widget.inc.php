@@ -1,6 +1,7 @@
 <?php
+// widget は外部から読み込まれるので SAMEORIGIN だと動かない
 // for clickjacking
-header('X-Frame-Options: SAMEORIGIN');
+// header('X-Frame-Options: SAMEORIGIN');
 
 include_once dirname(__FILE__) . '/save.inc.php';
 include_once dirname(__FILE__) . '/show.inc.php';
