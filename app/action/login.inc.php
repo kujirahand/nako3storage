@@ -33,6 +33,14 @@ function n3s_web_login()
         n3s_web_login_callback();
         return;
     }
+    // set back page?
+    $back = empty($_GET['back']) ? '' : $_GET['back'];
+    if ($back) {
+      // allow back ? (サイト内からの指定のみ許可)
+      if (preg_match('#^index\.php\?action\=#', $back)) {
+        n3s_setBackURL($back);
+      }
+    }
 
     // TWitter関連のパラメータを得る
     $apikey = n3s_get_config('twitter_api_key', '');

@@ -70,29 +70,38 @@
     <li><span class="private">🔒 非公開の投稿</span></li>
     {{endif}}
   </ul>
-  <div class="fav_block">
+  <div class="fav_block" style="border:1px dotted silver;">
     {{if n3s_is_login()}}
     <button id="fav_button" class="pure-button"
       data-bookmark="{{if $bookmark}}1{{else}}0{{endif}}">
       🌟 {{if $bookmark}}解除{{else}}気に入った{{endif}}
     </button>
+    {{else}}
     {{endif}}
-    &nbsp;
+    <a name="fav">&nbsp;</a>
     <span>
       <a style="text-decoration:none;" 
         href="index.php?action=fav&page={{$app_id}}&m=who">
         <span id="fav">{{ $fav | star }}</span>
       </a>
+      {{ if !n3s_is_login() }}
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <span style="font-size:0.8em; color:#999;">
+        {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#fav"); }}
+        <a href="index.php?action=login&back={$backurl}}">
+          ログイン</a>して★を付けよう！</span>
+      {{ endif }}
   </div>
   <div class="fav_block">
     <!-- twwiter button -->
     {{if isset($screen_name) && $screen_name != '' }}
-    <a class="pure-button" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&text=@{{$screen_name}}%20{{$title}}%20#なでしこさん">Twitterに投稿</a>
+    <a class="pure-button" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&text=@{{$screen_name}}%20{{$title}}%20#なでしこさん">Twitterへ投稿</a>
     {{endif}}
   </div>
 </div>
 
-<!-- 編集ボタン -->
+
+<!-- 編集ボタン(ログインしてなくても編集することはある) -->
 <div class="ctrl_block">
   <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝作品を編集</a>
 </div>
