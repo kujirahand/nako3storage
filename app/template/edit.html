@@ -3,7 +3,8 @@
 {{ if !n3s_is_login() }}
 <div class="showblock" style="background-color:#fff0f0;">
   <span class="error">
-    <a href="index.php?action=login">ログイン</a>していません。
+    {{e: $backurl = urlencode('index.php?action=edit&page=new'); }}
+    <a href="index.php?action=login&back={{$backurl}}">ログイン</a>していません。
   </span>
 </div>
 {{ endif }}
