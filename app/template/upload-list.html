@@ -28,5 +28,11 @@
 </div>
 {{ endif }}
 
+{{ if n3s_is_login() }}
+<div class="showblock" style="border-top: 1px dotted silver;">
+  <a href="index.php?action=upload" class="pure-button">アップロード</a>
+</div>
+{{ endif }}
+
 
 {{ include parts_html_footer.html }}
