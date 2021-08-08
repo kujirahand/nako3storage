@@ -5,7 +5,7 @@
     {{if isset($noindex) && ($noindex>0)}}<meta name="robots" content="noindex">{{endif}}
     
     <title>{{ $page_title }}</title>
-    <meta name="description" content="なでしこ3貯蔵庫(nako3storage)">
+    <meta name="description" content="{{ $page_title }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="skin/def/pure-min.css">
     <link rel="stylesheet" href="index.php?action=file&page=basic.css&m={{ $n3s_css_mtime }}">
@@ -16,8 +16,11 @@
 <body>
 <div id="n3s_header">
     <div class="memo setumei">
-        <a href="https://nadesi.com/doc3/">「なでしこ3」</a> &gt; プログラム共有
+        <a href="https://nadesi.com/doc3/">🌸 「なでしこ3」</a> &gt;
+        <a href="https://n3s.nadesi.com/">🍯 「貯蔵庫」</a> 
     </div>
     <h1 class="title"><a href="./index.php">{{ $page_title }}</a></h1>
     {{ include parts_html_menu.html }}
 </div>
+
+`

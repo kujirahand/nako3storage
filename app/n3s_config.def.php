@@ -2,6 +2,7 @@
 // include version
 include_once dirname(__DIR__).'/nako3storage_version.inc.php';
 include_once dirname(__DIR__).'/nako_version.inc.php';
+define('N3S_APP_TITLE', '🍯 なでしこ3貯蔵庫');
 
 // default config
 global $n3s_config;
@@ -9,7 +10,7 @@ $root = dirname(__DIR__);
 $app_dir = __DIR__;
 $url_root = dirname($_SERVER['REQUEST_URI']);
 $n3s_config = [
-    "page_title" => "🍯 なでしこ3貯蔵庫",
+    "page_title" => N3S_APP_TITLE,
     "top_message" => "",
     "admin_users" => [1],
     "admin_contact_link" => "(Please set admin_contact_link in config file.)",

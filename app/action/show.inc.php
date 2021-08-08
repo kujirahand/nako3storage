@@ -4,6 +4,7 @@ include_once dirname(__FILE__) . '/save.inc.php';
 function n3s_web_show()
 {
     $a = n3s_show_get('web', TRUE, TRUE);
+    n3s_set_config('page_title', $a['title']);
     n3s_template_fw('show.html', $a);
 }
 
@@ -139,7 +140,7 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
         $src = "{$baseurl}release/{$p}.js";
         $js_a[] = "<script defer src=\"$src\"></script>";
     }
-    // add Chart.js (将来的にはなでしこのリポジトリのものを使う)
+    // add Chart.js 
     // $js_a[] = "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
     // 古いバージョンだとJSを含んでいないので...
     $js_a[] = "<script defer src=\"https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
