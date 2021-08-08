@@ -3,9 +3,14 @@
     <a href="index.php?page=new&amp;action=edit" class="pure-button">🌟新規</a>
     <a href="index.php?page=all&amp;action=search" class="pure-button">🔍検索</a>
     {{if n3s_is_login()}}
-    <a href="index.php?page=my&amp;action=mypage" class="pure-button">🐕マイページ</a>
+      <a href="index.php?page=my&amp;action=mypage"
+        class="pure-button">🐕マイページ</a>
+      <a href="index.php?page=my&amp;action=logout"
+        class="pure-button">🚪ログアウト</a>
     {{else}}
-    <a href="index.php?page=my&amp;action=login&amp;back=list" class="pure-button">🚪ログイン</a>
+      {{e: $backurl = urlencode("index.php?action={$_GET['action']}&page={$_GET['page']}"); }}
+      <a href="index.php?page=my&amp;action=login&amp;back={{$backurl}}"
+        class="pure-button">🚪ログイン</a>
     {{endif}}
 </div>
 
