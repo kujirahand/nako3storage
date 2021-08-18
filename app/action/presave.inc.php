@@ -18,7 +18,7 @@ function n3s_web_presave()
     // check mode
     $mode = empty($_GET['mode']) ? 'save' : $_GET['mode'];
     if ($mode === 'afterlogin') {
-        $a['rewrite'] = 'load';
+        $a['rewrite'] = 'yes';
     }
   
     // ログインしていないとき、ログイン後このページに戻ってくるように

@@ -74,8 +74,17 @@
     {{endif}}
     <p><a href="index.php?action=show&page={{$app_id}}" class="pure-button">表示ページ</a></p>
   {{endif}}
+  
+  <!-- 復元ボタン -->
   <p style="text-align:right;font-size:0.7em;"><a href="#" id="recover_btn">→直前に実行したプログラムを復元</a></p>
+  <!-- なでしこバージョン変更ボタン -->
+  <p style="text-align:right;font-size:0.7em;">なでしこバージョン: v
+    <input id="forceNakoVer" type="text" value="{{$version}}" onchange="changeNakoVersion()"/>
+    <input type="button" value="変更" onclick="changeNakoVersion()">
+    <input type="button" value="最新" onclick="changeNakoNewVersion()">
+  </p>
 </div>
+
 <div class="ctrl_block">
   <h1>素材のアップロード</h1>
   {{ if n3s_is_login() }}
@@ -83,6 +92,17 @@
   {{ else }}
   <p><a href="index.php?action=login">ログイン</a>するとファイルをアップロードできます。</p>
   {{ endif }}
+</div>
+
+<!-- save form -->
+<div style="display: none;">
+  <form id="n3s_save_form" method="post" action="index.php?action=save&amp;page={{$app_id}}&amp;rewrite=no">
+    <input id="save_form_canvas_w" type="hidden" name="canvas_w" value="">
+    <input id="save_form_canvas_h" type="hidden" name="canvas_h" value="">
+    <input id="save_form_version" type="hidden" name="version" value="">
+    <input id="save_form_action_time" type="hidden" name="action_time" value="">
+    <textarea id="save_form_body" name="body"></textarea>
+  </form>
 </div>
 
 <!-- script for ace editor -->
@@ -103,12 +123,13 @@ var editorObjects = null
 var msie = {{e:echo ($msie)?'true':'false'}};
 
 // nako3storage info
-const baseurl = "{{ $baseurl | safe }}";
-const editlink = "{{ $editlink  | safe }}";
+const baseurl = '{{ $baseurl | safe }}';
+const editlink = 'index.php?action=save&page={{$app_id}}&mode=load&from=localStorage';
 
 // nako3 program info
 const app_id = {{ $app_id }};
-const nako_version = "{{ $version }}" + ".0.0.0"
+const nako_version = '{{ $version }}' + '.0.0.0' // 古いバージョンを考慮
+const newNakoVersion = '{{ $newNakoVersion }}'
 const runbox_c = document.getElementById('runbox')
 runbox_c.style.display = 'none'
 </script>

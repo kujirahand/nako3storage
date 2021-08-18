@@ -10,33 +10,49 @@ function n3s_api_save()
 function n3s_web_save()
 {
     // check mode
-    $mode = empty($_GET['mode']) ? '' : $_GET['mode'];
+    $mode = empty($_GET['mode']) ? '?' : $_GET['mode'];
     switch ($mode) {
-    case 'edit':
+    case 'edit': // DBに保存
       return n3s_action_save_data($_POST, 'web');
-    case 'delete':
+    case 'delete': // 投稿を削除
       return n3s_action_save_delete($_POST, 'web');
-    case 'reset_bad':
+    case 'reset_bad': // 迷惑投稿をリセット
       return n3s_action_save_reset_bad($_POST, 'web');
     // 安全のため無効にしている
     // case 'verup_0_7': // update database (#80)
     //   return n3s_action_save_verup_0_7();
+    default:
+        // なでしこ簡易エディタなどからの投稿
+        return n3s_show_save_form($mode);
     }
-    // show form
+}
+
+function n3s_show_save_form($mode)
+{
+    // $_GET['app_id'] のみチェックする
     $app_id = intval(isset($_GET['page']) ? $_GET['page'] : 0);
     $a = array();
     if ($app_id > 0) {
         n3s_web_save_check($app_id, $a);
+        $a['agree'] = 'checked';
+    }
+    $_GET['rewrite'] = empty($_GET['rewrite']) ? '' : $_GET['rewrite'];
+
+    if (!empty($_POST['body'])) {
+        $cols = ["body", "canvas_w", "canvas_h", "version"];
+        foreach ($cols as $key) {
+            $a[$key] = empty($_POST[$key]) ? '' : $_POST[$key];
+        }
     }
     // パラメータチェックを行う (ここでチェックは行わない)
     n3s_action_save_check_param($a, false);
   
-    // rewrite ... show.html ページで実行したプログラムを保存するか？
-    $a['rewrite'] = empty($_GET['rewrite']) ? 'no' : 'yes';
-    // load material
-    if ($a['rewrite'] === 'no') {
-        n3s_action_save_load_body($a);
-    }
+    // rewrite パラメータのチェック
+    //      yes : localStorageからデータを読み出してフォームを埋める(Twitterログイン後に内容を復元する)
+    //      no : localStorageへデータを保存(ページ遷移しても大丈夫なように)
+    //      @see save.html
+    $a['rewrite'] = $_GET['rewrite'] = ($_GET['rewrite'] == 'yes') ? 'yes' : 'no';
+
     // ログイン情報を反映させる
     if ($app_id == 0 && n3s_is_login()) {
         $user = n3s_get_login_info();
@@ -172,6 +188,7 @@ function n3s_action_save_check_param(&$a, $check_error = false)
         $a['version'] = '3.1.19';
     }
     $a['version_int'] = $ver_i;
+    $a['agree'] = empty($a['agree']) ? '' : 'checked';
 
     // check params
     if (!$check_error) {

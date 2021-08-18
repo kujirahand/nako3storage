@@ -199,6 +199,18 @@ function n3s_get_user_id()
     return 0;
 }
 
+function n3s_get_user_name()
+{
+    if (! n3s_is_login()) {
+        return '?';
+    }
+    if (isset($_SESSION['name'])) {
+        return (int) ($_SESSION['name']);
+    }
+    return 0;
+}
+
+
 function n3s_get_login_info()
 {
     if (! n3s_is_login()) {
@@ -328,7 +340,7 @@ function n3s_saveNewProgram(&$data)
     // ログインしていれば強制的にuser_idを書き換える
     if (n3s_is_login()) {
         $a['user_id'] = n3s_get_user_id();
-        $a['author'] = $a['name'];
+        $a['author'] = n3s_get_user_name();
     }
     
     // update で正しい値を入れるので適当にタイトルだけ挿入

@@ -15,7 +15,7 @@
       <p><b>現在ログインしていません。</b></p>
       <p>Twitterアカウントでログインすると自分の投稿をまとめて管理できます。
         公開せず自分だけのために保存もできます。</p>
-      <p>
+      <p id="login_link" style="display:none">
         <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">
           ログインする</a>
       </p>
@@ -91,7 +91,7 @@
       <label>利用なでしこバージョン:
         <span class="info">通常は変更の必要はありません。</span>
         <br />
-        <input name="version" type="text" value="{{$version}}" />
+        <input id="version" name="version" type="text" value="{{$version}}" />
       </label>
     </p>
     {{ if !n3s_is_login() }}
@@ -119,7 +119,7 @@
     </p>
     <p>
       <label>利用規約:<br />
-        <input id="agree" name="agree" type="checkbox" value="yes" />同意する
+        <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}/>同意する
         <span class="info">必ず<a target="new" href="index.php?action=kiyaku">利用規約</a>に同意してください。</span>
       </label>
     </p>
@@ -172,40 +172,42 @@
 </div>
 
 <script>
-// rewrite
+// rewrite yes か no のみ
 switch ('{{$rewrite}}') {
   //
-  case 'no': break;
+  case 'no': saveToLocalStorage(); break;
   case 'yes': loadFromLocalStorage(); break;
-  //
-  case 'save': saveToLocalStorage(); break;
-  case 'load': loadFromLocalStorage(); break;
 }
+
+const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
+
+
 function loadFromLocalStorage() {
   console.log('load from storage')
-  // body
-  const body = document.getElementById('body')
-  body.value = localStorage['n3s_save_body']
-  // canvas
-  const clist = ['canvas_w', 'canvas_h']
-  for (let key of clist) {
-    const v = localStorage['n3s_' + key]
+  saveCols.forEach(key => {
     const e = document.getElementById(key)
-    e.value = v
-  }
-  // editkey
-  if (localStorage['n3s_editkey']) {
-    const ek = document.getElementById('editkey')
-    ek.value = xx_dec(localStorage['n3s_editkey'], 30)
-  }
+    if (!e) {
+      console.log('!! form not found: ' + key)
+      constinue
+    }
+    e.value = localStorage[key]
+  })
 }
+
 function saveToLocalStorage() {
-  console.log('save to storage')
-  const body = document.getElementById('body')
-  localStorage['n3s_save_body'] = body.value
-  localStorage['n3s_canvas_w'] = 300
-  localStorage['n3s_canvas_h'] = 300
+  setTimeout(() => {
+    console.log('[nako3storage] info: save to storage')
+    saveCols.forEach(key => {
+      localStorage[key] = document.getElementById('#' + key)
+    })
+    // リンクを表示
+    const loginLink = document.querySelector('#login_link')
+    if (loginLink) {
+      loginLink.style.display = "block"
+    }
+  }, 100)
 }
+
 // check submit
 function checkSubmit() {
   const body = document.getElementById('body').value
