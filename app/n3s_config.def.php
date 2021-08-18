@@ -40,5 +40,3 @@ $n3s_config = [
     // for analytics
     "analytics" => "",
 ];
-
-

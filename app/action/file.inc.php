@@ -13,13 +13,14 @@ function n3s_api_file()
     echo_file();
 }
 
-function echo_file() {
+function echo_file()
+{
     global $n3s_config;
     // ファイル情報を page パラメータから得る
     $file = empty($_GET['page']) ? '' : $_GET['page'];
     // idと拡張子を得る
-    if (!preg_match('#^([a-zA-Z0-9_]+)(\.[a-zA-Z0-9_]+)$#', $file, $m)) {
-        header( "HTTP/1.1 404 Not Found" );
+    if (! preg_match('#^([a-zA-Z0-9_]+)(\.[a-zA-Z0-9_]+)$#', $file, $m)) {
+        header("HTTP/1.1 404 Not Found");
         exit;
     }
     $id = $m[1];
@@ -27,18 +28,18 @@ function echo_file() {
 
     // パスを得る
     $path = $n3s_config['dir_template']."/$file";
-    if (!file_exists($path)) {
-        header( "HTTP/1.1 404 Not Found" );
+    if (! file_exists($path)) {
+        header("HTTP/1.1 404 Not Found");
         exit;
     }
     // 拡張子に応じてヘッダを出す
-    if ($ext == '.css') {
+    if ($ext === '.css') {
         header('content-type: text/css; charset=utf8');
-    } else if ($ext == '.js') {
+    } elseif ($ext === '.js') {
         header('content-type: 	text/javascript; charset=utf8');
     } else {
         $mime = @mime_content_type($path);
-        if (!$mime) {
+        if (! $mime) {
             header("content-type:$mime");
         } else {
             header('content-type:application/octet-stream');
