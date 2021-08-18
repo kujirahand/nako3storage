@@ -8,7 +8,11 @@
       <a href="index.php?page=my&amp;action=logout"
         class="pure-button">🚪ログアウト</a>
     {{else}}
-      {{e: $backurl = urlencode("index.php?action={$_GET['action']}&page={$_GET['page']}"); }}
+      {{e: 
+          $action = empty($_GET['action']) ? 'list' : $_GET['action'];
+          $page   = empty($_GET['page']) ? '' : $_GET['page'];
+          $backurl = urlencode("index.php?action={$action}&page={$page}"); 
+      }}
       <a href="index.php?page=my&amp;action=login&amp;back={{$backurl}}"
         class="pure-button">🚪ログイン</a>
     {{endif}}
