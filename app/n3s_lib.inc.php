@@ -295,7 +295,7 @@ function n3s_saveNewProgram(&$data) {
     // ログインしていれば強制的にuser_idを書き換える
     if (n3s_is_login()) {
         $a['user_id'] = n3s_get_user_id();
-        $a['author'] = $user['name'];
+        $a['author'] = $a['name'];
     }
     
     // update で正しい値を入れるので適当にタイトルだけ挿入
