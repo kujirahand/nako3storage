@@ -15,7 +15,7 @@ function n3s_web_mypage()
     $logout_url = n3s_getURL('my', 'logout');
     $back = isset($_GET['back']) ? $_GET['back']: '';
     if ($back == 'list') {
-      n3s_setBackURL(n3s_getURL('all', 'list'));
+        n3s_setBackURL(n3s_getURL('all', 'list'));
     }
     if (!n3s_is_login()) {
         header('location:'.$login_url);
@@ -37,18 +37,20 @@ function n3s_web_mypage()
     $images = db_get('SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC', [$user_id]);
     // お気に入り一覧を取得
     $bookmark_ids = db_get(
-      'SELECT * FROM bookmarks WHERE user_id=? '.
+        'SELECT * FROM bookmarks WHERE user_id=? '.
       'ORDER BY bookmark_id DESC LIMIT 30',
-      [$user_id]);
+        [$user_id]
+    );
     $bookmarks = [];
     if ($bookmark_ids) {
-      foreach ($bookmark_ids as $aid) {
-        $a = db_get1(
-          'SELECT app_id, title, author FROM apps '.
+        foreach ($bookmark_ids as $aid) {
+            $a = db_get1(
+                'SELECT app_id, title, author FROM apps '.
           'WHERE app_id=?',
-          [intval($aid['app_id'])]);
-        $bookmarks[] = $a;
-      }
+                [intval($aid['app_id'])]
+            );
+            $bookmarks[] = $a;
+        }
     }
     // ユーザー情報
     n3s_template_fw('mypage.html', [
@@ -62,4 +64,3 @@ function n3s_web_mypage()
         'bookmarks' => $bookmarks,
     ]);
 }
-

@@ -17,22 +17,24 @@ require_once __DIR__ . '/fw_database.lib.php';
 // database version
 define("N3S_DB_VERSION", 3);
 
-function n3s_db_init() {
+function n3s_db_init()
+{
     global $n3s_config;
     $dir_sql = $n3s_config['dir_sql'];
 
     // set main db
     database_set(
-      $n3s_config["file_db_main"], 
-      $dir_sql.'/init-main.sql', 
-      'main');
+        $n3s_config["file_db_main"],
+        $dir_sql.'/init-main.sql',
+        'main'
+    );
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
     // set material db
     database_set(
-      $n3s_config["file_db_material"], 
-      $dir_sql.'/init-material.sql', 
+      $n3s_config["file_db_material"],
+      $dir_sql.'/init-material.sql',
       'material');
     $f = $n3s_config["file_db_material"];
     */
@@ -41,7 +43,8 @@ function n3s_db_init() {
 /**
  * get config value
  */
-function n3s_get_config($key, $def) {
+function n3s_get_config($key, $def)
+{
     global $n3s_config;
     if (isset($n3s_config[$key])) {
         return $n3s_config[$key];
@@ -51,26 +54,30 @@ function n3s_get_config($key, $def) {
 /**
  * set config value
  */
-function n3s_set_config($key, $val) {
+function n3s_set_config($key, $val)
+{
     global $n3s_config;
     $n3s_config[$key] = $val;
 }
 
-function get_param($name, $def = '') {
+function get_param($name, $def = '')
+{
     if (isset($_GET[$name])) {
-      return $_GET[$name];
+        return $_GET[$name];
     }
     return $def;
 }
   
-function post_param($name, $def = '') {
+function post_param($name, $def = '')
+{
     if (isset($_POST[$name])) {
-      return $_POST[$name];
+        return $_POST[$name];
     }
     return $def;
 }
 
-function n3s_getURL($page, $action, $params = array()) {
+function n3s_getURL($page, $action, $params = array())
+{
     global $n3s_config;
     $baseurl = $n3s_config['baseurl'];
     $url = "{$baseurl}/index.php?page=$page&action=$action";
@@ -78,7 +85,7 @@ function n3s_getURL($page, $action, $params = array()) {
         $url .= '&' . urlencode($k) . '=' . urlencode($v);
     }
     return $url;
-}  
+}
 
 function n3s_jump($page, $action, $params = array())
 {
@@ -110,13 +117,14 @@ function n3s_parseURI()
     $script_dir = preg_replace("#/{$script}$#", "", $script_path);
     $n3s_config['baseurl'] = sprintf(
         "%s://%s%s",
-        (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') ? 'https' : 'http',
+        (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http',
         $_SERVER['HTTP_HOST'],
         $script_dir
     );
 }
 
-function n3s_get_db($type = 'main') {
+function n3s_get_db($type = 'main')
+{
     return database_get($type);
 }
 
@@ -130,28 +138,34 @@ function n3s_template_fw($name, $params)
     // IE対策のためmsieパラメータをセット
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     $agent = strtolower($useragent);
-    $msie = FALSE;
-    if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
+    $msie = false;
+    if (strstr($agent, 'trident') || strstr($agent, 'msie')) {
+        $msie = true;
+    }
     $p['msie'] = $msie;
     //
     $FW_TEMPLATE_PARAMS = $p;
     template_render($name, []);
 }
 
-function n3s_error($title, $msg, $useHTML = FALSE)
+function n3s_error($title, $msg, $useHTML = false)
 {
     $template = 'error.html';
-    if ($useHTML) {$template = 'error_raw.html';}
+    if ($useHTML) {
+        $template = 'error_raw.html';
+    }
     n3s_template_fw($template, array(
         "title" => $title,
         "msg" => $msg
     ));
 }
 
-function n3s_info($title, $msg, $useHTML = FALSE)
+function n3s_info($title, $msg, $useHTML = false)
 {
     $template = 'info.html';
-    if ($useHTML) {$template = 'info_raw.html';}
+    if ($useHTML) {
+        $template = 'info_raw.html';
+    }
     n3s_template_fw($template, array(
         "title" => $title,
         "msg" => $msg
@@ -165,24 +179,29 @@ function n3s_api_output($result, $data)
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
-function n3s_is_login() {
+function n3s_is_login()
+{
     // @see action/login.inc.php
     if (empty($_SESSION['n3s_login'])) {
-        return FALSE;
+        return false;
     }
-    return TRUE;
+    return true;
 }
 
-function n3s_get_user_id() {
-    if (!n3s_is_login()) { return 0; }
+function n3s_get_user_id()
+{
+    if (! n3s_is_login()) {
+        return 0;
+    }
     if (isset($_SESSION['user_id'])) {
-        return intval($_SESSION['user_id']);
+        return (int) ($_SESSION['user_id']);
     }
     return 0;
 }
 
-function n3s_get_login_info() {
-    if (!n3s_is_login()) {
+function n3s_get_login_info()
+{
+    if (! n3s_is_login()) {
         return [
             'user_id' => 0,
             'name' => '?',
@@ -198,75 +217,85 @@ function n3s_get_login_info() {
     ];
 }
 
-function n3s_is_admin() {
+function n3s_is_admin()
+{
     $user_id = n3s_get_user_id();
     $admin_users = n3s_get_config('admin_users', [1]);
     foreach ($admin_users as $id) {
         if ($id === $user_id) {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
-function n3s_getEditToken($key = 'default', $update = TRUE)
+function n3s_getEditToken($key = 'default', $update = true)
 {
-  global $n3s_config;
-  $sname = "n3s_edit_token_$key";
-  if ($update == FALSE) {
-    if (isset($_SESSION[$sname])) {
-      $n3s_config['edit_token'] = $_SESSION[$sname];
-      return $n3s_config['edit_token'];
+    global $n3s_config;
+    $sname = "n3s_edit_token_$key";
+    if ($update === false) {
+        if (isset($_SESSION[$sname])) {
+            $n3s_config['edit_token'] = $_SESSION[$sname];
+            return $n3s_config['edit_token'];
+        }
     }
-  }
-  if (!isset($n3s_config['edit_token'])) {
-    $t = $n3s_config['edit_token'] = bin2hex(random_bytes(32));
-    $_SESSION[$sname] = $t;
-  }
-  return $n3s_config['edit_token'];
+    if (! isset($n3s_config['edit_token'])) {
+        $t = $n3s_config['edit_token'] = bin2hex(random_bytes(32));
+        $_SESSION[$sname] = $t;
+    }
+    return $n3s_config['edit_token'];
 }
 
 function n3s_checkEditToken($key = 'default')
 {
-  $sname = "n3s_edit_token_$key";
-  $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
-  $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
-  if ($ses != '' && $ses == $get) {
-    return TRUE;
-  }
-  return FALSE;
+    $sname = "n3s_edit_token_$key";
+    $ses = isset($_SESSION[$sname]) ? $_SESSION[$sname] : '';
+    $get = isset($_REQUEST['edit_token']) ? $_REQUEST['edit_token'] : '';
+    if ($ses !== '' && $ses === $get) {
+        return true;
+    }
+    return false;
 }
 
-function n3s_setBackURL($url) {
+function n3s_setBackURL($url)
+{
     $_SESSION['n3s_backurl'] = $url;
 }
 
-function n3s_getBackURL() {
+function n3s_getBackURL()
+{
     $url = isset($_SESSION['n3s_backurl']) ? $_SESSION['n3s_backurl'] : '';
     unset($_SESSION['n3s_backurl']);
     return $url;
 }
 
-function n3s_getImageDir($id) {
+function n3s_getImageDir($id)
+{
     $dir_images = n3s_get_config('dir_images', '');
     $dir_id = floor($id / 100);
     $dir = $dir_images.'/'.sprintf('%03d', $dir_id);
     return $dir;
 }
 
-function n3s_getImageFile($id, $ext, $create = FALSE) {
+function n3s_getImageFile($id, $ext, $create = false)
+{
     $dir = n3s_getImageDir($id);
     if ($create) {
-        if (!file_exists($dir)) { mkdir($dir); }
+        if (! file_exists($dir)) {
+            mkdir($dir);
+        }
     }
-    if (substr($ext, 0, 1) != '.') { $ext = '.'.$ext; }
+    if (substr($ext, 0, 1) !== '.') {
+        $ext = '.'.$ext;
+    }
     $file = $dir."/{$id}{$ext}";
     return $file;
 }
 
   
 // 保存先のDBを調べる
-function n3s_getMaterialDB($material_id) {
+function n3s_getMaterialDB($material_id)
+{
     $dir_app = n3s_get_config('dir_app', dirname(__DIR__));
     $dir_data = n3s_get_config('dir_data', "{$dir_app}/data");
     $db_id = floor($material_id / 100);
@@ -278,19 +307,23 @@ function n3s_getMaterialDB($material_id) {
 }
 
 // 実際のプログラムを取得する
-function n3s_getMaterialData($app_id) {
-    if ($app_id <= 0) return null;
+function n3s_getMaterialData($app_id)
+{
+    if ($app_id <= 0) {
+        return null;
+    }
     $dbname = n3s_getMaterialDB($app_id);
     $m = db_get1('SELECT * FROM materials WHERE material_id=?', [$app_id], $dbname);
     return $m;
 }
 
-function n3s_saveNewProgram(&$data) {
+function n3s_saveNewProgram(&$data)
+{
     // データを $a でアクセス
     $a = $data;
     
     // 日付を指定
-    $a['ctime'] = $a['mtime'] = time();  
+    $a['ctime'] = $a['mtime'] = time();
     
     // ログインしていれば強制的にuser_idを書き換える
     if (n3s_is_login()) {
@@ -305,8 +338,10 @@ function n3s_saveNewProgram(&$data) {
     // プログラムのDBに入れる
     $dbname = n3s_getMaterialDB($app_id);
     db_insert(
-        'INSERT INTO materials (material_id) VALUES (?)', [$app_id], 
-        $dbname);
+        'INSERT INTO materials (material_id) VALUES (?)',
+        [$app_id],
+        $dbname
+    );
     $data['app_id'] = $app_id;
 
     // 実際のデータに反映するようにアップデート
@@ -314,18 +349,19 @@ function n3s_saveNewProgram(&$data) {
     return $app_id;
 }
 
-function n3s_updateProgram($app_id, $data) {
+function n3s_updateProgram($app_id, $data)
+{
     $a = $data;
     // check
     $data["mtime"] = time();
     // update info
     $sql = <<< EOS
         UPDATE apps SET
-        title=:title, author=:author, email=:email, 
+        title=:title, author=:author, email=:email,
         url=:url, memo=:memo,
-        canvas_w=:canvas_w, canvas_h=:canvas_h, 
+        canvas_w=:canvas_w, canvas_h=:canvas_h,
         access_key=:access_key,
-        version=:version, is_private=:is_private, 
+        version=:version, is_private=:is_private,
         custom_head=:custom_head,
         copyright=:copyright,
         editkey=:editkey,
@@ -363,6 +399,7 @@ function n3s_updateProgram($app_id, $data) {
     db_exec(
         'UPDATE materials SET body=? WHERE material_id=?',
         [$a['body'], $app_id],
-    $dbname);
+        $dbname
+    );
     return $app_id;
 }

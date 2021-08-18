@@ -10,11 +10,13 @@ global $supported_type;
 $supported_type = 'jpg|jpeg|gif|png|mp3|ogg|oga|xml|txt|csv|tsv|json';
 
 
-function n3s_api_upload() {
-    n3s_api_output(FALSE, []);
+function n3s_api_upload()
+{
+    n3s_api_output(false, []);
 }
 
-function n3s_web_upload() {
+function n3s_web_upload()
+{
     $mode = isset($_GET['mode']) ? $_GET['mode'] : '';
     if ($mode == 'go') {
         go_upload();
@@ -35,9 +37,9 @@ function n3s_web_upload() {
     // ログインチェック #78
     if (!n3s_is_login()) {
         $loginurl = n3s_getURL('my', 'login');
-        $backurl = n3s_getURL('my','upload');
+        $backurl = n3s_getURL('my', 'upload');
         n3s_setBackURL($backurl);
-        n3s_error('アップロードできません', "<a href='$loginurl'>先にログインしてください。</a>", TRUE);
+        n3s_error('アップロードできません', "<a href='$loginurl'>先にログインしてください。</a>", true);
         return;
     }
     // アップロードフォームを表示
@@ -46,7 +48,8 @@ function n3s_web_upload() {
     ]);
 }
 
-function go_upload() {
+function go_upload()
+{
     // システムをチェック
     $dir_images = n3s_get_config('dir_images', '');
     if (!$dir_images) {
@@ -114,11 +117,12 @@ function go_upload() {
     $db = n3s_get_db('main');
     db_exec('begin');
     $image_id = db_insert(
-        'INSERT INTO images (title,user_id,copyright,ctime,mtime)VALUES(?,?,?,?,?)', 
-        [$title, $user_id, $copyright_type, time(), time()]);
+        'INSERT INTO images (title,user_id,copyright,ctime,mtime)VALUES(?,?,?,?,?)',
+        [$title, $user_id, $copyright_type, time(), time()]
+    );
     // detect filename
     $filename = "{$image_id}{$ext}";
-    $path = n3s_getImageFile($image_id, $ext, TRUE);
+    $path = n3s_getImageFile($image_id, $ext, true);
     db_exec("UPDATE images SET filename=? WHERE image_id=?", [$filename, $image_id]);
     if (!move_uploaded_file($tmp_name, $path)) {
         db_exec('rollback');
@@ -132,7 +136,8 @@ function go_upload() {
     header('location:'.$url);
 }
 
-function show_image() {
+function show_image()
+{
     // check
     $image_id = isset($_GET['image_id']) ? $_GET['image_id'] : '';
     $db = database_get();
@@ -147,13 +152,13 @@ function show_image() {
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
     $image_url = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
     // can_edit
-    $can_edit = FALSE;
+    $can_edit = false;
     if (n3s_is_admin()) {
-        $can_edit = TRUE;
+        $can_edit = true;
     } else {
         $self_id = n3s_get_user_id();
         if ($self_id == $user_id) {
-            $can_edit = TRUE;
+            $can_edit = true;
         }
     }
     // set token to session
@@ -171,7 +176,8 @@ function show_image() {
     ]);
 }
 
-function getCopyrightName($type) {
+function getCopyrightName($type)
+{
     switch ($type) {
         case 'SELF': return '自分専用(他人の仕様は認めません)';
         case 'CC0': return 'CC0(パブリックドメイン)';
@@ -179,7 +185,8 @@ function getCopyrightName($type) {
     }
     return '著作権表示不明:'.$type;
 }
-function getCopyrightName2($type) {
+function getCopyrightName2($type)
+{
     switch ($type) {
         case 'SELF': return '自分専用';
         case 'CC0': return 'CC0';
@@ -188,7 +195,8 @@ function getCopyrightName2($type) {
     return '著作権表示不明:'.$type;
 }
 
-function delete_image() {
+function delete_image()
+{
     // check params
     $really = isset($_POST['really']) ? $_POST['really'] : '';
     if ($really != "delete") {
@@ -217,13 +225,13 @@ function delete_image() {
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
     
     // can_edit
-    $can_edit = FALSE;
+    $can_edit = false;
     if (n3s_is_admin()) {
-        $can_edit = TRUE;
+        $can_edit = true;
     } else {
         $self_id = n3s_get_user_id();
         if ($self_id == $user_id) {
-            $can_edit = TRUE;
+            $can_edit = true;
         }
     }
     if (!$can_edit) {
@@ -240,21 +248,24 @@ function delete_image() {
         @unlink($image_file);
     }
     $back = n3s_getURL('my', 'mypage');
-    n3s_info("ファイルを削除しました。", "ファイルを削除しました。<a href='$back'>戻る</a>", TRUE);
+    n3s_info("ファイルを削除しました。", "ファイルを削除しました。<a href='$back'>戻る</a>", true);
 }
 
-function list_image() {
+function list_image()
+{
     $PER_PAGE = 20;
     $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
     $images = db_get(
         'SELECT * FROM images WHERE image_id <= ? '.
-        'ORDER BY image_id DESC LIMIT ?', [$max_id, $PER_PAGE]);
+        'ORDER BY image_id DESC LIMIT ?',
+        [$max_id, $PER_PAGE]
+    );
     foreach ($images as &$i) {
         $max_id = $i['image_id'] - 1;
         $fname = $i['filename'];
-        $is_image = False;
+        $is_image = false;
         if (preg_match('/\.(jpg|jpeg|png|gif)$/', $fname)) {
-            $is_image = True;
+            $is_image = true;
         }
         $i['is_image'] = $is_image;
         $i['image_url'] = "image.php?f={$fname}";

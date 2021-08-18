@@ -8,7 +8,7 @@ include_once dirname(__FILE__) . '/show.inc.php';
 
 function n3s_web_widget()
 {
-    $a = n3s_show_get('web', FALSE);
+    $a = n3s_show_get('web', false);
     n3s_widgetd_check_private($a);
     // run mode?
     $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
@@ -18,13 +18,15 @@ function n3s_web_widget()
 
 function n3s_api_widget()
 {
-    n3s_api_output(FALSE, []);
+    n3s_api_output(false, []);
 }
 
 // check private app
 function n3s_widgetd_check_private(&$a)
 {
-    if (!$a) { return; }
+    if (!$a) {
+        return;
+    }
     // プライベートな作品であれば他人には見せない
     $user_id = $a['user_id'];
     $is_private = $a['is_private'];
@@ -36,7 +38,8 @@ function n3s_widgetd_check_private(&$a)
         }
         n3s_error(
             '非公開の投稿',
-            'この投稿は非公開です。');
+            'この投稿は非公開です。'
+        );
         exit;
     }
 }

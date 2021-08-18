@@ -1,6 +1,7 @@
 <?php
 
-function n3s_get_mime($ext) {
+function n3s_get_mime($ext)
+{
     $mime = [
         "jpg" => "image/jpeg",
         "jpeg" => "image/jpeg",
@@ -23,5 +24,3 @@ function n3s_get_mime($ext) {
     }
     return "application/octet-stream";
 }
-
-

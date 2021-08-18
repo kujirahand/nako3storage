@@ -3,7 +3,7 @@ include_once dirname(__FILE__) . '/save.inc.php';
 
 function n3s_web_show()
 {
-    $a = n3s_show_get('web', TRUE, TRUE);
+    $a = n3s_show_get('web', true, true);
     n3s_set_config('page_title', $a['title']);
     n3s_template_fw('show.html', $a);
 }
@@ -20,7 +20,9 @@ function n3s_api_show()
 // check private app
 function n3s_check_private(&$a, $agent)
 {
-    if (!$a) { return; }
+    if (!$a) {
+        return;
+    }
     $a['result'] = isset($a['app_id']);
     // プライベートな作品であれば他人には見せない
     $user_id = $a['user_id'];
@@ -42,7 +44,8 @@ function n3s_check_private(&$a, $agent)
                 if ($agent == 'web') {
                     n3s_error(
                         '非公開の投稿',
-                        'この投稿は非公開です。');
+                        'この投稿は非公開です。'
+                    );
                     exit;
                 }
             }
@@ -50,7 +53,7 @@ function n3s_check_private(&$a, $agent)
     }
 }
 
-function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
+function n3s_show_get($agent, $useEditor = true, $readonly = true)
 {
     global $n3s_config;
 
@@ -59,10 +62,12 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $app_id = $_GET['app_id'] = intval(empty($_GET['app_id']) ? $page : 0);
     $n3s_config['app_id'] = $app_id;
     // IE対策のためmsieパラメータをセット
-    $msie = FALSE;
+    $msie = false;
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     $agent = strtolower($useragent);
-    if (strstr($agent , 'trident') || strstr($agent , 'msie')) { $msie = TRUE; }
+    if (strstr($agent, 'trident') || strstr($agent, 'msie')) {
+        $msie = true;
+    }
     
     $a = ['result' => false];
     $my_user_id = n3s_get_user_id();
@@ -70,15 +75,15 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
         $a = db_get1($sql);
         if (!$a) {
-          header("HTTP/1.1 404 Not Found");
-          n3s_error('作品が見当たりません。', "id={$app_id}の作品がありません。");
-          exit;
+            header("HTTP/1.1 404 Not Found");
+            n3s_error('作品が見当たりません。', "id={$app_id}の作品がありません。");
+            exit;
         }
         n3s_check_private($a, $agent);
     }
     // bookmarks
     $fav = db_get1('SELECT * FROM bookmarks WHERE app_id=? AND user_id=? LIMIT 1', [$app_id, $my_user_id]);
-    $a['bookmark'] = ($fav) ? TRUE : FALSE;
+    $a['bookmark'] = ($fav) ? true : false;
 
     // check include url
     $a['baseurl'] = '';
@@ -94,8 +99,8 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     $v3 = intval($ver_a[2]); // 3_11_99
     $ver = $v1 * 10000 + $v2 * 100 + $v3;
     if ($ver < 30119) { # バージョンが低すぎる場合、v3.1.19にする #89
-      $ver = 30119;
-      $a['version'] = $version = '3.1.19';
+        $ver = 30119;
+        $a['version'] = $version = '3.1.19';
     }
     // WebWorker対応のため必ずローカルのcdn.phpを使う
     $baseurl = "cdn.php?v={$version}&f=";
@@ -121,26 +126,26 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     // add other plugins
     $pname_list = [
         'plugin_turtle',
-        'plugin_csv', 
+        'plugin_csv',
         'plugin_datetime',
-        'plugin_markup', 
-        'plugin_kansuji', 
+        'plugin_markup',
+        'plugin_kansuji',
         'plugin_caniuse',
         'plugin_webworker'
     ];
     if (30105 > $ver) {
         $pname_list = array_slice($pname_list, 0, 1);
-    } else if (30109 > $ver) {
+    } elseif (30109 > $ver) {
         $pname_list = array_slice($pname_list, 0, 4);
     }
     if (30220 <= $ver) {
-      $pname_list[] = 'nako_gen_async';
+        $pname_list[] = 'nako_gen_async';
     }
     foreach ($pname_list as $p) {
         $src = "{$baseurl}release/{$p}.js";
         $js_a[] = "<script defer src=\"$src\"></script>";
     }
-    // add Chart.js 
+    // add Chart.js
     // $js_a[] = "<script defer src=\"${baseurl}demo/js/chart.js@3.2.1/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
     // 古いバージョンだとJSを含んでいないので...
     $js_a[] = "<script defer src=\"https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js\" integrity=\"sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=\" crossorigin=\"anonymous\"></script>";
@@ -150,16 +155,24 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     
     // check author
     $url = empty($a['url']) ? '' : $a['url'];
-    if (!preg_match('/^https?:\/\//', $url)) $url = '';
+    if (!preg_match('/^https?:\/\//', $url)) {
+        $url = '';
+    }
     $a['url'] = $url;
     // get link url
     $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
     $a['mtime_nako3storage_edit'] = filemtime($n3s_config['dir_template']."/nako3storage_edit.js");
-    if (!isset($a['user_id'])) { $a['user_id'] = 0; }
-    if (!isset($a['ctime'])) { $a['ctime'] = 0; }
-    if (!isset($a['mtime'])) { $a['mtime'] = 0; }
+    if (!isset($a['user_id'])) {
+        $a['user_id'] = 0;
+    }
+    if (!isset($a['ctime'])) {
+        $a['ctime'] = 0;
+    }
+    if (!isset($a['mtime'])) {
+        $a['mtime'] = 0;
+    }
     if ($a['user_id'] > 0) {
         // ユーザー情報を取得
         $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
@@ -174,14 +187,18 @@ function n3s_show_get($agent, $useEditor = TRUE, $readonly = TRUE)
     // widget コード
     $w = isset($a['canvas_w']) ? $a['canvas_w'] : 400;
     $h = isset($a['canvas_h']) ? $a['canvas_h'] : 400;
-    if ($w < 50) { $w = 400; }
-    if ($h < 50) { $w = 400; }
+    if ($w < 50) {
+        $w = 400;
+    }
+    if ($h < 50) {
+        $w = 400;
+    }
     // for widget
     $w += 32;
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
-    $a['is_private'] = isset($a['is_private']) ? $a['is_private'] : FALSE;
+    $a['is_private'] = isset($a['is_private']) ? $a['is_private'] : false;
     if ($a['is_private']) {
         $wurl .= "&access_key=".$a['access_key'];
     }
