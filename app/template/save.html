@@ -173,13 +173,13 @@
 
 <script>
 // rewrite yes か no のみ
+const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
 switch ('{{$rewrite}}') {
   //
   case 'no': saveToLocalStorage(); break;
   case 'yes': loadFromLocalStorage(); break;
 }
 
-const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
 
 
 function loadFromLocalStorage() {
@@ -198,10 +198,10 @@ function saveToLocalStorage() {
   setTimeout(() => {
     console.log('[nako3storage] info: save to storage')
     saveCols.forEach(key => {
-      localStorage[key] = document.getElementById('#' + key)
+      localStorage[key] = document.getElementById(key).value
     })
     // リンクを表示
-    const loginLink = document.querySelector('#login_link')
+    const loginLink = document.getElementById('login_link')
     if (loginLink) {
       loginLink.style.display = "block"
     }
