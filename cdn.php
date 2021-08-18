@@ -20,10 +20,10 @@ if ($scheme !== '') { $scheme .= ':'; }
 $cache_url = $scheme.'//'.$_SERVER['HTTP_HOST'].$uri."/cache-cdn";
 
 // for n3s.nadesi.com/cdn.php
-if ($_SERVER['HTTP_HOST'] == 'nadesi.com' && $uri == '/v3') {
+if ($_SERVER['HTTP_HOST'] === 'nadesi.com' && $uri === '/v3') {
   $cache_url = 'https://nadesi.com/v3/storage/cache-cdn';
 }
-else if ($_SERVER['HTTP_HOST'] == 'n3s.nadesi.com') {
+else if ($_SERVER['HTTP_HOST'] === 'n3s.nadesi.com') {
   $cache_url = 'https://n3s.nadesi.com/cache-cdn';
 }
 
@@ -32,13 +32,13 @@ $ver = get('v', NAKO_DEFAULT_VERSION);
 $file = get('f', 'release/wnako3.js');
 $run = isset($_GET['run']) ? '?run' : '';
 // check ver
-if (!preg_match('#^3\.\d{1,3}\.\d{1,3}$#', $ver)) {
+if (! preg_match('#^3\.\d{1,3}\.\d{1,3}$#', $ver)) {
   $ver = NAKO_DEFAULT_VERSION;
 }
 
 // check parameters
 // 先頭に/があれば削る
-if (substr($file, 0, 1) == '/') {
+if (substr($file, 0, 1) === '/') {
   $file = substr($file, 1);
 }
 
@@ -53,7 +53,7 @@ else if (preg_match('#\.(css|html)$#', $file, $m)) {
   $ext = $m[1];
   useCache($ver, $url, $file, $ext);
 }
-if (basename($file) == 'wnako3webworker.js') {
+if (basename($file) === 'wnako3webworker.js') {
   useCache($ver, $url, $file, 'js');
 } 
 
@@ -71,15 +71,15 @@ function useCache($ver, $url, $file, $ext = '') {
   $save_dir = $cache_dir."/{$ver}";
   $cache_file = $save_dir."/{$file}";
   $cache_url_file = "$cache_url/{$ver}/{$file}";
-  if (!file_exists($cache_file)) {
+  if (! file_exists($cache_file)) {
     // fetch from web
     $body = @file_get_contents($url);
-    if ($body == '') {
+    if ($body === '') {
       header("HTTP/1.0 404 Not Found");
       echo "file not found.";
       exit;
     }
-    if (!file_exists($save_dir)) { mkdir($save_dir); }
+    if (! file_exists($save_dir)) { mkdir($save_dir); }
     @file_put_contents($cache_file, $body);
   } else {
     $body = @file_get_contents($cache_file);
@@ -87,17 +87,17 @@ function useCache($ver, $url, $file, $ext = '') {
   // output
   header('Access-Control-Allow-Origin: *');
   // check ext
-  if ($ext == '') {
+  if ($ext === '') {
     if (preg_match('#\.([a-z0-9_]+)$#', $file, $m)) {
       $ext = $m[1];
     }
   }
   // output content type
   $mime = n3s_get_mime($ext);
-  if ($ext == 'css') {
+  if ($ext === 'css') {
     header('content-type: text/css; charset=utf-8');
     echo $body;
-  } else if ($ext == 'js') {
+  } else if ($ext === 'js') {
     header('content-type: text/javascript; charset=utf-8');
     echo $body;
   } else {
@@ -108,7 +108,7 @@ function useCache($ver, $url, $file, $ext = '') {
 
 
 function get($key, $def = '') {
-  if (!isset($_GET[$key])) {
+  if (! isset($_GET[$key])) {
     return $def;
   }
   return $_GET[$key];

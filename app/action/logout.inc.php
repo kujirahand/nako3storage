@@ -14,7 +14,3 @@ function n3s_web_logout()
     // message
     n3s_template_fw('basic.html', ['contents'=>'ログアウトしました。']);
 }
-
-
-
-
