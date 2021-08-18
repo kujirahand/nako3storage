@@ -224,3 +224,74 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+//--------------------------
+// canvas_w * canvas_h
+const canvas_w_txt = document.getElementById("canvas_w")
+const canvas_h_txt = document.getElementById("canvas_h")
+if (canvas_w_txt) {
+  canvas_w_txt.onchange = function () { canvas_size_change() }
+  canvas_h_txt.onchange = function () { canvas_size_change() }
+}
+function canvas_size_change() {
+  const w = parseInt(canvas_w_txt.value)
+  const h = parseInt(canvas_h_txt.value)
+  if (w >= 0 && h >= 0) {
+    const cv = qid('nako3_canvas')
+    cv.width = w
+    cv.height = h
+  }
+}
+
+//--------------------------
+// save button
+function saveClick(checkLength) {
+  if (runCount == 0 && checkLength) {
+    var b = confirm(
+      "エラーがないか確認してから保存することを推奨しています。\n" +
+      "強制的に保存しますか？")
+    if (!b) { return }
+  }
+  if (saveAppData(checkLength)) {
+    const cols = ['canvas_w', 'canvas_h', 'version', 'body', 'action_time']
+    cols.forEach(key => {
+      qid('save_form_' + key).value = localStorage['n3s_' + key]
+    });
+    qid('n3s_save_form').submit()
+  }
+}
+
+function saveAppData(checkLength) {
+  // 本文データを取得
+  let body = ''
+  try {
+    body = getValue()
+    body = body.replace(/^\s+/, '') // trim first
+    if (checkLength && body.length < 30) {
+      alert('本文が短すぎると保存できません。30文字以上にしてください。')
+      return false
+    }
+  } catch (e) {
+    console.log(e)
+  }
+  // save to localStorage
+  localStorage["n3s_action_time"] = (new Date()).getTime()
+  localStorage["n3s_save_id"] = app_id
+  localStorage["n3s_body"] = body
+  localStorage["n3s_canvas_w"] = canvas_w_txt.value
+  localStorage["n3s_canvas_h"] = canvas_h_txt.value
+  localStorage["n3s_version"] = document.querySelector('#forceNakoVer').value
+  return true
+}
+
+function changeNakoVersion() {
+  if (saveAppData(false)) {
+    const ver = document.querySelector('#forceNakoVer').value
+    location.href = `index.php?action=edit&page=${app_id}&forceNakoVer=${ver}`;
+  }
+}
+
+function changeNakoNewVersion() {
+  if (saveAppData(false)) {
+    location.href = `index.php?action=edit&page=${app_id}&forceNakoVer=${newNakoVersion}`;
+  }
+}

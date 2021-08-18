@@ -53,6 +53,9 @@ function n3s_check_private(&$a, $agent)
     }
 }
 
+/**
+ * プログラムに関する情報を取得する (action/edit などからも使われる)
+ */
 function n3s_show_get($agent, $useEditor = true, $readonly = true)
 {
     global $n3s_config;
@@ -68,8 +71,18 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     if (strstr($agent, 'trident') || strstr($agent, 'msie')) {
         $msie = true;
     }
+    // 強制的になでしこのバージョンを変更するか(#101)
+    $forceNakoVer = empty($_GET['forceNakoVer']) ? '' : trim($_GET['forceNakoVer']);
+    if ($forceNakoVer) {
+        // check version format '*.*.*'
+        if (! preg_match('#^[0-9]+\.[0-9]+\.[0-9]+$#', $forceNakoVer)) {
+            $forceNakoVer = '';
+        }
+    }
     
+    // get from database
     $a = ['result' => false];
+    $fav = false;
     $my_user_id = n3s_get_user_id();
     if ($app_id > 0) {
         $sql = "SELECT * FROM apps WHERE app_id=$app_id";
@@ -80,10 +93,13 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
             exit;
         }
         n3s_check_private($a, $agent);
+        // bookmarks
+        $fav = db_get1('SELECT * FROM bookmarks WHERE app_id=? AND user_id=? LIMIT 1', [$app_id, $my_user_id]);
     }
-    // bookmarks
-    $fav = db_get1('SELECT * FROM bookmarks WHERE app_id=? AND user_id=? LIMIT 1', [$app_id, $my_user_id]);
     $a['bookmark'] = ($fav) ? true : false;
+    if ($forceNakoVer) {
+        $a['version'] = $forceNakoVer; // 強制的にバージョンを変更(#101)
+    }
 
     // check include url
     $a['baseurl'] = '';
@@ -160,7 +176,7 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     }
     $a['url'] = $url;
     // get link url
-    $a['editlink'] = n3s_getURL($app_id, 'save', array("rewrite"=>"yes"));
+    $a['newNakoVersion'] = NAKO_DEFAULT_VERSION;
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_template']."/nako3storage_show.js");
     $a['mtime_nako3storage_edit'] = filemtime($n3s_config['dir_template']."/nako3storage_edit.js");

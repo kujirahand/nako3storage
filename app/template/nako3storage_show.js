@@ -171,49 +171,4 @@ const runbox = document.getElementById('runbox')
 runButton.onclick = runButtonOnClick
 clearButton.onclick = nako3_clear
 
-//--------------------------
-// canvas_w * canvas_h
-const canvas_w_txt = document.getElementById("canvas_w")
-const canvas_h_txt = document.getElementById("canvas_h")
-if (canvas_w_txt) {
-  canvas_w_txt.onchange = function () { canvas_size_change() }
-  canvas_h_txt.onchange = function () { canvas_size_change() }
-}
-function canvas_size_change() {
-  const w = parseInt(canvas_w_txt.value)
-  const h = parseInt(canvas_h_txt.value)
-  if (w >= 0 && h >= 0) {
-    const cv = $q('#nako3_canvas')
-    cv.width = w
-    cv.height = h
-  }
-}
-
-//--------------------------
-// save button
-function saveClick(useCheck) {
-  var body = ''
-  try {
-    body = getValue()
-    body = body.replace(/^\s+/, '') // trim first
-    if (useCheck && body.length < 30) {
-      alert('本文が短すぎると保存できません。30文字以上にしてください。')
-      return
-    }
-  } catch (e) {
-    console.log(e)
-  }
-  if (runCount == 0 && useCheck) {
-    var b = confirm(
-      "エラーがないか確認してから保存することを推奨しています。\n" +
-      "強制的に保存しますか？")
-    if (!b) { return }
-  }
-  localStorage["n3s_save_id"] = app_id
-  localStorage["n3s_save_body"] = body
-  localStorage["n3s_action_time"] = (new Date()).getTime()
-  localStorage["n3s_canvas_w"] = canvas_w_txt.value
-  localStorage["n3s_canvas_h"] = canvas_h_txt.value
-  location.href = editlink
-}
 
