@@ -13,7 +13,7 @@ function n3s_web_presave()
     n3s_action_save_check_param($a);
 
     // default presave value
-    $a["rewrite"] = 'save';
+    $a["rewrite"] = 'no';
 
     // check mode
     $mode = empty($_GET['mode']) ? 'save' : $_GET['mode'];
