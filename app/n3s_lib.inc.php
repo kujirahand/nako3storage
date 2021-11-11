@@ -366,6 +366,8 @@ function n3s_updateProgram($app_id, $data)
     $a = $data;
     // check
     $data["mtime"] = time();
+    $a['body'] = trim($a['body']);
+    $a['prog_hash'] = hash('sha256', $a['body']);
     // update info
     $sql = <<< EOS
         UPDATE apps SET
@@ -379,6 +381,7 @@ function n3s_updateProgram($app_id, $data)
         editkey=:editkey,
         nakotype=:nakotype,
         tag=:tag,
+        prog_hash=:prog_hash,
         ref_id=:ref_id, ip=:ip, mtime=:mtime
         WHERE app_id=:app_id;
     EOS;
@@ -403,7 +406,8 @@ function n3s_updateProgram($app_id, $data)
         ":editkey"    => $a['editkey'],
         ":copyright"  => $a['copyright'],
         ":nakotype"   => $a['nakotype'],
-        ":tag"        => $a["tag"],
+        ":tag"        => $a['tag'],
+        ":prog_hash"  => $a['prog_hash'],
     ]);
     // update body
     $app_id = $a['app_id'];

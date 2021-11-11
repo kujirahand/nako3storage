@@ -219,12 +219,7 @@ function n3s_action_save_data($data, $agent = 'web')
     }
     try {
         $app_id = n3s_action_save_data_raw($data, $agent);
-        $url = n3s_getURL($app_id, 'show');
-        n3s_info(
-            'プログラムを保存しました',
-            "<a href='$url'>→公開ページを見る</a>",
-            true
-        );
+        n3s_jump($app_id, 'show');
     } catch (Exception $e) {
         n3s_error(
             "保存に失敗",
@@ -281,7 +276,25 @@ function n3s_action_save_data_raw($data, $agent)
         }
     }
     $a['mtime'] = time();
-  
+    // 連続投稿を防ぐ
+    $a['body'] = trim($a['body']);
+    $hash = $a['prog_hash'] = hash('sha256', $a['body']);
+    if (!$a['is_private']) {
+        // 公開されている内容のプログラムと同じ内容の投稿は不可
+        $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND is_private=0', [$hash]);
+        if ($r) {
+            n3s_error('投稿エラー', 'すみません。既に同じ投稿が公開されており保存できませんでした。');
+            exit;
+        }
+    } else {
+        // 非公開だが全く同じ投稿は拒否する
+        $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND author=?', [$hash, $a['author']]);
+        if ($r) {
+            n3s_error('投稿エラー', 'すみません。あなたが既に同じ内容で投稿されているようです。そのため保存しません。');
+            exit;
+        }
+    }
+
     // 新規投稿の場合
     if ($app_id == 0) {
         return n3s_saveNewProgram($a);
