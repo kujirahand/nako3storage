@@ -371,6 +371,7 @@ function n3s_updateProgram($app_id, $data)
     // update info
     $sql = <<< EOS
         UPDATE apps SET
+        app_name=:app_name,
         title=:title, author=:author, email=:email,
         url=:url, memo=:memo,
         canvas_w=:canvas_w, canvas_h=:canvas_h,
@@ -386,6 +387,7 @@ function n3s_updateProgram($app_id, $data)
         WHERE app_id=:app_id;
     EOS;
     db_exec($sql, [
+        ":app_name"   => $a['app_name'],
         ":title"      => $a['title'],
         ":author"     => $a['author'],
         ":url"        => $a['url'],
