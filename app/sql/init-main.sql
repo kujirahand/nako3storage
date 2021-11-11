@@ -19,9 +19,9 @@ CREATE TABLE apps (
   nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako/text/json/base64 */
   custom_head TEXT DEFAULT '', /* カスタムヘッダ */
   tag         TEXT DEFAULT '',
-  editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されて保存される) */
+  editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されていない) */
   need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
-  access_key  TEXT DEFAULT '', /* 閲覧用のキー(ハッシュ化されない) */
+  access_key  TEXT DEFAULT '', /* 現在未使用 */
   is_private  INTEGER DEFAULT 0, /* 0:public 1:private */
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
@@ -32,6 +32,7 @@ CREATE TABLE apps (
   canvas_h    INTEGER DEFAULT 300,
   copyright   TEXT DEFAULT '',
   bad         INTEGER DEFAULT 0,
+  prog_hash   TEXT DEFAULT '', /* プログラムのハッシュ(公開プログラムで同一の投稿はできないようにする) */
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
@@ -83,6 +84,9 @@ CREATE TABLE bookmarks (
 
 
 /*
+2021/11/11
+ALTER TABLE apps ADD COLUMN prog_hash TEXT DEFAULT '';
+
 2021/04/30
 ALTER TABLE apps ADD COLUMN copyright TEXT DEFAULT ''
 
