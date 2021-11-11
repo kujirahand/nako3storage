@@ -289,7 +289,7 @@ function n3s_action_save_data_raw($data, $agent)
     } else {
         // 非公開だが全く同じ投稿は拒否する
         $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND author=?', [$hash, $a['author']]);
-        if ($r) {
+        if ($r && $r['app_id'] != $a['app_id']) {
             n3s_error('投稿エラー', 'すみません。あなたが既に同じ内容で投稿されているようです。そのため保存しません。');
             exit;
         }
