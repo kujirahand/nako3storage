@@ -109,6 +109,7 @@
 <!-- URLを表示 -->
 <div class="ctrl_block">
   <h1>作品公開情報</h1>
+
   <div class="blogparts">
     {{ if $is_private }}
       <span>非公開の作品です。</span>
@@ -116,15 +117,18 @@
     <span class="memo">→この作品のURL: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
+  </div>
+
+  <div class="blogparts">
     <span class="memo">
-      <a href="{{$widget_url}}">→ブログパーツのURL</a>: </span><br>
+      <a href="{{$widget_url}}" target="new">→ブログパーツ</a> (<a href="{{$widget_url_run}}" target="new">アプリページ</a>): </span><br>
     <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
-    <span class="memo">
-      <a href="{{$widget_url_run}}">→アプリページのURL</a>: </span><br>
-    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_url_run}}"></br>
-    <span class="memo">→直リンク(『!「***」を取込』で使える): </span><br>
+    <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
+  </div>
+  <div class="blogparts">
+    <span class="memo">→ライブラリ直リンク(『!「***」を取込』で使うとき): </span><br>
     <input class="info_link" type="text" onclick="this.select()"
-      value="{{$n3s_baseurl}}/plain/{{$app_id}}.nako3"><br>
+      value="{{$n3s_baseurl}}/plain/{{$app_name_or_id}}.nako3"><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
     {{ endif }}
