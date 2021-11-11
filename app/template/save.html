@@ -80,43 +80,60 @@
       {{ endfor }}
       </blockquote>
     </p>
-    <p>
-      <label>非公開設定:<br />
-      {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
-      <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
-      非公開にする
-      </label>
-    </p>
-    <p>
-      <label>利用なでしこバージョン:
-        <span class="info">通常は変更の必要はありません。</span>
-        <br />
-        <input id="version" name="version" type="text" value="{{$version}}" />
-      </label>
-    </p>
-    {{ if !n3s_is_login() }}
-    <p>
-      <label>編集キー:
-        <span class="info">プログラムの編集に使うキーです。忘れないようにしてください。</span>
-        <br />
-        <input id="editkey" name="editkey" type="password" value="" />
-      </label>
-    </p>
-    {{ else }}
-    <input id="editkey" name="editkey" type="hidden" value="" />
-    {{ endif }}
-    <p>
-      <label>データの形式:
-        <span class="info">普通はwnakoを指定。必要ならcnako/js/json/csv/textを指定。</span><br />
-        <input id="nakotype" name="nakotype" type="text" value="{{ $nakotype }}" />
-      </label>
-    </p>
-    <p>
-      <label>タグ:
-        <span class="info">任意のタグを指定。</span><br />
-        <input id="tag" name="tag" type="text" value="{{ $tag }}" />
-      </label>
-    </p>
+    <div id="private_options" style="border:1px dotted silver; padding: 8px; margin: 8px;">
+      <p>
+        <label>非公開設定:<br />
+        {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
+        <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
+        非公開にする
+        </label>
+      </p>
+      {{ if !n3s_is_login() }}
+      <p>
+        <label>編集キー:
+          <span class="info">プログラムの閲覧/編集に使うキーです。<strong>忘れないように</strong>してください。</span>
+          <br />
+          <input id="editkey" name="editkey" type="password" value="" />
+        </label>
+      </p>
+      {{ else }}
+      <input id="editkey" name="editkey" type="hidden" value="" />
+      {{ endif }}  
+    </div>
+    <div id="save_options_button">
+      <a class="pure-button" onclick='show_save_options(true)'>保存オプションを表示 ≫</a>
+    </div>
+    <div id="save_options" style="display:none; border-left:4px solid silver; padding-left:1em;">
+      <p>
+        <a class="pure-button" onclick='show_save_options(false)'>≪ 保存オプションを隠す</a>
+      </p>
+      <p>
+        <label>利用なでしこバージョン:
+          <span class="info">通常は変更の必要はありません。</span>
+          <br />
+          <input id="version" name="version" type="text" value="{{$version}}" />
+        </label>
+      </p>
+      <p>
+        <label>データの形式:
+          <span class="info">普通はwnakoを指定。必要ならcnako/js/json/csv/textを指定。</span><br />
+          <input id="nakotype" name="nakotype" type="text" value="{{ $nakotype }}" />
+        </label>
+      </p>
+      <p>
+        <label>タグ(省略可):
+          <span class="info">任意のタグを指定。</span><br />
+          <input id="tag" name="tag" type="text" value="{{ $tag }}" />
+        </label>
+      </p>
+      <p>
+        <label>ライブラリ名(省略可):
+          <span class="info">ライブラリ名(英数字のみ)を設定すると外部プログラムから取り込む時に分かりやすくなります。
+            (ライブラリとして使ってほしくない場合省略してください。)</span><br />
+          <input id="app_name" name="app_name" type="text" value="{{ $app_name }}" />
+        </label>
+      </p>
+    </div><!-- #save_options -->
     <p>
       <label>利用規約:<br />
         <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}/>同意する
@@ -272,6 +289,13 @@ function xx_enc(val, key) {
     result += String.fromCharCode(val.charCodeAt(i) - key);
   }
   return decodeURIComponent(result) ;
+}
+
+function show_save_options(b) {
+  const opt = document.getElementById('save_options')
+  opt.style.display = b ? 'block' : 'none'
+  const optButton = document.getElementById('save_options_button')
+  optButton.style.display = b ? 'none' : 'block'
 }
 
 

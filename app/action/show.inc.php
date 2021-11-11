@@ -237,6 +237,8 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $a['root_url'] = n3s_get_config('baseurl', '');
     $a['url_images'] = n3s_get_config('url_images', '');
     $a['readonly'] = $readonly;
+    //
+    $a['app_name_or_id'] = ($a['app_name'] != '') ? $a['app_name'] : $a['app_id'];
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);

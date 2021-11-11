@@ -8,6 +8,7 @@ CREATE TABLE info (
 
 CREATE TABLE apps (
   app_id      INTEGER PRIMARY KEY,
+  app_name    TEXT DEFAULT '', /* ユニークなアプリ名(不要な場合空欄にする) */
   title       TEXT DEFAULT '(no title)',
   author      TEXT DEFAULT '(no name)',
   user_id     INTEGER DEFAULT 0, /* 0:ユーザー登録なし */
@@ -82,9 +83,9 @@ CREATE TABLE bookmarks (
   UNIQUE(user_id, app_id)
 );
 
-
 /*
 2021/11/11
+ALTER TABLE apps ADD COLUMN app_name TEXT DEFAULT '';
 ALTER TABLE apps ADD COLUMN prog_hash TEXT DEFAULT '';
 
 2021/04/30

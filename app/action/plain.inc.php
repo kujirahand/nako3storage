@@ -5,16 +5,32 @@ require_once __DIR__.'/save.inc.php';
 
 function n3s_web_plain()
 {
-    $page = intval(isset($_GET['page']) ? $_GET['page'] : 0);
-    if ($page <= 0) {
-        error404();
-        exit;
+    $page = isset($_GET['page']) ? $_GET['page'] : '0';
+    // check pattern
+    if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $page)) {
+        error404(); exit;
     }
-    $r = db_get1('SELECT * FROM apps WHERE app_id=?', [$page]);
-    if (!$r) {
-        error404();
-        exit;
+    $r = null;
+    // app_id ?
+    if (preg_match('/^[0-9]+$/', $page)) {
+        $app_id = intval($page);
+        $r = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
+        if (!$r) {
+            error404();
+            exit;
+        }
+        $page = $app_id;
     }
+    // app_name ?
+    else {
+        $r = db_get1('SELECT * FROM apps WHERE app_name=? LIMIT 1', [$page]);
+        if (!$r) {
+            error404();
+            exit;
+        }
+        $page = $r['app_id'];
+    }
+
     if ($r['is_private'] > 0) {
         error403();
         exit;

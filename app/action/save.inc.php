@@ -169,6 +169,8 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
     $a['fav'] = intval(isset($a['fav']) ? $a['fav'] : 0);
     $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : '';
+    $a['app_name'] = isset($a['app_name']) ? $a['app_name'] : '';
+    $a['app_name'] = trim(preg_replace("/[^0-9a-zA-Z_\-]/g", "", $a['app_name']));
     // check copyright
     global $copyright_list, $copyright_desc;
     $a['copyright_list'] = $copyright_list;
@@ -221,11 +223,12 @@ function n3s_action_save_data($data, $agent = 'web')
         $app_id = n3s_action_save_data_raw($data, $agent);
         n3s_jump($app_id, 'show');
     } catch (Exception $e) {
+        $app_id = n3s_get_config('page', 0);
+        $url = "index.php?action=edit&page=$app_id#recover_btn";
         n3s_error(
             "保存に失敗",
             "<p>".$e->getMessage()."</p>".
-      "<p><button onclick='window.history.back()'>戻る".
-      "</button></p>",
+            "<p><a class='pure-button' href='$url'>戻る</a></p>",
             true
         );
     }
@@ -251,11 +254,21 @@ function n3s_action_save_data_raw($data, $agent)
             '保存に失敗しました。別のページを開いていれば閉じてください。改めて保存ボタンをクリックしてください。'
         );
     }
+    // app_nameが設定されている？
+    if ($a['app_name'] != '') {
+        $b = db_get1('SELECT * FROM apps WHERE app_name=?', [$a['app_name']]);
+        // 既に app_name が登録されている？
+        if ($b) {
+            if ($b['app_id'] != $app_id) {
+                throw new Exception("既にライブラリ名「{$b['app_name']}」は使われています。");
+            }
+        }
+    }
 
     // 上書き保存か？
     if ($app_id > 0) {
         // check editkey
-        $b = $db->query('SELECT * FROM apps WHERE app_id='.$app_id)->fetch();
+        $b = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
         if (!$b) {
             throw new Exception('app_idが不正です。');
         }
@@ -282,7 +295,7 @@ function n3s_action_save_data_raw($data, $agent)
     if (!$a['is_private']) {
         // 公開されている内容のプログラムと同じ内容の投稿は不可
         $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND is_private=0', [$hash]);
-        if ($r) {
+        if ($r && $r['app_id'] != $a['app_id']) {
             n3s_error('投稿エラー', 'すみません。既に同じ投稿が公開されており保存できませんでした。');
             exit;
         }
