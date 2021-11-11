@@ -53,6 +53,12 @@ function n3s_list_search()
     }
     // プログラムを全部検索
     elseif ($target == 'program') {
+        // Google検索に投げる!!
+        $enc = urldecode($search_word);
+        header("Location: https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$enc}");
+        echo '現在不可軽減のため、アプリ内の全文検索を停止しています。すみません。';
+        exit;
+        
         $list = [];
         $r = db_get1('SELECT max(app_id) FROM apps', []);
         if (!$r) {
