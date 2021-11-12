@@ -249,7 +249,8 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $a['url_images'] = n3s_get_config('url_images', '');
     $a['readonly'] = $readonly;
     // for share
-    $a['app_name_or_id'] = ($a['app_name'] != '') ? $a['app_name'] : $a['app_id'];
+    $app_name = isset($a['app_name']) ? $a['app_name'] : '';    
+    $a['app_name_or_id'] = ($app_name != '') ? $app_name : $a['app_id'];
     $nakotype = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';
     $a['nakotype'] = $nakotype;
     switch ($a['nakotype']) {
