@@ -116,7 +116,7 @@
       </p>
       <p>
         <label>データの形式:
-          <span class="info">普通はwnakoを指定。必要ならcnako/js/json/csv/textを指定。</span><br />
+          <span class="info">普通はwnakoを指定。必要ならcnako/js/json/csv/text/sh/batを指定。</span><br />
           <input id="nakotype" name="nakotype" type="text" value="{{ $nakotype }}" />
         </label>
       </p>
@@ -263,7 +263,7 @@ function checkSubmit() {
     return false
   }
   if (fmt == 'wnako' || fmt == 'cnako' || fmt == 'text' || fmt == 'json' ||
-      fmt == 'css' || fmt == 'html' || fmt == 'csv' || fmt == 'js') { // ok
+      fmt == 'css' || fmt == 'html' || fmt == 'csv' || fmt == 'js' || fmt == "sh" || fmt == "bat") { // ok
   } else {
       alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
       return false
