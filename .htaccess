@@ -4,8 +4,9 @@ php_value error_log php_error_n3s_nadesi.log
 <IfModule mod_rewrite.c>
 RewriteEngine On
 # plain
-RewriteRule ^plain/([0-9]+).nako3$ /index.php?page=$1&action=plain [L]
-RewriteRule ^plain/([0-9]+).js$ /index.php?page=$1&action=plain [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).nako3$ /index.php?page=$1&action=plain&type=nako3 [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).js$ /index.php?page=$1&action=plain&type=js [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).sh$ /index.php?page=$1&action=plain&type=sh [L]
 # version
 RewriteRule ^nako_version.json$ /nako_version.php [L]
 # new / list / edit / show
