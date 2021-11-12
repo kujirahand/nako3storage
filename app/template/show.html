@@ -117,6 +117,10 @@
     <span class="memo">→この作品のURL: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
+      {{ if $app_name }}
+      <input class="info_link" type="text" onclick="this.select()"
+      value="{{$n3s_baseurl}}/show/{{$app_name}}"><br>
+      {{ endif }}
   </div>
 
   <div class="blogparts">
