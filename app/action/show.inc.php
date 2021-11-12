@@ -74,8 +74,19 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     global $n3s_config;
 
     // check param app_id and page
-    $page = empty($_GET['page']) ? 'new' : $_GET['page'];
-    $app_id = $_GET['app_id'] = intval(empty($_GET['app_id']) ? $page : 0);
+    $page = empty($_GET['page']) ? '' : $_GET['page'];
+    if (preg_match('/^[0-9]+$/', $page) || $page == '' || $page == 'new') {
+        // number
+        $app_id = $_GET['app_id'] = intval($page);    
+    } else {
+        // app_name
+        $r = db_get1('SELECT app_id FROM apps WHERE app_name=? LIMIT 1', [$page]);
+        if ($r) {
+            $app_id = $r['app_id'];
+            $app_name = $page;
+            $_GET['page'] = $app_id; // 差し替える
+        } 
+    }
     $n3s_config['app_id'] = $app_id;
     // IE対策のためmsieパラメータをセット
     $msie = false;
