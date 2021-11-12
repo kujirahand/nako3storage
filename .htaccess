@@ -6,7 +6,7 @@ RewriteEngine On
 # plain
 RewriteRule ^plain/([0-9a-zA-Z_\-]+).nako3$ /index.php?page=$1&action=plain&type=nako3 [L]
 RewriteRule ^plain/([0-9a-zA-Z_\-]+).js$ /index.php?page=$1&action=plain&type=js [L]
-RewriteRule ^plain/([0-9a-zA-Z_\-]+).sh$ /index.php?page=$1&action=plain&type=sh [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).(sh|csv|txt|json|bat)$ /index.php?page=$1&action=plain&type=$2 [L]
 # version
 RewriteRule ^nako_version.json$ /nako_version.php [L]
 # new / list / edit / show
