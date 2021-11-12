@@ -170,7 +170,7 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     $a['fav'] = intval(isset($a['fav']) ? $a['fav'] : 0);
     $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : '';
     $a['app_name'] = isset($a['app_name']) ? $a['app_name'] : '';
-    $a['app_name'] = trim(preg_replace("/[^0-9a-zA-Z_\-]/g", "", $a['app_name']));
+    $a['app_name'] = trim(preg_replace("/[^0-9a-zA-Z_\-]/", "", $a['app_name']));
     // check copyright
     global $copyright_list, $copyright_desc;
     $a['copyright_list'] = $copyright_list;
