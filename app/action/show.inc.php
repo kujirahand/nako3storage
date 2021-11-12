@@ -250,7 +250,8 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $a['readonly'] = $readonly;
     // for share
     $a['app_name_or_id'] = ($a['app_name'] != '') ? $a['app_name'] : $a['app_id'];
-    if ($a['nakotype'] == '') $a['nakotype'] = 'wnako';
+    $nakotype = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';
+    $a['nakotype'] = $nakotype;
     switch ($a['nakotype']) {
         case 'wnako':
         case 'cnako':
