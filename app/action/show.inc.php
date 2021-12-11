@@ -28,14 +28,14 @@ function n3s_check_private(&$a, $agent)
     $user_id = $a['user_id'];
     $is_private = $a['is_private'];
     $my_user_id = n3s_get_user_id();
-    if ($is_private) {
+    $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
+    if ($is_private == 1 || $is_private == 2) {
         // 管理者は見れる
         if (n3s_is_admin()) {
             return; // ok
         } 
         // ユーザー登録なしの場合
         if ($a['user_id'] == 0) {
-            $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
             if ($a['editkey'] === $editkey) {
                 return; // ok
             } else {
@@ -50,20 +50,33 @@ function n3s_check_private(&$a, $agent)
         // 自分なら見れる
         if ($user_id == $my_user_id) {
             // ok
-        } else {
-            $a = [
-                "result" => false,
-                "msg" => '非公開の投稿です。',
-            ];
-            if ($agent == 'web') {
-                n3s_error(
-                    '非公開の投稿',
-                    'この投稿は非公開です。'
-                );
-                exit;
-            }
+            return;
         }
-    }
+        if ($is_private == 1) {
+            n3s_error(
+                '非公開の投稿',
+                'この投稿は非公開です。'
+            );
+            exit;
+        }
+        // 限定公開の場合
+        if ($is_private == 2) {
+            if ($a['editkey'] === $editkey) {
+                return; // ok
+            }
+            // 入力画面
+            n3s_template_fw('show_input_editkey.html', [
+                'app_id' => $a['app_id'],
+                'author' => $a['author']
+            ]);
+            exit;
+        }
+        n3s_error(
+            'この投稿は非公開です',
+            'この投稿は非公開です。'
+        );
+        exit;
+}
 }
 
 /**
