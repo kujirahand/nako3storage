@@ -23,7 +23,7 @@ CREATE TABLE apps (
   editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されていない) */
   need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
   access_key  TEXT DEFAULT '', /* 現在未使用 */
-  is_private  INTEGER DEFAULT 0, /* 0:public 1:private */
+  is_private  INTEGER DEFAULT 0, /* 0:public 1:private 2:limited */
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
   fav         INTEGER DEFAULT 0, /* いいね */
