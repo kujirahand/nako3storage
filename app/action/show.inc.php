@@ -88,6 +88,7 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
 
     // check param app_id and page
     $page = empty($_GET['page']) ? '' : $_GET['page'];
+    $app_id = 0; // new post
     if (preg_match('/^[0-9]+$/', $page) || $page == '' || $page == 'new') {
         // number
         $app_id = $_GET['app_id'] = intval($page);    
