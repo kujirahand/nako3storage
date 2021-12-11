@@ -82,22 +82,33 @@
     </p>
     <div id="private_options" style="border:1px dotted silver; padding: 8px; margin: 8px;">
       <p>
-        <label>非公開設定:<br />
-        {{e $is_private_chk = $is_private ? 'checked="checked"' : ''; }}
-        <input name="is_private" type="checkbox" value="1" {{$is_private_chk}} />
-        非公開にする
+        <label>公開設定:<br />
+          {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
+          {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
+          {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
+          <select id="is_private" name="is_private">
+            <option value="0" {{$is_private0}}>作品を公開</option>
+            <option value="1" {{$is_private1}}>非公開</option>
+            <option value="2" {{$is_private2}}>限定的に公開</option>
+          </select>
         </label>
       </p>
       {{ if !n3s_is_login() }}
       <p>
         <label>編集キー:
-          <span class="info">プログラムの閲覧/編集に使うキーです。<strong>忘れないように</strong>してください。</span>
+          <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
           <br />
           <input id="editkey" name="editkey" type="password" value="" />
         </label>
       </p>
       {{ else }}
-      <input id="editkey" name="editkey" type="hidden" value="" />
+      <p>
+        <label>限定公開キー:
+          <span class="info">作品を限定公開する場合、以下の公開キーを入力してください。</span>
+          <br />
+          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
+        </label>
+      </p>
       {{ endif }}  
     </div>
     <div id="save_options_button">

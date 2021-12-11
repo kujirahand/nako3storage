@@ -3,15 +3,16 @@
 <div class="saveform">
   <h1>投稿 {{ $app_id }} は非公開です。</h1>
   <div style="padding:1em; border: 1px solid silver; background-color: #fff0f0;">
-    <p>プログラムを閲覧するには「編集キー」が必要です。以下にキーを入力してください。</p>
+    <p>プログラムを閲覧するには「限定公開キー」(あるいは「編集キー」)が必要です。<br>
+      以下にキーを入力してください。</p>
     <form action="index.php" method="GET">
       <input type="hidden" name="action" value="show">
       <input type="hidden" name="page" value="{{$app_id}}">
-      <input type="password" name="editkey" value=""><br>
-      <input type="submit" value="閲覧">
+      <input type="password" name="editkey" value="">
+      <input type="submit" value="閲覧" style="width:4em;">
     </form>
   </div>
-  <p>※なお編集キーは投稿者の『{{ $author }}』さんに尋ねてください。</p>
+  <p>※なおキーは投稿者の『{{ $author }}』さんに尋ねてください。</p>
 </div>
 
 {{ include parts_html_footer.html }}

@@ -205,8 +205,8 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     if (strlen($a['author']) < 2) {
         throw new Exception('作者名は2文字以上にしてください。');
     }
-    if (strlen($a['author']) > 50) {
-        throw new Exception('作者名が50文字以下にしてください。');
+    if (strlen($a['author']) > 200) {
+        throw new Exception('作者名が200文字以下にしてください。');
     }
 }
 
@@ -292,7 +292,7 @@ function n3s_action_save_data_raw($data, $agent)
     // 連続投稿を防ぐ
     $a['body'] = trim($a['body']);
     $hash = $a['prog_hash'] = hash('sha256', $a['body']);
-    if (!$a['is_private']) {
+    if (0 == $a['is_private']) { // 公開
         // 公開されている内容のプログラムと同じ内容の投稿は不可
         $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND is_private=0', [$hash]);
         if ($r && $r['app_id'] != $a['app_id']) {
