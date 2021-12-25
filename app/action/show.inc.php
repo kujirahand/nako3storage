@@ -181,12 +181,14 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $pname_list = [
         'plugin_turtle',
         'plugin_csv',
-        'plugin_datetime',
         'plugin_markup',
         'plugin_kansuji',
         'plugin_caniuse',
         'plugin_webworker'
     ];
+    if ($ver < 30231) { // 3.2.31未満であれば必要
+        $pname_list[] = 'plugin_datetime';
+    }
     if (30105 > $ver) {
         $pname_list = array_slice($pname_list, 0, 1);
     } elseif (30109 > $ver) {
