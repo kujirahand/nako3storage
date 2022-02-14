@@ -76,7 +76,7 @@ function n3s_check_private(&$a, $agent)
             'この投稿は非公開です。'
         );
         exit;
-}
+    }
 }
 
 /**
