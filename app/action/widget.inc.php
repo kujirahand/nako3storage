@@ -31,9 +31,21 @@ function n3s_widgetd_check_private(&$a)
     $user_id = $a['user_id'];
     $is_private = $a['is_private'];
     $access_key = isset($_GET['access_key']) ? $_GET['access_key'] : '';
-    if ($is_private) {
-        // アクセスキーが空ではなく、DBと一致すれば許可
-        if ($a['access_key'] == $access_key && $access_key != '') {
+    // 公開
+    if ($is_private == 0) {
+        return true;
+    }
+    // 非公開
+    if ($is_private == 1) {
+        n3s_error(
+            '非公開の投稿',
+            'この投稿は非公開です。'
+        );
+        exit;
+    }
+    // 限定公開
+    if ($is_private == 2) {
+        if ($a['access_key'] == $access_key) {
             return;
         }
         n3s_error(
