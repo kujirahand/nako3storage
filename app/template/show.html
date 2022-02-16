@@ -4,7 +4,9 @@
   <div>
     <h1>
       {{ $title | check_mudai }}
-      {{if $is_private}}🔒{{endif}}
+      {{if $is_private == 0}}📖{{endif}}
+      {{if $is_private == 1}}🔒{{endif}}
+      {{if $is_private == 2}}🔐{{endif}}
     </h1>
     <p class="memo">{{ $memo }}</p>
   </div>
@@ -66,8 +68,14 @@
       ({{e:echo $copyright_desc[$copyright]}})
     </li>
     <li><span class="lbl">タイプ:</span> {{ $nakotype }}</li>
-    {{if $is_private}}
+    {{if $is_private == 0}}
+    <li><span class="private">公開の投稿</span></li>
+    {{endif}}
+    {{if $is_private == 1}}
     <li><span class="private">🔒 非公開の投稿</span></li>
+    {{endif}}
+    {{if $is_private == 2}}
+    <li><span class="private">🔐 限定公開の投稿</span></li>
     {{endif}}
   </ul>
   <div class="fav_block" style="border:1px dotted silver;">
@@ -110,10 +118,14 @@
 <div class="ctrl_block">
   <h1>作品公開情報</h1>
 
+  {{ if $is_private == 1 }}
   <div class="blogparts">
-    {{ if $is_private }}
-      <span>非公開の作品です。</span>
-    {{ else }}
+    <span>🔒非公開の作品です。</span>
+  </div>
+  {{ endif }}
+
+  {{ if $is_private != 1 }}
+  <div class="blogparts">
     <span class="memo">→この作品のURL: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
@@ -122,21 +134,24 @@
       value="{{$n3s_baseurl}}/show/{{$app_name}}"><br>
       {{ endif }}
   </div>
-
   <div class="blogparts">
     <span class="memo">
       <a href="{{$widget_url}}" target="new">→ブログパーツ</a> (<a href="{{$widget_url_run}}" target="new">アプリページ</a>): </span><br>
     <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
     <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
   </div>
+  {{ endif }}
+
+  {{ if $is_private == 0 }}
   <div class="blogparts">
     <span class="memo">→ライブラリ直リンク(『!「***」を取込』で使うとき): </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}"><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
-    {{ endif }}
   </div>
+  {{ endif }}
+
 </div><!-- /ctrl_block --><!-- /URL -->
 
 <div class="ctrl_block" style="text-align:right;">

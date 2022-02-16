@@ -254,9 +254,9 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
-    $a['is_private'] = isset($a['is_private']) ? $a['is_private'] : false;
-    if ($a['is_private']) {
-        $wurl .= "&access_key=".$a['access_key'];
+    $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
+    if ($a['is_private'] === 2) {
+      $wurl .= "&editkey=".$a['editkey'];
     }
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
