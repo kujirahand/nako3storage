@@ -385,7 +385,7 @@ function n3s_updateProgram($app_id, $data)
         prog_hash=:prog_hash,
         ref_id=:ref_id, ip=:ip, mtime=:mtime
         WHERE app_id=:app_id;
-    EOS;
+EOS;
     db_exec($sql, [
         ":app_name"   => $a['app_name'],
         ":title"      => $a['title'],
@@ -409,7 +409,7 @@ function n3s_updateProgram($app_id, $data)
         ":copyright"  => $a['copyright'],
         ":nakotype"   => $a['nakotype'],
         ":tag"        => $a['tag'],
-        ":prog_hash"  => $a['prog_hash'],
+        ":prog_hash"  => $a['prog_hash']
     ]);
     // update body
     $app_id = $a['app_id'];

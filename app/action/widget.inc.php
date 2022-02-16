@@ -13,6 +13,9 @@ function n3s_web_widget()
     // run mode?
     $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
     $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
+    $tags = isset($a['tag']) ? explode(',', $a['tag']) : [];
+    for ($i = 0; $i < count($tags); $i++) { $tags[$i] = trim($tags[$i]); }
+    $a['w_noname'] = in_array('w_noname', $tags);
     n3s_template_fw('widget.html', $a);
 }
 
