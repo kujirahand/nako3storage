@@ -29,6 +29,11 @@ var isIE = function() {
 
 // なでしこ本体に登録する関数
 function nako3_print(s, sys) {
+  // check sys.__printPool
+  if (typeof(sys.__printPool) === 'undefined') {
+    sys.__printPool = ''
+  }
+  // clear sys.__printPool
   s = sys.__printPool + s
   sys.__printPool = ""
   var info = $q('#nako3_info')
