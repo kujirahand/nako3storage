@@ -36,6 +36,9 @@ function nako3_print(s, sys) {
   // clear sys.__printPool
   s = sys.__printPool + s
   sys.__printPool = ""
+  // 表示ログに追加
+  sys.__v0['表示ログ'] += (s + '\n')
+  // 画面表示
   var info = $q('#nako3_info')
   if (!info) {
     console.log(s)
