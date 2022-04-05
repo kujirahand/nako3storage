@@ -1,12 +1,14 @@
 <?php
-const MAX_APP = 30; // 何件まで表示するか
+const MAX_APP = 20; // 何件まで表示するか
 
+// ブラウザからのアクセスがあったとき
 function n3s_web_list()
 {
     $r = n3s_list_get();
     n3s_template_fw('list.html', $r);
 }
 
+// Web API向けのアクセスがあったとき
 function n3s_api_list()
 {
     $r = n3s_list_get();
@@ -26,10 +28,11 @@ function n3s_api_list()
     ));
 }
 
+// 一覧に表示するデータを取得する
 function n3s_list_get()
 {
     global $n3s_config;
-  
+
     // get parameters
     $n3s_config['search_word'] = $search = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
     $nofilter = empty($_GET['nofilter']) ? 0 : (int) ($_GET['nofilter']);
@@ -43,11 +46,17 @@ function n3s_list_get()
     if ($onlybad || $nofilter) {
         $noindex = 1;
     }
-    
-    // get db
+
+    // --------------------------------------------------------
+    // データベースに接続
+    // --------------------------------------------------------
     $db = n3s_get_db();
     $find_user_info = [];
-    // list
+
+    // --------------------------------------------------------
+    // オプションを確認して条件などを設定
+    // --------------------------------------------------------
+    // list (app_id for list pager)
     $app_id = (int) (empty($n3s_config['app_id']) ? 0 : $n3s_config['app_id']);
     if ($app_id <= 0) {
         $app_id = PHP_INT_MAX;
@@ -55,11 +64,11 @@ function n3s_list_get()
     $wheres = array('app_id <= ?');
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
-      $wheres[] = 'bad <= 3';
+        $wheres[] = 'bad <= 2';
         $wheres[] = 'tag != "なでしこ3本"';
     }
     // check onlybad parameters
-    if ($onlybad >= 1) { // 通報された投稿のみ表示
+    if ($onlybad >= 1) { // 通報された投稿のみ表示 #18
         $wheres[] = 'bad > 0';
     }
     // check user_id
@@ -68,28 +77,37 @@ function n3s_list_get()
         $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id]);
     }
     $statements = array($app_id);
-    if (! empty($n3s_config['search_word'])) {
+    // 検索モードか？
+    if (!empty($n3s_config['search_word'])) {
+        // 検索モードの場合
         $wheres[] = 'author = ? OR title LIKE ?';
         $statements[] = $n3s_config['search_word'];
         $statements[] = "%".$n3s_config['search_word']."%";
+        $mode = 'search'; // 必ず検索モードにする
     }
+    // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
     $list = [];
-    if ($mode === 'list' || $mode === 'search') {
+
+    // --------------------------------------------------------
+    // 表示モードごとに処理を分ける
+    // --------------------------------------------------------
+    if ($mode === 'list' || $mode === 'search') { // 通常 or 検索モード
         $h = $db->prepare(
             'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
-          ' WHERE ' . implode(' AND ', $wheres) .
-          ' ORDER BY app_id DESC LIMIT ?'
+            ' WHERE ' . implode(' AND ', $wheres) .
+            ' ORDER BY app_id DESC LIMIT ?'
         );
         $h->execute($statements);
         $list = $h->fetchAll();
-    } elseif ($mode === 'ranking') {
-        $wheres[] = 'fav > 0';
+    }
+    elseif ($mode === 'ranking') { // ランキング表示モード
+        $wheres[] = 'fav >= 3';
         $h = $db->prepare(
             'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
-          ' WHERE ' . implode(' AND ', $wheres) .
-          ' ORDER BY fav DESC, app_id DESC LIMIT ?'
+            ' WHERE ' . implode(' AND ', $wheres) .
+            ' ORDER BY fav DESC, app_id DESC LIMIT ?'
         );
         $h->execute($statements);
         $list = $h->fetchAll();
@@ -112,21 +130,24 @@ function n3s_list_get()
     if ($app_id === 0) {
         $next_url = "";
     } // トップなので次はない
-    // ranking
+
+    // --------------------------------------------------------
+    // ■ Ranking (トップページだけに表示する)
+    // --------------------------------------------------------
     $ranking = null;
     if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0) {
         // Nヶ月以内に更新されたアプリ
-        $mon = 3;
+        $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $h = $db->prepare('SELECT * FROM apps '.
-          'WHERE (mtime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
-          'ORDER BY fav DESC LIMIT 15');
+            'WHERE (ctime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
+            'ORDER BY fav DESC LIMIT 20');
         $h->execute([$mtime]);
         $ranking = $h->fetchAll();
-        // shuffle
+        // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
         shuffle($ranking);
-        // 上位5件を取る
-        $ranking = array_splice($ranking, 0, 5);
+        // 上位N件を取る
+        $ranking = array_splice($ranking, 0, 10);
     }
 
     return [
