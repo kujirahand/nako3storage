@@ -80,6 +80,10 @@ function n3s_getURL($page, $action, $params = array())
 {
     global $n3s_config;
     $baseurl = $n3s_config['baseurl'];
+    if (substr($baseurl, strlen($baseurl) - 1, 1) == '/') {
+        // 末尾に "/"が含まれるとき削る
+        $baseurl = substr($baseurl, 0, strlen($baseurl) - 1);
+    }
     $url = "{$baseurl}/index.php?page=$page&action=$action";
     foreach ($params as $k => $v) {
         $url .= '&' . urlencode($k) . '=' . urlencode($v);
