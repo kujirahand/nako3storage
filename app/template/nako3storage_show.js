@@ -116,15 +116,15 @@ function runButtonOnClick() { // 実行ボタンを押した時
   
   // デフォルトコードを追加する
   var div_name = '#nako3_div'
-  let preCode =
-    "F=JS実行(\"(typeof(sys)=='undefined')?'null':typeof sys.__v0['DOM親要素設定']\");" +
-    "もし、F=「function」ならば;" + 
-    "  『「" + div_name + "」へDOM親要素設定;" +
-    "    「" + div_name + "」に「」をHTML設定;』をナデシコ続;" +
-    "ここまで。;" + 
-    "「#nako3_canvas」へ描画開始;" +
-    "カメ描画先=「nako3_canvas」;" +
-    "カメ全消去;\n"
+  let preCode = `
+F=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定'])");
+もし、F=「function」ならば『
+  「${div_name}」へDOM親要素設定;
+  「${div_name}」に「」をHTML設定;
+』をナデシコ続;
+「#nako3_canvas」へ描画開始;
+カメ描画先=「nako3_canvas」;
+カメ全消去;`.split('\n').join('')
   // プログラムを実行
   try {
     runbox.style.display = 'block'
