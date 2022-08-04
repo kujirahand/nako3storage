@@ -15,7 +15,7 @@
     <meta property="og:image" 
        content="{{$root_url}}/images/0-preview.png">
 
-    <style>
+<style>
 .fullscreen {
   position: absolute;
   height: 100vh;
@@ -56,7 +56,8 @@
   margin: 0;
 }
 #runbox {
-  text-align: center;
+  margin: auto;
+  width: fit-content;
   padding: 8px;
 }
 #buttons {
@@ -64,13 +65,19 @@
   padding: 4px;
 }
 .memo {
+  margin-top: 2em;
+  padding-top: 1em;
   color: gray;
   font-size: 0.8em;
   text-align: center;
 }
-    </style>
+.showblock {
+  padding: 8px;
+}
+</style>
+
   </head>
-  <body>
+  <body><div class="showblock">
     <!-- click to start -->
     <div id="start_screen" class="fullscreen"
       {{if $run eq 1}}style="display:none;"{{endif}}>
@@ -94,7 +101,8 @@
     {{ if !$w_noname }}
     <div class="memo">
       <a href="id.php?{{$app_id}}">{{$title | check_mudai}}</a>
-      {{if $mute_name eq 0}}by {{$author}} ({{$mtime | datetime}}){{endif}}
+      {{if $mute_name eq 0}}by {{$author}}
+      <!-- ({{$mtime | datetime}}){{endif}} -->
     </div>
     {{ endif }}
     <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
@@ -133,5 +141,5 @@
       document.addEventListener("DOMContentLoaded", runNako3);
       {{ endif }}
     </script>
-  </body>
+  </div><!-- /.showblock --></body>
 </html>
