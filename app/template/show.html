@@ -127,7 +127,7 @@
 
   {{ if $is_private != 1 }}
   <div class="blogparts">
-    <span class="memo">→この作品のURL: </span><br>
+    <span class="memo">📍この作品のURL: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
       {{ if $app_name }}
@@ -136,16 +136,26 @@
       {{ endif }}
   </div>
   <div class="blogparts">
-    <span class="memo">
-      <a href="{{$widget_url}}" target="new">→ブログパーツ</a> (<a href="{{$widget_url_run}}" target="new">アプリページ</a>): </span><br>
-    <input class="info_link" type="text" onclick="this.select()" value="{{$widget_tag}}"><br>
+    <!-- url-->
+    <span class="memo">📍アプリ(即時実行)のURL: </span><br>
+    <input class="info_link" type="text" onclick="this.select()"
+      value="{{ $widget_url_run }}"><br>
+    <!-- url-->
+    <span class="memo">📍アプリ(実行ボタンあり)のURL: </span><br>
+    <input class="info_link" type="text" onclick="this.select()"
+      value="{{ $widget_url }}"><br>
+    <!-- url-->
+    <span class="memo">📍ブログパーツ: </span><br>
+    <input class="info_link" type="text" onclick="this.select()"
+      value="{{ $widget_tag }}"><br>
+    <!-- 説明 -->
     <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
   </div>
   {{ endif }}
 
   {{ if $is_private == 0 }}
   <div class="blogparts">
-    <span class="memo">→ライブラリ直リンク(『!「***」を取込』で使うとき): </span><br>
+    <span class="memo">📍ライブラリ直リンク - 『!「***」を取込』で使うとき: </span><br>
     <input class="info_link" type="text" onclick="this.select()"
       value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}"><br>
     <input class="info_link" type="text" onclick="this.select()"

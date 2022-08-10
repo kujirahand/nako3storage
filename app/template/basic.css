@@ -298,18 +298,19 @@ textarea#nako3code {
 }
 
 .blogparts {
-  line-height: 1.3em;
+  line-height: 1.5em;
   margin: 1em;
   border: 1px dotted #e0e0e0;
   padding: 1em;
-  background-color: #fffff0;
+  background-color: #f0f0f0;
 }
 
 .blogparts input {
-  background-color: #fffff0;
+  background-color: #e0e0e0;
   padding: 8px;
+  margin: 4px;
   margin-left: 1em;
-  width: 90%;
+  width: 95%;
 }
 
 .info_link {
