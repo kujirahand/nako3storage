@@ -39,4 +39,7 @@ $n3s_config = [
     "twitter_acc_secret" => "",
     // for analytics
     "analytics" => "",
+    // sandbox
+    // "sandbox_url" => "http://localhost/nako3storage/", // example
+    "sandbox_url" => "", 
 ];
