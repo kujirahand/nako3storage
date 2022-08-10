@@ -52,7 +52,7 @@ Twitterのアプリ側でCallback先のURLを指定します。
 その上で、以下の設定を記述します。
 
 ```
-# sandbox (末尾にスラッシュを追加)
+// sandbox (末尾にスラッシュを追加)
 $n3s_config['sandbox_url'] = 'https://n3s-sandbox.example.com/';
 ```
 
