@@ -4,6 +4,9 @@ include_once dirname(__FILE__) . '/save.inc.php';
 function n3s_web_show()
 {
     $a = n3s_show_get('web', true, true);
+    $page = empty($_GET['page']) ? '0' : $_GET['page'];
+    $sandbox_url = n3s_get_config('sandbox_url', '');
+    $a['sandbox_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&mute_title=1";
     n3s_set_config('page_title', $a['title']);
     n3s_template_fw('show.html', $a);
 }

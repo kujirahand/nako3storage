@@ -1,5 +1,15 @@
 {{ include parts_html_header.html }}
 
+<style>
+#iframe_contents {
+    margin: 0px;
+    padding: 0px;
+    border: 0px none;
+    width: 100%;
+    height: 400px;
+}
+</style>
+
 <div class="showblock">
   <div>
     <h1>
@@ -10,36 +20,26 @@
     </h1>
     <p class="memo">{{ $memo }}</p>
   </div>
-  <div>
+  <div id="progrram_area">
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
     <textarea id="nako3code" readonly>{{ $body }}</textarea>
     </label><br />
     {{ if $nakotype eq 'wnako' }}
-      <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
-      <button id="clearButton" class="pure-button">クリア</button>
+      <button id="runButton" style="display:none"></button>
+      <button id="clearButton" style="display:none"></button>
+      <!-- widget -->
+      <iframe id="iframe_contents" src="{{ $sandbox_url }}"
+        sandbox="allow-scripts allow-forms allow-downloads allow-same-origin allow-modals"></iframe>
     {{ else }}
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
     {{ endif }}
-    <div id="runbox">
-      <!-- 3.1.19以上 -->
-      <div id="nako3_output" style="display:none"></div>
-      <!-- 3.1.18以下 -->
-      <div id="nako3_error" style="display:none"></div> 
-      <!-- info box -->
-      <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
-  
-      <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
-      <div id='nako3_div' class='nako3_div'></div>
-      <div>
-        <span class="memo" style="display:none;">
-          Canvas:
-          幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3"> ×
-          高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
-        </span>
-      </div>
-    </div>
   </div>
+  
+  <!-- #runbox このブロックは必ず必要 -->
+  <div id="runbox"></div>
+  <!-- /#runbox -->
+
   <ul class="devblock">
     <li>
       <span>
@@ -78,6 +78,7 @@
     <li><span class="private">🔐 限定公開の投稿</span></li>
     {{endif}}
   </ul>
+
   <div class="fav_block" style="border:1px dotted silver;">
     {{if n3s_is_login()}}
     <button id="fav_button" class="pure-button"
@@ -191,6 +192,19 @@ const app_id = {{ $app_id }};
 const nako_version = "{{ $version }}" + ".0.0.0"
 const runbox_c = document.getElementById('runbox')
 runbox_c.style.display = 'none'
+
+// iframe の高さを調整
+window.addEventListener('message', function(e) {
+  var iframe = document.querySelector("#iframe_contents")
+  var eventName = e.data[0]
+  var data = e.data[1]
+  switch(eventName) {
+  case 'setFrameHeight':
+    iframe.style.height = data + 'px'
+    break;
+  }
+}, false)
+
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
