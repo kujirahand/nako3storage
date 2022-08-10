@@ -45,6 +45,17 @@ Twitterのアプリ側でCallback先のURLを指定します。
 (設置したURL)/callback.php
 ```
 
+## 安全に運用するためのTips
+
+運用したいURL(n3s.example.com)に加えて、サンドボックスとして運用するURL(n3s-sandbox.example.com)を用意します。
+そして、その2つのURLには全く同じコンテンツが表示されるように設定してください。
+その上で、以下の設定を記述します。
+
+```
+# sandbox (末尾にスラッシュを追加)
+$n3s_config['sandbox_url'] = 'https://n3s-sandbox.example.com/';
+```
+
 
 ## ガジェット
 
