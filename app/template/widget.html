@@ -92,18 +92,20 @@
     <div id="runbox">
       <!-- 3.1.19以上 -->
       <div id="nako3_output"></div>
-
       <!-- 3.1.18以下 -->
       <div class="nako3row nako3info" id="nako3_info"></div>
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
     </div><!-- /#runbox -->
+    
+    {{ if !$mute_title }}
     {{ if !$w_noname }}
     <div class="memo">
       <a href="id.php?{{$app_id}}">{{$title | check_mudai}}</a>
       {{if $mute_name eq 0}}by {{$author}}
       <!-- ({{$mtime | datetime}}){{endif}} -->
     </div>
+    {{ endif }}
     {{ endif }}
     <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
             
@@ -135,11 +137,22 @@
       function runNako3() {
         start_screen.style.display = 'none'
         runButtonOnClick()
+        setTimeout(() => {
+          postFrameHeight()
+        }, 100)
       }
       start_screen.onclick = runNako3
       {{ if $run eq 1 }}
       document.addEventListener("DOMContentLoaded", runNako3);
       {{ endif }}
+      // post fame height
+      function postFrameHeight() {
+        const scHeight = document.getElementsByTagName("html")[0].scrollHeight
+        window.parent.postMessage(["setFrameHeight", scHeight], "*")
+      }
+      window.onload = function() {
+        postFrameHeight()
+      }
     </script>
   </div><!-- /.showblock --></body>
 </html>

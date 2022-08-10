@@ -3,58 +3,19 @@
 // for clickjacking
 // header('X-Frame-Options: SAMEORIGIN');
 
-include_once dirname(__FILE__) . '/save.inc.php';
-include_once dirname(__FILE__) . '/show.inc.php';
+// * <iframe>のsandboxを使う (#132)
+// widget.inc.php => widget_frame.html [iframe.src=action=widget_frame]
+// widget_frame.inc.php => widget.html
 
 function n3s_web_widget()
 {
-    $a = n3s_show_get('web', false);
-    n3s_widgetd_check_private($a);
+    $a = [];
     // run mode?
-    $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
-    $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
-    $tags = isset($a['tag']) ? explode(',', $a['tag']) : [];
-    for ($i = 0; $i < count($tags); $i++) { $tags[$i] = trim($tags[$i]); }
-    $a['w_noname'] = in_array('w_noname', $tags);
-    n3s_template_fw('widget.html', $a);
-}
-
-function n3s_api_widget()
-{
-    n3s_api_output(false, []);
-}
-
-// check private app
-function n3s_widgetd_check_private(&$a)
-{
-    if (!$a) {
-        return;
-    }
-    // プライベートな作品であれば他人には見せない
-    $user_id = $a['user_id'];
-    $is_private = $a['is_private'];
-    $access_key = isset($_GET['access_key']) ? $_GET['access_key'] : '';
-    // 公開
-    if ($is_private == 0) {
-        return true;
-    }
-    // 非公開
-    if ($is_private == 1) {
-        n3s_error(
-            '非公開の投稿',
-            'この投稿は非公開です。'
-        );
-        exit;
-    }
-    // 限定公開
-    if ($is_private == 2) {
-        if ($a['access_key'] == $access_key) {
-            return;
-        }
-        n3s_error(
-            '非公開の投稿',
-            'この投稿は非公開です。'
-        );
-        exit;
-    }
+    $run = $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
+    $mute_name = $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
+    $page = $a['page'] = isset($_GET['page']) ? intval($_GET['page']) : 0;
+    // sandbox
+    $sandbox_url = n3s_get_config('sandbox_url', '');
+    $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}";
+    n3s_template_fw('widget_frame.html', $a);
 }
