@@ -179,7 +179,7 @@ function show_image()
 function getCopyrightName($type)
 {
     switch ($type) {
-        case 'SELF': return '自分専用(他人の仕様は認めません)';
+        case 'SELF': return '自分専用(他人の使用は認めません)';
         case 'CC0': return 'CC0(パブリックドメイン)';
         case 'CC-BY': return 'CC-BY(著作権表示すれば誰でも使えます)';
     }
