@@ -61,7 +61,7 @@ function n3s_list_get()
     if ($app_id <= 0) {
         $app_id = PHP_INT_MAX;
     }
-    $wheres = array('app_id <= ?');
+    $wheres = array('app_id <= ?', 'tag != "w_noname"');
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
         $wheres[] = 'bad <= 2';

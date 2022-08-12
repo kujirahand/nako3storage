@@ -35,9 +35,10 @@
       </label>
     </p>
     <p>
-      <label>Canvasのサイズ(使わない時は0にしてください):<br />
-        幅:<input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" style="width:4em;"> x
+      <a name="canvas_config"><label>Canvasの設定:</a><br />
+        &nbsp;&nbsp;幅:<input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" style="width:4em;"> x
         高:<input id="canvas_h" name="canvas_h" value="{{ $canvas_h }}" style="width:4em;">
+        <a href="#canvas_config" onclick='setCanvas0x0()' class="pure-button">←使わない</a>
       </label>
     </p>
     <p>
@@ -69,6 +70,13 @@
       </label>
     </p>
     <p>
+      <label>タグ(省略可):
+        <span class="info">タグ(DNCL,ゲーム,ツールなど)をカンマで区切って指定。</span><br />
+        <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
+        &nbsp;&nbsp;<span class="info">(↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載</span>
+      </label>
+    </p>
+  <p>
     <label>ライセンスの指定:</label><br />
       <blockquote style="background-color: #f0f0f0;">
       {{ for $copyright_list as $key => $val }}
@@ -76,7 +84,7 @@
       <label for='{{$key}}'>
         <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
         ({{e: echo $copyright_desc[$key] }})
-      </label>&nbsp;
+      </label>&nbsp;<br>
       {{ endfor }}
       </blockquote>
     </p>
@@ -132,13 +140,7 @@
         </label>
       </p>
       <p>
-        <label>タグ(カンマで区切って指定/省略可):
-          <span class="info">任意のタグを指定。(w_nonameでアプリページにリンクを表示しない)</span><br />
-          <input id="tag" name="tag" type="text" value="{{ $tag }}" />
-        </label>
-      </p>
-      <p>
-        <label>ライブラリ名(省略を推奨):
+        <label>ライブラリ名<span style="color:red;">(省略を推奨)</span>:
           <span class="info">
             一般的には省略してください。もしライブラリでなら名前(英数字・アンダーバー・ハイフン/大文字小文字を区別)を設定すると外部プログラムから取り込む時に分かりやすくなります。
           </span><br />
@@ -245,6 +247,17 @@ function checkSubmit() {
   const author = document.getElementById('author').value
   const fmt = document.getElementById('nakotype').value
   const agree = document.getElementById('agree').checked
+  // タグのチェック
+  const tag = document.getElementById('tag')
+  tag.value = tag.value.replace(/[\s\#]+/g, '')
+  if (tag.value.indexOf('w_noname') >= 0) {
+    tag.value = 'w_noname' // このタグは特別で排他的
+  }
+  if (tag.value.length > 64) {
+    alert('タグが長すぎます。64文字以内にしてください。')
+    return false
+  }
+  // 本文などのチェック
   if (body.length < 30) {
     alert('お手数おかけします。\n' +
       '現在プログラムに最低文字数の制限をかけさせていただいています。\n' +
@@ -280,6 +293,7 @@ function checkSubmit() {
       alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
       return false
   }
+
   // editkey をブラウザに保存
   const editkey = document.getElementById('editkey').value
   localStorage['n3s_editkey'] = xx_enc(editkey, 30)  
@@ -309,6 +323,40 @@ function show_save_options(b) {
   const optButton = document.getElementById('save_options_button')
   optButton.style.display = b ? 'none' : 'block'
 }
+
+function setCanvas0x0() {
+  document.getElementById('canvas_w').value = '0'
+  document.getElementById('canvas_h').value = '0'
+}
+
+// タイトルなどを自動で埋める処理
+setTimeout(()=>{
+  // 本文を取得
+  const body = document.getElementById('body').value.substring(0, 2048).replace(/^\s+/, '')
+
+  // タグの確認
+  const tag = document.getElementById('tag')
+  const hasDNCL = (body.indexOf('!DNCLモード') >= 0) || (body.indexOf('！DNCLモード') >= 0) || (body.indexOf('💡DNCLモード') >= 0)
+  if (hasDNCL && tag.value.indexOf('DNCL') < 0) {
+    const a = []
+    for (const t of tag.value.split(',')) {
+      const t2 = t.replace(/^\s+/, '').replace(/\s+$/, '')
+      if (t2 != '') { a.push(t2) }
+    }
+    a.push('DNCL')
+    tag.value = a.join(',')
+  }
+
+  // タイトルを自動的に埋める
+  const title = document.getElementById('title')
+  if (title.value == '') {
+    const new_title = body
+      .replace(/(\r\n|\r|\n)/g, '')
+      .replace(/[\#\$\.\!\"\%\'\\\-\=\s\|「」【】『』、]+/g, '')
+      .replace(/(インデントモード|DNCLモード)/g, '')
+    title.value = new_title.substring(0, 16)
+  }
+}, 1000);
 
 
 </script>
