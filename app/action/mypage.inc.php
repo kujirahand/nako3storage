@@ -53,7 +53,7 @@ function n3s_web_mypage()
         $images = db_get(
             'SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC '.
             ' LIMIT ? OFFSET ?', 
-            [$user_id, MAX_MYPAGE_MATERIALS, $page]);
+            [$user_id, MAX_MYPAGE_MATERIALS, $offset]);
         n3s_template_fw('mymaterial.html', [
             'user_id' => $user_id,
             'name' => $user['name'],
