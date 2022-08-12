@@ -95,7 +95,7 @@ function n3s_list_get()
     // --------------------------------------------------------
     if ($mode === 'list' || $mode === 'search') { // 通常 or 検索モード
         $h = $db->prepare(
-            'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY app_id DESC LIMIT ?'
         );
@@ -105,7 +105,7 @@ function n3s_list_get()
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
         $h = $db->prepare(
-            'SELECT app_id,title,author,memo,mtime,fav,user_id FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?'
         );
@@ -142,11 +142,11 @@ function n3s_list_get()
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
 
         $ranking_all = db_get('SELECT * FROM apps '.
-            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) '.
+            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
             'ORDER BY fav DESC LIMIT 10', []);
 
         $ranking = db_get('SELECT * FROM apps '.
-            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 3) AND (is_private = 0) '.
+            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
             'ORDER BY fav DESC LIMIT 25', [$mtime]);
 
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
@@ -176,6 +176,10 @@ function n3s_list_get()
     $row = db_get1('SELECT count(*) FROM apps');
     $total_post = $row['count(*)'];
 
+    // アイコンを付ける
+    n3s_list_setIcon($list);
+    n3s_list_setIcon($ranking);
+    n3s_list_setIcon($ranking_all);
     return [
         "mode" => $mode,
         "list" => $list,
@@ -187,4 +191,19 @@ function n3s_list_get()
         "noindex" => $noindex,
         "total_post" => $total_post,
     ];
+}
+
+function n3s_list_setIcon(&$list) {
+    // wnako / dncl / other
+    foreach ($list as &$i) {
+        $icon = isset($i['nakotype']) ? $i['nakotype'] : 'wnako';
+        $i['tag'] = isset($i['tag']) ? $i['tag'] : '';
+        if (strpos($i['tag'], 'DNCL') !== FALSE) {
+            $icon = 'dncl';
+        }
+        if ($icon != 'wnako' && $icon != 'dncl') {
+            $icon = 'other';
+        }
+        $i['icon'] = "images/0-$icon.png";
+    }
 }
