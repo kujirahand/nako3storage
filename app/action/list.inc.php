@@ -134,29 +134,57 @@ function n3s_list_get()
     // --------------------------------------------------------
     // ■ Ranking (トップページだけに表示する)
     // --------------------------------------------------------
-    $ranking = null;
+    $ranking = [];
+    $ranking_all = [];
     if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0) {
         // Nヶ月以内に更新されたアプリ
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
-        $h = $db->prepare('SELECT * FROM apps '.
-            'WHERE (ctime > ?) AND (bad < 2) AND (fav > 0) AND (is_private = 0)'.
-            'ORDER BY fav DESC LIMIT 20');
-        $h->execute([$mtime]);
-        $ranking = $h->fetchAll();
+
+        $ranking_all = db_get('SELECT * FROM apps '.
+            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) '.
+            'ORDER BY fav DESC LIMIT 10', []);
+
+        $ranking = db_get('SELECT * FROM apps '.
+            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 3) AND (is_private = 0) '.
+            'ORDER BY fav DESC LIMIT 25', [$mtime]);
+
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
-        shuffle($ranking);
         // 上位N件を取る
+        shuffle($ranking);
         $ranking = array_splice($ranking, 0, 10);
+        // 重なる投稿を削除
+        $all = [];
+        foreach ($ranking_all as $row) {
+            $flag = TRUE;
+            $all_id = $row['app_id'];
+            foreach ($ranking as $r) {
+                $a_id = $r['app_id'];
+                if ($a_id == $all_id) { $flag = FALSE; break; }
+            }
+            if ($flag) {
+                $all[] = $row;
+            }
+        }
+        shuffle($ranking_all);
+        $ranking_all = array_splice($ranking_all, 0, 5);
     }
+
+    // --------------------------------------------------------
+    // ■ 統計情報
+    // --------------------------------------------------------
+    $row = db_get1('SELECT count(*) FROM apps');
+    $total_post = $row['count(*)'];
 
     return [
         "mode" => $mode,
         "list" => $list,
         "next_url" => $next_url,
         "ranking" => $ranking,
+        "ranking_all" => $ranking_all,
         "find_user_id" => $find_user_id,
         "find_user_info" => $find_user_info,
         "noindex" => $noindex,
+        "total_post" => $total_post,
     ];
 }

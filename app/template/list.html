@@ -1,6 +1,7 @@
 {{ include parts_html_header.html }}
 
 <div class="list info">{{ $top_message | raw }}</div>
+<div class="list info">😀 これまで貯蔵庫に{{ $total_post }}件の投稿がありました!!</div>
 
 {{ if $find_user_id gt 0 }}
   <!-- ユーザー紹介 -->
@@ -22,14 +23,51 @@
   </div>
 {{ endif }}
 
+{{ if $ranking_all && (!isset($app_id) || $app_id eq 0) }}
+  <!-- 偉大な投稿のリスト -->
+  <div class="list" id="ranking_list">
+  <h1>偉大な投稿</h1>
+  <p>
+    これまで投稿された中で偉大な投稿をランダムに表示します。
+    (<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)
+  </p>
+  <table width="100%">
+      <tr>
+          <th>タイトル</th>
+          <th>説明</th>
+      </tr>
+      {{ for $ranking_all as $r }}
+      <tr>
+          <td>
+              <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+              {{if $r.fav gt 0}}
+              <br><span class='memo'>{{$r.fav | star}}</span>
+              {{endif}}
+          </td>
+          <td>
+              {{if $r.user_id gt 0}}
+              <span class="dev">
+                  <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
+              </span>
+              {{else}}
+              <span class="dev">{{$r.author | check_nanasi }} 作</span>
+              {{endif}}
+              <br>
+              <span class="memo">{{$r.memo | trim50 }}</span>
+              <span class="date">({{$r.mtime | date2}})</span><br>
+          </td>
+      </tr>
+      {{ endfor }}
+  </table>
+  <p class="memo" style="text-align:right; padding:0.5em;"><a href="index.php?action=list&mode=ranking">→もっと見る...</a></p>
+  </div><!-- end of #ranking_list -->
+{{ endif /* end of ranking */ }}
+
 {{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
   <!-- 人気のリスト -->
   <div class="list" id="ranking_list">
   <h1>人気の投稿</h1>
-  <p>
-    最近の人気の投稿をランダムに表示します。
-    (<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)
-  </p>
+  <p>最近の人気の投稿をランダムに表示します。</p>
   <table width="100%">
       <tr>
           <th>タイトル</th>
@@ -78,26 +116,30 @@
         <th>説明</th>
     </tr>
     {{ for $list as $r }}
-    <tr>
-        <td>
-            <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
-            {{if $r.fav gt 0}}
-            <br><span class='memo'>{{$r.fav | star}}</span>
-            {{endif}}
-        </td>
-        <td>
-            {{if $r.user_id gt 0}}
-            <span class="dev">
-                <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
-            </span>
-            {{else}}
-            <span class="dev">{{$r.author | check_nanasi }} 作</span>
-            {{endif}}
-            <br>
-            <span class="postmemo">{{$r.memo | trim100 }}</span>
-            <span class="date">({{$r.mtime | date2}})</span><br>
-        </td>
-    </tr>
+      {{ if empty($r['title']) }}
+        <!-- broken data -->
+      {{ else }}
+        <tr>
+            <td>
+                <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+                {{if $r.fav gt 0}}
+                <br><span class='memo'>{{$r.fav | star}}</span>
+                {{endif}}
+            </td>
+            <td>
+                {{if $r.user_id gt 0}}
+                <span class="dev">
+                    <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
+                </span>
+                {{else}}
+                <span class="dev">{{$r.author | check_nanasi }} 作</span>
+                {{endif}}
+                <br>
+                <span class="postmemo">{{$r.memo | trim100 }}</span>
+                <span class="date">({{$r.mtime | date2}})</span><br>
+            </td>
+        </tr>
+      {{ endif }}
     {{ endfor }}
 </table>
 
