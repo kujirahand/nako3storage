@@ -1,6 +1,9 @@
 <?php
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
+define('MAX_MYPAGE_FAV_DEF', 5);
+define('MAX_MYPAGE_APP', 20);
+define('MAX_MYPAGE_MATERIALS', 20);
 
 // no api login
 function n3s_api_mypage()
@@ -32,14 +35,49 @@ function n3s_web_mypage()
     // ユーザー情報を取得
     $user = n3s_get_login_info();
     $user_id = $user['user_id'];
+    // リンクページ
+    $page = empty($_GET['page']) ? 0 : intval($_GET['page']);
+    $offset = MAX_MYPAGE_APP * $page;
+    $link_next_page = n3s_getURL($page + 1, 'mypage');
+    $link_next_material_page = n3s_getURL($page + 1, 'mypage', ['mode' => 'material']);
+    $link_all_fav = n3s_getURL('all', 'mypage', ['fav'=>'all']);
+    $link_mypage = n3s_getURL('all', 'mypage', []);
+    $link_materil = n3s_getURL('all', 'mypage', ['mode' => 'material']);
+    // -----------------------------------
+    // 表示モードの確認
+    // -----------------------------------
+    $mode = empty($_GET['mode']) ? 'mypage' : $_GET['mode'];
+    // 素材ページ
+    if ($mode == 'material') {
+        // 素材一覧
+        $images = db_get(
+            'SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC '.
+            ' LIMIT ? OFFSET ?', 
+            [$user_id, MAX_MYPAGE_MATERIALS, $page]);
+        n3s_template_fw('mymaterial.html', [
+            'user_id' => $user_id,
+            'name' => $user['name'],
+            'logout_url' => $logout_url,
+            'user' => $user,
+            'images' => $images,
+            'url_images' => n3s_get_config('url_images', '/images'),
+            'link_all_fav' => $link_all_fav,
+            'link_next_page' => $link_next_material_page,
+            'link_mypage' => $link_mypage,
+            'link_material' => $link_materil,
+            'page' => $page,
+        ]);
+        return;
+    }
+
     // 作品一覧を取得
-    $apps = db_get('SELECT * FROM apps WHERE user_id=? ORDER BY app_id DESC', [$user_id]);
-    $images = db_get('SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC', [$user_id]);
+    $apps = db_get('SELECT * FROM apps WHERE user_id=? ORDER BY app_id DESC LIMIT ? OFFSET ?', [$user_id, MAX_MYPAGE_APP, $offset]);
     // お気に入り一覧を取得
+    $fav_limit = empty($_GET['fav']) ? MAX_MYPAGE_FAV_DEF : (($_GET['fav'] == 'all') ? 1000 : MAX_MYPAGE_FAV_DEF);
     $bookmark_ids = db_get(
         'SELECT * FROM bookmarks WHERE user_id=? '.
-      'ORDER BY bookmark_id DESC LIMIT 30',
-        [$user_id]
+        'ORDER BY bookmark_id DESC LIMIT ?',
+        [$user_id, $fav_limit]
     );
     $bookmarks = [];
     if ($bookmark_ids) {
@@ -59,8 +97,11 @@ function n3s_web_mypage()
         'apps' => $apps,
         'logout_url' => $logout_url,
         'user' => $user,
-        'images' => $images,
         'url_images' => n3s_get_config('url_images', '/images'),
         'bookmarks' => $bookmarks,
+        'link_all_fav' => $link_all_fav,
+        'link_next_page' => $link_next_page,
+        'page' => $page,
+        'link_material' => $link_materil,
     ]);
 }
