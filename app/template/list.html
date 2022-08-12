@@ -39,7 +39,7 @@
       {{ for $ranking_all as $r }}
       <tr>
           <td>
-              <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
               {{if $r.fav gt 0}}
               <br><span class='memo'>{{$r.fav | star}}</span>
               {{endif}}
@@ -76,7 +76,7 @@
       {{ for $ranking as $r }}
       <tr>
           <td>
-              <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
               {{if $r.fav gt 0}}
               <br><span class='memo'>{{$r.fav | star}}</span>
               {{endif}}
@@ -121,7 +121,7 @@
       {{ else }}
         <tr>
             <td>
-                <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai }}</a>
+                <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
                 {{if $r.fav gt 0}}
                 <br><span class='memo'>{{$r.fav | star}}</span>
                 {{endif}}
