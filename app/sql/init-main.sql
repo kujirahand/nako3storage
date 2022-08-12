@@ -8,7 +8,7 @@ CREATE TABLE info (
 
 CREATE TABLE apps (
   app_id      INTEGER PRIMARY KEY,
-  app_name    TEXT DEFAULT '', /* ユニークなアプリ名(不要な場合空欄にする) */
+  app_name    TEXT DEFAULT '', /* ライブラリ名 | ユニークなアプリ名(不要な場合空欄にする) */
   title       TEXT DEFAULT '(no title)',
   author      TEXT DEFAULT '(no name)',
   user_id     INTEGER DEFAULT 0, /* 0:ユーザー登録なし */
@@ -19,7 +19,7 @@ CREATE TABLE apps (
   version     TEXT DEFAULT '',
   nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako/text/json/base64 */
   custom_head TEXT DEFAULT '', /* カスタムヘッダ */
-  tag         TEXT DEFAULT '',
+  tag         TEXT DEFAULT '', /* (''|DNCL|library|w_noname)+ カンマで区切る */
   editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されていない) */
   need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
   access_key  TEXT DEFAULT '', /* 現在未使用 */
