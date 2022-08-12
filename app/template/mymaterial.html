@@ -1,0 +1,61 @@
+{{ include parts_html_header.html }}
+
+<div class="linkblock">
+  [<a href="{{ $link_mypage }}">私のアプリ</a>]
+  [<a href="{{ $link_material }}">私の素材</a>]
+  [<a href="{{ $link_all_fav }}">お気に入り</a>]
+</div>
+
+<div class="showblock">
+    <h1>
+        {{$user_id}}: {{$name}} さんのマイページ(素材一覧)
+        {{if n3s_is_admin()}}(管理者){{endif}}
+    </h1>
+    <!-- button -->
+    <div>
+      <p style="padding: 4px;">
+        <a href="index.php?action=upload" class="pure-button">🔼 ファイルのアップロード</a>
+      </p>
+    </div>
+</div>
+
+<div class="showblock">
+  <h1><a name="sozai">私の素材一覧</a></h1>
+  <!-- list -->
+  <div>
+    {{ if !$images }}
+      まだ素材をアップロードしていません。
+    {{ else }}
+      <!-- files -->
+      <table>
+        <tr><td>ID</td><td>ファイル名</td></tr>
+        {{ for $images as $i }}
+        <tr>
+          <td>
+            <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
+          </td>
+          <td>
+            {{$i.title}} - 
+            <span class="memo">{{$i.mtime | date2}}</span>
+          </td>
+        </tr>
+        {{ endfor }}
+      </table>
+      {{if $link_next_page != ''}}
+        <div style="padding:6px;">
+          <a href="{{$link_next_page}}" class="pure-button">← 次へ</a>
+        </div>
+      {{endif}}
+    {{ endif }}
+  </div>
+  <!-- /list -->
+<div><!-- /.showblock -->
+
+<div><br/></div>
+<div class="linkblock">
+  [<a href="{{ $link_mypage }}">私のアプリ</a>]
+  [<a href="{{ $link_material }}">私の素材</a>]
+  [<a href="{{ $link_all_fav }}">お気に入り</a>]
+</div>
+
+{{ include parts_html_footer.html }}

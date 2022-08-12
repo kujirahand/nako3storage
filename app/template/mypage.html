@@ -1,9 +1,9 @@
 {{ include parts_html_header.html }}
 
 <div class="linkblock">
-  [<a href="#apps">私のアプリ</a>]
-  [<a href="#sozai">私の素材</a>]
-  [<a href="#fav">最近のお気に入り</a>]
+  [<a href="{{ $link_mypage }}">私のアプリ</a>]
+  [<a href="{{ $link_material }}">私の素材</a>]
+  [<a href="{{ $link_all_fav }}">お気に入り</a>]
 </div>
 
 <div class="showblock">
@@ -13,18 +13,25 @@
     </h1>
 </div>
 
+{{ if $page == 0 }}
 <div class="showblock">
   <h3><a name="fav">最近のお気に入り</a></h3>
   <div class='favblock'>
-    {{ for $bookmarks as $i }}
-    <span>
-      [<a href="id.php?{{$i.app_id}}">
-        {{$i.title}} by {{$i.author}}</a>]
-    </span>
-    {{ endfor }}
+    {{ if !$bookmarks }}
+      まだお気に入りをつけていません。
+    {{ else }}
+      <ul>
+      {{ for $bookmarks as $i }}
+      <li>
+        <a href="id.php?{{$i.app_id}}">{{$i.title}} by {{$i.author}}</a>
+      </li>
+      {{ endfor }}
+      <li><a href="{{ $link_all_fav }}">→全部見る</a> | <a href="index.php?action=mypage">→少なく</a></li>
+      </ul>
+    {{ endif }}
   </div>
 </div>
-
+{{ endif }}
 
 <div class="showblock">
   <h3><a name="apps">投稿したアプリの一覧</a></h3>
@@ -57,65 +64,22 @@
         </tr>
         {{endfor}}
       </table>
+      {{if $link_next_page != ''}}
+        <div style="padding:6px;">
+          <a href="{{$link_next_page}}" class="pure-button">← 次へ</a>
+        </div>
+      {{endif}}
     </div>
   {{else}}
     <div>ありません。</div>
   {{endif}}
 </div>
 
-<div class="showblock">
-  <h3><a name="sozai">私の素材</a></h3>
-  <div>
-    {{ if !$images }}
-      まだ素材をアップロードしていません。
-    {{ else }}
-    <!-- files -->
-    <table>
-      <tr><td>ID</td><td>ファイル名</td></tr>
-      {{ for $images as $i }}
-      <tr>
-        <td>
-          <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
-        </td>
-        <td>
-          {{$i.title}} - 
-          <span class="memo">{{$i.mtime | date2}}</span>
-        </td>
-      </tr>
-      {{ endfor }}
-    </table>
-    {{ endif }}
-  </div>
-  <div>
-    <!-- button -->
-    <p style="padding-left: 1em;">
-      <a href="index.php?action=upload" class="pure-button">👆ファイルのアップロード</a>
-    </p>
-  </div>
+<div class="linkblock">
+  [<a href="{{ $link_mypage }}">私のアプリ</a>]
+  [<a href="{{ $link_material }}">私の素材</a>]
+  [<a href="{{ $link_all_fav }}">お気に入り</a>]
 </div>
-    
-<div class="showblock" style="border-top: 1px dotted silver;">
-    <div style="padding:1em;">
-        <div>
-            <a class="pure-button" href="{{$logout_url}}">ログアウト</a>
-            <!-- img src="{{$user.profile_url}}" width="48" -->
-        </div>
-    </div>
-</div>
-
-<script>
-function checkDelete(image_id) {
-    const n = confirm('ID:' + image_id + 'のファイルを削除しますが良いですか？')
-    if (!n) {
-        alert('削除しません😃')
-        return
-    }
-    // delete image
-    const tm = Math.floor((new Date()).getTime() / 1000)
-    location.href = "index.php?action=upload&mode=delete&image_id=" + image_id + '&tm=' + tm
-}
-</script>
-
 
 
 {{ include parts_html_footer.html }}
