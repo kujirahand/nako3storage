@@ -1,0 +1,70 @@
+{{ include parts_html_header.html }}
+
+<div class="list" id="recent_list">
+  <h1>ライブラリの一覧 (人気順) </h1>
+  <div class="memo" style="padding:8px;">
+    なでしこのライブラリ(🔌プラグイン)を作る方法が<a href="https://nadesi.com/v3/doc/index.php?FAQ%2Fplugins">こちら</a>に書かれています。
+  </div>
+{{ if count($list) == 0 }}
+  <div class="showblock">😔 見つかりませんでした。</div>
+{{ else }}
+<table width="100%">
+    <tr>
+        <th>ライブラリ名</th>
+        <th>説明</th>
+    </tr>
+    {{ for $list as $r }}
+      {{ if empty($r['title']) }}
+        <!-- broken data -->
+      {{ else }}
+        <tr>
+            <td>
+                <a href="id.php?{{$r.app_id}}">
+                  📙 {{ $r.app_name | check_mudai }}{{ $r.ext }}<br>
+                  {{$r.title | check_mudai }}
+                </a>
+                {{if $r.fav gt 0}}
+                <br><span class='memo'>{{$r.fav | star}}</span>
+                {{endif}}
+            </td>
+            <td>
+                <span class="dev">[{{ $r.nakotype }}]</span>
+                {{if $r.user_id gt 0}}
+                <span class="dev">
+                    <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
+                </span>
+                {{else}}
+                <span class="dev">{{$r.author | check_nanasi }} 作</span>
+                {{endif}}
+                <br>
+                <span class="postmemo">{{$r.memo | trim100 }}</span>
+                <span class="date">({{$r.mtime | date2}})</span><br>
+            </td>
+        </tr>
+      {{ endif }}
+    {{ endfor }}
+</table>
+
+  {{ if $next_url }}
+  <div class="next_button_div">
+      <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
+  </div>
+  {{ endif }}
+{{ endif }}
+
+<div class="addon_block">
+  <ul>
+    <li><a href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a></li>
+    {{if n3s_is_login()}}
+    <li><a href="index.php?action=mypage&page=my">🐕自分の投稿(マイページ)を表示</a></li>
+    {{endif}}
+    <li>
+      <a href="index.php?action=list&onlybad=1&noindex=1">😭問題投稿のみ</a> /
+      <a href="index.php?action=list&nofilter=1&noindex=1">問題込みで表示</a>
+    </li>
+  </ul>
+</div><!-- /addon_block -->
+
+</div><!-- end of #recent_list -->
+{{ include parts_html_footer.html }}
+
