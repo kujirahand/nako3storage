@@ -28,8 +28,13 @@
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
       <!-- widget -->
+      {{ if $is_private == 1 }}
+      <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
+      {{ else }}
       <iframe id="iframe_contents" src="{{ $sandbox_url }}"
         sandbox="allow-scripts allow-forms allow-downloads allow-same-origin allow-modals"></iframe>
+      {{ endif }}
+      <!-- /widget -->
     {{ else }}
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
@@ -79,6 +84,8 @@
     {{endif}}
   </ul>
 
+  <!-- .fav_block-->
+  {{ if $is_private == 0 }}
   <div class="fav_block" style="border:1px dotted silver;">
     {{if n3s_is_login()}}
     <button id="fav_button" class="pure-button"
@@ -107,8 +114,9 @@
     <a class="pure-button" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&text=@{{$screen_name}}%20{{$title}}%20#なでしこさん">Twitterへ投稿</a>
     {{endif}}
   </div>
-</div>
-
+  {{ endif }}
+  <!-- /.fav_block-->
+</div><!-- /.showblock-->
 
 <!-- 編集ボタン(ログインしてなくても編集することはある) -->
 <div class="ctrl_block">
