@@ -50,6 +50,7 @@ function n3s_library_get()
             default: break;
         }
     }
+    n3s_list_setIcon($list);
     // next
     $next_url = n3s_getURL(($page + 1), 'library', []);
 
