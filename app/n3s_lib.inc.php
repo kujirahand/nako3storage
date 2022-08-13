@@ -425,3 +425,18 @@ EOS;
     );
     return $app_id;
 }
+
+function n3s_list_setIcon(&$list) {
+    // wnako / dncl / other
+    foreach ($list as &$i) {
+        $icon = isset($i['nakotype']) ? $i['nakotype'] : 'wnako';
+        $i['tag'] = isset($i['tag']) ? $i['tag'] : '';
+        if (strpos($i['tag'], 'DNCL') !== FALSE) {
+            $icon = 'dncl';
+        }
+        if ($icon != 'wnako' && $icon != 'dncl') {
+            $icon = 'other';
+        }
+        $i['icon'] = "images/0-$icon.png";
+    }
+}
