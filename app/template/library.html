@@ -20,15 +20,15 @@
         <tr>
             <td>
                 <a href="id.php?{{$r.app_id}}">
-                  📙 {{ $r.app_name | check_mudai }}{{ $r.ext }}<br>
+                  <img src="{{ $r.icon }}" width="32">
                   {{$r.title | check_mudai }}
+                  <span class="dev">[{{ $r.nakotype }}]</span>
                 </a>
                 {{if $r.fav gt 0}}
                 <br><span class='memo'>{{$r.fav | star}}</span>
                 {{endif}}
             </td>
             <td>
-                <span class="dev">[{{ $r.nakotype }}]</span>
                 {{if $r.user_id gt 0}}
                 <span class="dev">
                     <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
@@ -39,6 +39,7 @@
                 <br>
                 <span class="postmemo">{{$r.memo | trim100 }}</span>
                 <span class="date">({{$r.mtime | date2}})</span><br>
+                <span class="dev">{{ $r.app_name | check_mudai }}{{ $r.ext }}</span>
             </td>
         </tr>
       {{ endif }}
