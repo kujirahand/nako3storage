@@ -169,7 +169,6 @@ function setupEditorSize() {
     };
   }
 
-
   // isIE
   if (isIE()) {
     sizeSwitch.style.display = 'none';
@@ -281,6 +280,7 @@ function saveClick(checkLength) {
     cols.forEach(key => {
       qid('save_form_' + key).value = localStorage['n3s_' + key]
     });
+    askBeforeUnload = false
     qid('n3s_save_form').submit()
   }
 }

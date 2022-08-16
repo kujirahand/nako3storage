@@ -147,6 +147,15 @@ const nako_version = '{{ $version }}' + '.0.0.0' // 古いバージョンを考�
 const newNakoVersion = '{{ $newNakoVersion }}'
 const runbox_c = document.getElementById('runbox')
 runbox_c.style.display = 'none'
+
+// 移動前の確認
+let askBeforeUnload = true
+window.addEventListener('beforeunload', function(event) {
+  if (askBeforeUnload) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
