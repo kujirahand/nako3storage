@@ -2,6 +2,10 @@
 // =======================================
 // エディタ＋表示ページで表示する際に使うファイル
 // =======================================
+// 各種設定オブジェクト
+const config = {
+  'editLayout': 'UD' // UD 上下 / LR 左右
+}
 // IE対策
 var isIE = function() {
   var userAgent = window.navigator.userAgent.toUpperCase();
@@ -13,9 +17,9 @@ var isIE = function() {
   return msie
 }
 // AceEditorを使う
-var useAce = !isIE() 
-var initAce = false
-var qid = function (id) { return document.getElementById(id) }
+let useAce = !isIE() 
+let initAce = false
+const qid = function (id) { return document.getElementById(id) }
 // ライブラリ読み込みに失敗してもgetValueが使えるようにする
 var setValue = null
 var getValue = function () { return qid('nako3code').value } 
@@ -144,6 +148,27 @@ function setupEditorSize() {
       setupEditor()
     };
   }
+
+  // edit-layout-lr
+  const editLayoutButton = document.querySelector('#editLayoutButton');
+  if (editLayoutButton) {
+    const nako3code = qid('nako3code')
+    const runbox = qid('runbox')
+    editLayoutButton.onclick = function () {
+      if (config.editLayout == 'UD') {
+        config.editLayout = 'LR'
+        editLayoutButton.innerHTML = '(→上下に配置)'
+        qid('edit-layout-l').appendChild(nako3code)
+        qid('edit-layout-r').appendChild(runbox)
+      } else {
+        config.editLayout = 'UD'
+        editLayoutButton.innerHTML = '(→左右に配置)'
+        qid('edit-layout-u').appendChild(nako3code)
+        qid('edit-layout-d').appendChild(runbox)
+      }
+    };
+  }
+
 
   // isIE
   if (isIE()) {
