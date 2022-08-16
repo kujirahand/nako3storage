@@ -24,39 +24,54 @@
     </h1>
     <p class="memo">{{ $memo }}</p>
   </div>
-  <div>
+  <div id="edit-layout-header">
     <label>プログラム:
       <span id="sizeSwitch">(→大)</span>
       <span id="editSwitch">(→textarea)</span>
-      <br />
+      <span id="editLayoutButton">(→左右に配置)</span>
+    </label>
+  </div>
+  <!-- 上下レイアウト-->
+  <div id="edit-layout-ud" class="">
+    <div id="edit-layout-u">
       <textarea id="nako3code">{{ $body }}</textarea>
-    </label><br />
+    </div>
+    <div id="edit-layout-u2">
+      <div id="controll_buttons">
+        <span style="float:left;">
+          <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
+          <button id="clearButton" class="pure-button">クリア</button>
+        </span>
+        <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
+            キャンバス:
+            幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3">×
+            高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
+        </span>
+        <div style="clear:both;"></div>
+      </div><!-- /#controll_buttons -->
+    </div>
+    <div id="edit-layout-d">
+      <div id="runbox">
+        <!-- 3.1.19以上 -->
+        <div id="nako3_output" style="display:none"></div>
+        <!-- 3.1.18以下 -->
+        <div id="nako3_error" style="display:none"></div> 
+        <!-- info box -->
+        <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
     
-    <div id="controll_buttons">
-      <span style="float:left;">
-        <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
-        <button id="clearButton" class="pure-button">クリア</button>
-      </span>
-      <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
-          キャンバス:
-          幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3">×
-          高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
-      </span>
-    </div><!-- /#controll_buttons -->
-    <div style="clear:both;"></div>
-    
-    <div id="runbox">
-      <!-- 3.1.19以上 -->
-      <div id="nako3_output" style="display:none"></div>
-      <!-- 3.1.18以下 -->
-      <div id="nako3_error" style="display:none"></div> 
-      <!-- info box -->
-      <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
-  
-      <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
-      <div id='nako3_div' class='nako3_div'></div>
+        <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
+        <div id='nako3_div' class='nako3_div'></div>
+      </div>
     </div>
   </div>
+  <!-- /上下レイアウト-->
+
+  <!-- 左右レイアウト -->
+  <div id="edit-layout-lr" class="pure-g">
+    <div id="edit-layout-l" class="pure-u-1-2"></div>
+    <div id="edit-layout-r" class="pure-u-1-2"></div>
+  </div>
+  <!-- /左右レイアウト -->
 </div>
 
 <!-- 編集ボタン -->
