@@ -32,7 +32,7 @@
       <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
       {{ else }}
       <iframe id="iframe_contents" src="{{ $sandbox_url }}"
-        sandbox="allow-scripts allow-forms allow-downloads allow-same-origin allow-modals"></iframe>
+        sandbox="allow-modals allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-downloads"></iframe>
       {{ endif }}
       <!-- /widget -->
     {{ else }}
