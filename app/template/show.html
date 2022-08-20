@@ -31,8 +31,7 @@
       {{ if $is_private == 1 }}
       <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
       {{ else }}
-      <iframe id="iframe_contents" src="{{ $sandbox_url }}"
-        sandbox="allow-modals allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-downloads"></iframe>
+      <iframe id="iframe_contents" src="{{ $sandbox_url }}" sandbox="{{$sandbox_params}}"></iframe>
       {{ endif }}
       <!-- /widget -->
     {{ else }}

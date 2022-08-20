@@ -15,7 +15,7 @@
     </style>
     </head>
     <body>
-        <iframe id="iframe_contents" src="{{ $iframe_url }}" sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-downloads"></iframe>
+        <iframe id="iframe_contents" src="{{ $iframe_url }}" sandbox="{{$sandbox_params}}"></iframe>
         <script>
         // iframe の高さを調整
         window.addEventListener('message', function(e) {
