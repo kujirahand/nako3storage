@@ -101,7 +101,7 @@
     {{ if !$mute_title }}
     {{ if !$w_noname }}
     <div class="memo">
-      <a href="id.php?{{$app_id}}">{{$title | check_mudai}}</a>
+      <a href="{{$app_root_url}}id.php?{{$app_id}}" target="_new">{{$title | check_mudai}}</a>
       {{if $mute_name eq 0}}by {{$author}}
       <!-- ({{$mtime | datetime}}){{endif}} -->
     </div>
