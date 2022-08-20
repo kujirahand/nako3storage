@@ -1,7 +1,5 @@
 <?php
-// widget は外部から読み込まれるので SAMEORIGIN だと動かない
-// for clickjacking
-// header('X-Frame-Options: SAMEORIGIN');
+include_once __DIR__ . '/widget_frame.inc.php';
 
 // * <iframe>のsandboxを使う (#132)
 // widget.inc.php => widget_frame.html [iframe.src=action=widget_frame]
@@ -9,7 +7,9 @@
 
 function n3s_web_widget()
 {
-    $a = [];
+    // get from database
+    $a = n3s_show_get('web', false);
+    n3s_widgetd_check_private($a);
     // run mode?
     $run = $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
     $mute_name = $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
