@@ -40,6 +40,9 @@ $n3s_config = [
     // for analytics
     "analytics" => "",
     // sandbox
-    // "sandbox_url" => "http://localhost/nako3storage/", // example
+    // "sandbox_url" => "https://n3s-sandbox.nadesi.com/", // 末尾にスラッシュをいれること!!
     "sandbox_url" => "", 
+    // "app_root_url" => "https://n3s.nadesi.com/", // 末尾にスラッシュを入れること!!
+    "app_root_url" => "http://localhost/repos/nako3storage/",
+    "sandbox_params" => "allow-modals allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-downloads",
 ];
