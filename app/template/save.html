@@ -96,7 +96,9 @@
           {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
           <select id="is_private" name="is_private">
             <option value="0" {{$is_private0}}>作品を公開</option>
+            {{if ($is_private == 1) || ($user_id > 0) }}
             <option value="1" {{$is_private1}}>非公開</option>
+            {{endif}}
             <option value="2" {{$is_private2}}>限定的に公開</option>
           </select>
         </label>
