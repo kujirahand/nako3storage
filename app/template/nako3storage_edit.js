@@ -56,7 +56,7 @@ function setupAceEditor() {
     editorObjects.editor.setReadOnly(true)
   }
   editorObjects.editor.on("change", function(e) {
-    localStorage["n3s_save_body"] = editorObjects.editor.getValue()
+    localStorage["n3s_body"] = editorObjects.editor.getValue()
   })
   setValue = function(text) { editorObjects.editor.setValue(text) }
   getValue = function() { return editorObjects.editor.getValue() }
@@ -79,7 +79,7 @@ function setupTextEditor() {
   }
   const nako3code = qid('nako3code')
   nako3code.addEventListener("change", function(e) {
-    localStorage["n3s_save_body"] = nako3code.value
+    localStorage["n3s_body"] = nako3code.value
   })
   setValue = function(text) {
     nako3code.value = text 
@@ -118,7 +118,7 @@ function setupShortcut() {
   if (recover_btn) {
     recover_btn.onclick = function () {
       if (!localStorage['n3s_body']) {
-        alert('直前に何も一時保存していません。')
+        alert('直前に何も一保存していません。')
         return
       }
       const b = confirm('本当に復元しますか？')
@@ -133,7 +133,7 @@ function setupEditorSize() {
   const sizeSwitch = document.querySelector('#sizeSwitch');
   const nako3code = document.querySelector('#nako3code');
   const full_h = '25em';
-  const mini_h = '10em';
+  const mini_h = '15em';
   nako3code.style.height = mini_h
   sizeSwitch.onclick = function () {
     if (nako3code.style.height == full_h) {
@@ -318,13 +318,14 @@ function saveAppData(checkLength) {
   // 保存したデータを復元できることを強調
   console.log('save to temp')
   const recover_btn = document.querySelector('#recover_btn')
+  const tempInfoLabel = document.querySelector('#tempInfoLabel')
   if (recover_btn) {
     recover_btn.style.backgroundColor = 'yellow';
-    const t = new Date()
-    document.querySelector('#tempSaveLabel').innerHTML = '(保存:' + t.getHours() + ':' + t.getMinutes() + ':' + t.getSeconds() + ')'
+    tempInfoLabel.innerHTML = '一時保存しました'
     setTimeout(() => {
       recover_btn.style.backgroundColor = 'white';
-    }, 300)
+      tempInfoLabel.innerHTML = ''
+    }, 600)
   }
   return true
 }
