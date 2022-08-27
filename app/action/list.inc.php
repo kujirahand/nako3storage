@@ -80,9 +80,8 @@ function n3s_list_get()
     // 検索モードか？
     if (!empty($n3s_config['search_word'])) {
         // 検索モードの場合
-        $wheres[] = 'author = ? OR title LIKE ?';
+        $wheres[] = 'author = ?';
         $statements[] = $n3s_config['search_word'];
-        $statements[] = "%".$n3s_config['search_word']."%";
         $mode = 'search'; // 必ず検索モードにする
     }
     // 非公開投稿は表示しない

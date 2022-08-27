@@ -8,7 +8,7 @@
       <div class="search_box">
         <input title="search word" name="search_word"
             class="pure-input"
-            placeholder="作者か作品名を入力" 
+            placeholder="キーワードを入力" 
             value="{{ $search_word }}" size="28">
         <input type="submit" value="検索" class="pure-button">
         <input type="hidden" name="action" value="search">
@@ -17,14 +17,23 @@
         <label class="pure-radio">
           <input type="radio" name="target" value="normal"
             {{if $target eq 'normal'}}checked="true"{{endif}}>
-          作品名と作者
+          作品名やタグから探す
+        </label>
+        <label class="pure-radio">
+          <input type="radio" name="target" value="author"
+            {{if $target eq 'author'}}checked="true"{{endif}}>
+          作者から探す
+        </label>
+        <label class="pure-radio">
+          <input type="radio" name="target" value="tag"
+            {{if $target eq 'tag'}}checked="true"{{endif}}>
+          タグから探す
         </label>
         <label class="pure-radio">
           <input type="radio" name="target" value="program"
             {{if $target eq 'program'}}checked="true"{{endif}}>
-          プログラム
+          プログラムから探す
         </label>
-        </div>
       </div>
     </fieldset>
   </form>
@@ -52,6 +61,7 @@
         <a href="index.php?action=show&page={{$i.app_id}}">
           🌲{{$i.title | check_mudai}}</a>
         {{if $i.fav > 0}}⭐{{$i.fav}}{{endif}}
+        <span class="memo">{{$i.tag}}</span>
       </div>
       <div class="search_info">
         <div>
