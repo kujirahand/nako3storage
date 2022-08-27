@@ -117,8 +117,8 @@ function setupShortcut() {
   const recover_btn = document.querySelector('#recover_btn')
   if (recover_btn) {
     recover_btn.onclick = function () {
-      if (!localStorage['nako3storage_temp']) {
-        alert('直前に何も実行していません。')
+      if (!localStorage['n3s_body']) {
+        alert('直前に何も一時保存していません。')
         return
       }
       const b = confirm('本当に復元しますか？')
