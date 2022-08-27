@@ -17,6 +17,7 @@ function n3s_list_search()
         
     $n3s_config['search_word'] = $search_word = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
     $target = isset($_GET['target']) ? $_GET['target'] : 'normal';
+    $offset = intval(isset($_GET['offset']) ? $_GET['offset'] : '0');
     $error = '';
     if (mb_strlen($search_word) < 3) {
         $error = '検索語は3文字以上で指定してください。';
@@ -36,19 +37,49 @@ function n3s_list_search()
         $search_wc = "%{$search_word}%";
     }
     
-    // 作者名かタイトルで検索
+    // タイトルで検索
+    $list = [];
     if ($target == 'normal') {
         $sql =
           'SELECT * FROM apps '.
           'WHERE '.
-          '  (author=? OR title LIKE ?)'.
+          '  (title LIKE ? OR tag LIKE ?)'.
           '  AND(is_private=0) '.
-          'ORDER BY fav DESC '.
-          'LIMIT ?';
+          'ORDER BY fav DESC, app_id DESC '.
+          'LIMIT ? OFFSET ?';
+        $list = db_get($sql, [
+            $search_wc,
+            $search_wc,
+            $MAX_APP,
+            $offset
+          ]);
+    }
+    elseif ($target == 'tag') {
+        $sql =
+          'SELECT * FROM apps '.
+          'WHERE '.
+          '  (tag LIKE ?)'.
+          '  AND(is_private=0) '.
+          'ORDER BY fav DESC, app_id DESC '.
+          'LIMIT ? OFFSET ?';
+        $list = db_get($sql, [
+            $search_wc,
+            $MAX_APP,
+            $offset
+          ]);
+    }
+    elseif ($target == 'author') {
+        $sql =
+          'SELECT * FROM apps '.
+          'WHERE '.
+          '  (author=?)'.
+          '  AND(is_private=0) '.
+          'ORDER BY fav DESC, app_id DESC '.
+          'LIMIT ? OFFSET ?';
         $list = db_get($sql, [
             $search_word,
-            $search_wc,
-            $MAX_APP
+            $MAX_APP,
+            $offset
           ]);
     }
     // プログラムを全部検索
