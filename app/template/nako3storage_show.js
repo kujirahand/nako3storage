@@ -112,7 +112,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
   // 空なら実行しない
   if (code == '') {return}
   // 万が一のためにコードをlocalStorageに保存
-  localStorage['nako3storage_temp'] = code
+  localStorage['n3s_body'] = code
   
   // デフォルトコードを追加する
   var div_name = '#nako3_div'
