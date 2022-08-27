@@ -106,6 +106,12 @@ function setupShortcut() {
         const clearButton = document.getElementById('clearButton')
         clearButton.click()
         break;
+      case 'KeyS':
+        if (e.metaKey || e.ctrlKey) {
+          e.preventDefault()
+          tmepSaveClick()
+        }
+        console.log(e)
     }
   });
   const recover_btn = document.querySelector('#recover_btn')
@@ -117,7 +123,7 @@ function setupShortcut() {
       }
       const b = confirm('本当に復元しますか？')
       if (!b) { return }
-      setValue(localStorage['nako3storage_temp'])
+      setValue(localStorage['n3s_body'])
     }
   }
 }
@@ -285,6 +291,10 @@ function saveClick(checkLength) {
   }
 }
 
+function tmepSaveClick() {
+  saveAppData(false)
+}
+
 function saveAppData(checkLength) {
   // 本文データを取得
   let body = ''
@@ -305,6 +315,17 @@ function saveAppData(checkLength) {
   localStorage["n3s_canvas_w"] = canvas_w_txt.value
   localStorage["n3s_canvas_h"] = canvas_h_txt.value
   localStorage["n3s_version"] = document.querySelector('#forceNakoVer').value
+  // 保存したデータを復元できることを強調
+  console.log('save to temp')
+  const recover_btn = document.querySelector('#recover_btn')
+  if (recover_btn) {
+    recover_btn.style.backgroundColor = 'yellow';
+    const t = new Date()
+    document.querySelector('#tempSaveLabel').innerHTML = '(保存:' + t.getHours() + ':' + t.getMinutes() + ':' + t.getSeconds() + ')'
+    setTimeout(() => {
+      recover_btn.style.backgroundColor = 'white';
+    }, 300)
+  }
   return true
 }
 

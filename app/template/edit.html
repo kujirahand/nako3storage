@@ -41,6 +41,7 @@
         <span style="float:left;">
           <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
           <button id="clearButton" class="pure-button">クリア</button>
+          <button id="tempSaveButton" class="pure-button" onclick="tmepSaveClick()">一時保存</button>
         </span>
         <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
             キャンバス:
@@ -91,7 +92,9 @@
   {{endif}}
   
   <!-- 復元ボタン -->
-  <p style="text-align:right;font-size:0.7em;"><a name="recover_btn" href="#" id="recover_btn">→直前に実行したプログラムを復元</a></p>
+  <p style="text-align:right;font-size:0.7em;">
+    <a name="recover_btn" href="#" id="recover_btn">
+    →直前に実行(または一時保存)した内容を復元<span id="tempSaveLabel"></span></a></p>
   <!-- なでしこバージョン変更ボタン -->
   <p style="text-align:right;font-size:0.7em;">なでしこバージョン: v
     <input id="forceNakoVer" type="text" value="{{$version}}" onchange="changeNakoVersion()"/>
