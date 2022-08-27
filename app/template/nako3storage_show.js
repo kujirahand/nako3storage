@@ -150,7 +150,9 @@ F=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定']
         }
       } else {
         const logger = nako3.replaceLogger()
-        logger.addListener('info', (html) => { nako3_print(html) })
+        logger.addListener('info', (html) => { 
+          nako3_print(html.noColor, nako3) 
+        })
         const promise = nako3.loadDependencies(preCode + code, 'main', preCode)
           .then(()=>{
             nako3.runReset(preCode + code, 'main', preCode)
