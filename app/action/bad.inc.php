@@ -64,6 +64,7 @@ function echo_bad()
                 // 通報があった旨をメールする
                 $admin_email = n3s_get_config('admin_email', '');
                 if ($admin_email != '') {
+                    $app_root_url = n3s_get_config('app_root_url', 'http://'.$_SERVER['HTTP_HOST'].'/');
                     $mail_from = n3s_get_config('mail_from', $admin_email);
                     $header = "".
                         "From: $mail_from\r\n".
@@ -73,7 +74,7 @@ function echo_bad()
                     $body = "■通報情報:\r\n".
                         "(app_id: $app_id) {$title} by {$author}\r\n".
                         "→通報者: {$ip}\r\n".
-                        "https://n3s.nadesi.com/id.php?{$app_id}\r\n";
+                        "{$app_root_url}id.php?{$app_id}\r\n";
                     @mb_send_mail($admin_email, $subject, $body, $header);
                 }
             }
