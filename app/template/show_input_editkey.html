@@ -1,30 +1,25 @@
-{{ include parts_html_header.html }}
+<html><head><meta charset="utf-8">
+  <title>{{$app_id}}のキー入力画面</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="skin/def/pure-min.css">
+  <link rel="stylesheet" href="index.php?action=file&page=basic.css&m={{ $n3s_css_mtime }}">
+</head>
+<body>
 
 <div class="saveform">
-  <h1>投稿 {{ $app_id }} は非公開です。</h1>
-  <div style="padding-left:1em;">編集か閲覧を行うには、「限定公開キー」(あるいは「編集キー」)が必要です。
-    キーを入力してください。</div><br>
+  <h1>作品 {{ $app_id }} は限定公開です</h1>
   <div style="padding:1em; border: 1px solid silver; background-color: #fff0f0;">
-    <p>プログラムを<b>閲覧</b>する場合：</p>
-    <form action="index.php" method="GET">
-      <input type="hidden" name="action" value="show">
+      <div style="padding-left:1em;">閲覧するには「編集キー」が必要です。</div>
+      <form action="index.php" method="GET">
+      <input type="hidden" name="action" value="{{$action}}">
       <input type="hidden" name="page" value="{{$app_id}}">
       <input type="password" name="editkey" value="">
       <input class="pure-button pure-button-primary" type="submit" value="閲覧" style="width:6em;">
     </form>
   </div>
-  <br>
-  <div style="padding:1em; border: 1px solid silver; background-color: #fff0f0;">
-    <p>プログラムを<b>編集</b>する場合：</p>
-    <form action="index.php" method="GET">
-      <input type="hidden" name="action" value="edit">
-      <input type="hidden" name="page" value="{{$app_id}}">
-      <input type="password" name="editkey" value="">
-      <input class="pure-button" type="submit" value="編集" style="width:6em;">
-    </form>
-  </div>
-  <p>※なお、キーは投稿者の『{{ $author }}』さんに尋ねてください。</p>
+  <p>※なお、キーは作者の『{{ $author }}』さんに尋ねてください。</p>
   <p>※また、限定公開にした場合、本ページは<a href='index.php?action=list' target="_new">プログラム一覧</a>に表示されません。必要に応じてこのページをブックマークしておくと良いでしょう。</p>
 </div>
 
-{{ include parts_html_footer.html }}
+</body>
+</html>
