@@ -37,6 +37,8 @@ function echo_bad()
                 return;
             }
             $ip = $_SERVER["REMOTE_ADDR"];
+            $title = $r['title'];
+            $author = $r['author'];
             // for test ?
             $ip_a = explode('.', $ip.'.0.0.0.0');
             if (($ip_a[0] === '192' && $ip_a[1] === '168') ||
@@ -69,8 +71,9 @@ function echo_bad()
                         "Content-Transfer-Encoding: 8bit\r\n";
                     $subject = "[nako3storage] 通報がありました";
                     $body = "■通報情報:\r\n".
-                        "(app_id: $app_id) {$r['title']} by {$r['author']}\r\n".
-                        "→通報者: {$ip}\r\n";
+                        "(app_id: $app_id) {$title} by {$author}\r\n".
+                        "→通報者: {$ip}\r\n".
+                        "https://n3s.nadesi.com/id.php?{$app_id}\r\n";
                     @mb_send_mail($admin_email, $subject, $body, $header);
                 }
             }
