@@ -8,43 +8,25 @@ function n3s_web_list()
     n3s_template_fw('list.html', $r);
 }
 
-// Web API向けのアクセスがあったとき
-function n3s_api_list()
-{
-    $r = n3s_list_get();
-    $res = array();
-    foreach ($r['list'] as $row) {
-        $res[] = array(
-            "app_id" => $row['app_id'],
-            "title" => $row['title'],
-            "user_id" => $row['user_id'],
-            "author" => $row['author'],
-            "memo" => $row['memo'],
-            "mtime" => $row['mtime'],
-        );
-    }
-    n3s_api_output(true, array(
-        "list" => $res
-    ));
-}
-
 // 一覧に表示するデータを取得する
 function n3s_list_get()
 {
     global $n3s_config;
-
-    // get parameters
-    $n3s_config['search_word'] = $search = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
-    $nofilter = empty($_GET['nofilter']) ? 0 : (int) ($_GET['nofilter']);
-    $onlybad = empty($_GET['onlybad']) ? 0 : (int) ($_GET['onlybad']);
-    $find_user_id = empty($_GET['user_id']) ? 0 : (int) ($_GET['user_id']);
+    // --------------------------------------------------------
+    // URLパラメータの取得
+    // --------------------------------------------------------
     $mode = empty($_GET['mode']) ? 'list' : $_GET['mode'];
-    $noindex = empty($_GET['noindex']) ? 0 : (int) ($_GET['noindex']);
-    if (! empty($search)) {
-        $mode = "search";
-    }
-    if ($onlybad || $nofilter) {
+    $nofilter = empty($_GET['nofilter']) ? 0 : intval($_GET['nofilter']);
+    $onlybad = empty($_GET['onlybad']) ? 0 : intval($_GET['onlybad']);
+    $find_user_id = empty($_GET['user_id']) ? 0 : intval($_GET['user_id']);
+    $noindex = empty($_GET['noindex']) ? 0 : intval($_GET['noindex']);
+    if ($onlybad || $nofilter) { // サーチエンジンから検索されないようにする
         $noindex = 1;
+    }
+    // 検索のページャーのため
+    $app_id = intval(empty($n3s_config['app_id']) ? 0 : $_GET['app_id']);
+    if ($app_id <= 0) {
+        $app_id = PHP_INT_MAX;
     }
 
     // --------------------------------------------------------
@@ -57,10 +39,6 @@ function n3s_list_get()
     // オプションを確認して条件などを設定
     // --------------------------------------------------------
     // list (app_id for list pager)
-    $app_id = (int) (empty($n3s_config['app_id']) ? 0 : $n3s_config['app_id']);
-    if ($app_id <= 0) {
-        $app_id = PHP_INT_MAX;
-    }
     $wheres = array('app_id <= ?', 'tag != "w_noname"');
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
@@ -77,13 +55,6 @@ function n3s_list_get()
         $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id]);
     }
     $statements = array($app_id);
-    // 検索モードか？
-    if (!empty($n3s_config['search_word'])) {
-        // 検索モードの場合
-        $wheres[] = 'author = ?';
-        $statements[] = $n3s_config['search_word'];
-        $mode = 'search'; // 必ず検索モードにする
-    }
     // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';
     $statements[] = MAX_APP;
@@ -94,7 +65,7 @@ function n3s_list_get()
     // --------------------------------------------------------
     if ($mode === 'list' || $mode === 'search') { // 通常 or 検索モード
         $h = $db->prepare(
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY app_id DESC LIMIT ?'
         );
@@ -192,3 +163,23 @@ function n3s_list_get()
     ];
 }
 
+// Web API向けのアクセスがあったとき
+function n3s_api_list()
+{
+    $r = n3s_list_get();
+    $res = array();
+    foreach ($r['list'] as $row) {
+        // 必要なデータだけを選んで出力する
+        $res[] = array(
+            "app_id" => $row['app_id'],
+            "title" => $row['title'],
+            "user_id" => $row['user_id'],
+            "author" => $row['author'],
+            "memo" => $row['memo'],
+            "mtime" => $row['mtime'],
+        );
+    }
+    n3s_api_output(true, array(
+        "list" => $res
+    ));
+}

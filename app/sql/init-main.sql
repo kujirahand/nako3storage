@@ -13,10 +13,10 @@ CREATE TABLE apps (
   author      TEXT DEFAULT '(no name)',
   user_id     INTEGER DEFAULT 0, /* 0:ユーザー登録なし */
   email       TEXT DEFAULT '',
-  url         TEXT DEFAULT '',
-  memo        TEXT DEFAULT '',
+  url         TEXT DEFAULT '', /* 関連URL */
+  memo        TEXT DEFAULT '', /* プログラムのコメント */
   material_id INTEGER DEFAULT 0,
-  version     TEXT DEFAULT '',
+  version     TEXT DEFAULT '', /* なでしこのどのバージョンを使うか */
   nakotype    TEXT DEFAULT 'wnako', /* wnako/cnako/text/json/base64 */
   custom_head TEXT DEFAULT '', /* カスタムヘッダ */
   tag         TEXT DEFAULT '', /* (''|DNCL|library|w_noname)+ カンマで区切る */
@@ -26,7 +26,7 @@ CREATE TABLE apps (
   is_private  INTEGER DEFAULT 0, /* 0:public 1:private 2:limited */
   ref_id      INTEGER DEFAULT 0,
   ip          TEXT DEFAULT '',
-  fav         INTEGER DEFAULT 0, /* いいね */
+  fav         INTEGER DEFAULT 0, /* いいねの数 */
   fav_lastip  TEXT DEFAULT '', /* 最後にいいねした人のIP */
   view        INTEGER DEFAULT 0, /* 閲覧数 */
   canvas_w    INTEGER DEFAULT 300,
