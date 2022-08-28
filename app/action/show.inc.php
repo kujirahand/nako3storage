@@ -3,7 +3,7 @@ include_once dirname(__FILE__) . '/save.inc.php';
 
 function n3s_web_show()
 {
-    $a = n3s_show_get('web', true, true);
+    $a = n3s_show_get('show', 'web', true, true);
     $page = empty($_GET['page']) ? '0' : $_GET['page'];
     $editkey = empty($_GET['editkey']) ? '' : $_GET['editkey'];
     $sandbox_url = n3s_get_config('sandbox_url', '');
@@ -14,7 +14,7 @@ function n3s_web_show()
 
 function n3s_api_show()
 {
-    $a = n3s_show_get('api');
+    $a = n3s_show_get('show', 'api');
     unset($a['access_key']);
     unset($a['editkey']);
     unset($a['material_id']);
@@ -22,7 +22,7 @@ function n3s_api_show()
 }
 
 // check private app
-function n3s_check_private(&$a, $agent)
+function n3s_check_private(&$a, $agent, $action)
 {
     if (!$a) {
         return;
@@ -46,7 +46,8 @@ function n3s_check_private(&$a, $agent)
                 // 入力画面
                 n3s_template_fw('show_input_editkey.html', [
                     'app_id' => $a['app_id'],
-                    'author' => $a['author']
+                    'author' => $a['author'],
+                    'back' => $action,
                 ]);
                 exit;
             }
@@ -86,7 +87,7 @@ function n3s_check_private(&$a, $agent)
 /**
  * プログラムに関する情報を取得する (action/edit などからも使われる)
  */
-function n3s_show_get($agent, $useEditor = true, $readonly = true)
+function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
 {
     global $n3s_config;
 
@@ -134,7 +135,7 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
             n3s_error('作品が見当たりません。', "id={$app_id}の作品がありません。");
             exit;
         }
-        n3s_check_private($a, $agent);
+        n3s_check_private($a, $agent, $action);
         // bookmarks
         $fav = db_get1('SELECT * FROM bookmarks WHERE app_id=? AND user_id=? LIMIT 1', [$app_id, $my_user_id]);
     }
@@ -251,7 +252,7 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
         $w = 400;
     }
     if ($h < 50) {
-        $w = 400;
+        $h = 400;
     }
     // for widget
     $w += 32;
@@ -259,9 +260,6 @@ function n3s_show_get($agent, $useEditor = true, $readonly = true)
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
     $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
-    if ($a['is_private'] === 2) {
-      $wurl .= "&editkey=".$a['editkey'];
-    }
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
     $a['widget_url_run'] = $wurl_run;
