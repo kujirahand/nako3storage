@@ -40,20 +40,27 @@
       <table border=0>
         <tr bgcolor="#f0f0f0">
           <td style="text-align:center;">編集</td>
+          <td style="text-align:center;">公開</td>
           <td style="text-align:center;">🌱作品名</td>
         </tr>
         {{for $apps as $r}}
         <tr>
           <td>
             <!-- button -->
-            <a href="index.php?action=edit&page={{$r.app_id}}" class="pure-button">{{$r.app_id}}</a>
+            <a href="index.php?action=edit&page={{$r.app_id}}" class="pure-button" style="width:5em;">{{$r.app_id}}</a>
+          </td>
+          <td style="text-align:center;">
+            {{if $r.is_private == 0}}
+            <span class="public">公開中</span>
+            {{else}}
+              {{if $r.is_private == 1}}
+              <span class="private">🔒非公開</span>
+              {{else}}
+              <span class="private">🔒限定</span>
+              {{endif}}
+            {{endif}}
           </td>
           <td>
-            {{if $r.is_private}}
-              <span class="private">【非公開】</span>
-            {{else}}
-              <span class="public">【公開中】</span>
-            {{endif}}
             <!-- title -->
             <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
             <!-- date -->
