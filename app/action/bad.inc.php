@@ -30,7 +30,7 @@ function echo_bad()
     // db
     $db = n3s_get_db();
     try {
-        $r = $db->query("SELECT bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
+        $r = $db->query("SELECT title,author,bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
         if ($q === 'up') {
             if (! n3s_is_login()) {
                 echo "error, please login.";
@@ -59,6 +59,20 @@ function echo_bad()
                 $stmt->execute([$ip]);
                 $r = $db->query("SELECT bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
                 $db->query('commit');
+                // 通報があった旨をメールする
+                $admin_email = n3s_get_config('admin_email', '');
+                if ($admin_email != '') {
+                    $mail_from = n3s_get_config('mail_from', $admin_email);
+                    $header = "".
+                        "From: $mail_from\r\n".
+                        "Reply-To: $admin_email\r\n".
+                        "Content-Transfer-Encoding: 8bit\r\n";
+                    $subject = "[nako3storage] 通報がありました";
+                    $body = "■通報情報:\r\n".
+                        "(app_id: $app_id) {$r['title']} by {$r['author']}\r\n".
+                        "→通報者: {$ip}\r\n";
+                    @mb_send_mail($admin_email, $subject, $body, $header);
+                }
             }
             echo $r['bad'];
         } else {

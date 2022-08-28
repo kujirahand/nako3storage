@@ -225,7 +225,7 @@ if (bad_button) { //  非表示になることがあるので
     ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
     })
-  
+    alert('ありがとうございました。通報しました。')
   }
   setTimeout(function(){
     ajax('api.php?page=' + app_id + '&action=bad', function(txt, r){
