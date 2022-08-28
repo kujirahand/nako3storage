@@ -160,6 +160,7 @@ function n3s_list_get()
         "find_user_info" => $find_user_info,
         "noindex" => $noindex,
         "total_post" => $total_post,
+        "onlybad" => $onlybad,
     ];
 }
 

@@ -101,6 +101,7 @@ function n3s_web_mypage()
         'bookmarks' => $bookmarks,
         'link_all_fav' => $link_all_fav,
         'link_next_page' => $link_next_page,
+        'link_mypage' => $link_mypage,
         'page' => $page,
         'link_material' => $link_materil,
     ]);
