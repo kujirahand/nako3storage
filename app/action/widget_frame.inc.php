@@ -8,7 +8,7 @@ include_once dirname(__FILE__) . '/show.inc.php';
 
 function n3s_web_widget_frame()
 {
-    $a = n3s_show_get('web', false);
+    $a = n3s_show_get('widget', 'web', false);
     n3s_widgetd_check_private($a);
     // run mode?
     $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
