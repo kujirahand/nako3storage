@@ -14,7 +14,7 @@ function n3s_web_search()
 function n3s_list_search()
 {
     global $n3s_config, $MAX_APP, $MAX_ZENBUN_SEARCH;
-        
+
     $n3s_config['search_word'] = $search_word = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
     $target = isset($_GET['target']) ? $_GET['target'] : 'normal';
     $offset = intval(isset($_GET['offset']) ? $_GET['offset'] : '0');
@@ -147,6 +147,10 @@ function n3s_list_search()
                 $list[] = $row;
             }
         }
+    }
+    // タグにリンクをつける
+    foreach ($list as &$i) {
+        $i['tag_link'] = n3s_makeTagLink($i['tag']);
     }
     return [
         "search_word" => $search_word,
