@@ -104,7 +104,7 @@
 {{ if $mode == 'ranking' }}
   <h1>人気順の表示</h1>
 {{ else }}
-  <h1>最新の投稿</h1>
+  <h1>最新の投稿  {{ if $onlybad }} - 通報のあった投稿{{endif}}</h1>
 {{ endif }}
 
 {{ if count($list) == 0 }}
@@ -124,6 +124,9 @@
                 <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
                 {{if $r.fav gt 0}}
                 <br><span class='memo'>{{$r.fav | star}}</span>
+                {{endif}}
+                {{if $r.bad gt 0}}
+                <span class="memo">⛔{{$r.bad}}</span>
                 {{endif}}
             </td>
             <td>
@@ -149,20 +152,25 @@
   </div>
   {{ endif }}
 {{ endif }}
+</div><!-- end of #recent_list -->
 
-<div class="addon_block">
+<div class="addon_block" style="border: 1px solid silver">
+  <a class="pure-button" href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a>
+  {{if n3s_is_login()}}
+  <a class="pure-button" href="index.php?action=mypage&page=my">🐕自分の投稿(マイページ)を表示</a>
+  {{endif}}
+</div>
+
+<br>
+<br>
+
+<div class="addon_block" style="background-color: #f0f0f0;border-top:1px dotted silver">
+  <p>管理用</p>
   <ul>
-    <li><a href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a></li>
-    {{if n3s_is_login()}}
-    <li><a href="index.php?action=mypage&page=my">🐕自分の投稿(マイページ)を表示</a></li>
-    {{endif}}
-    <li>
-      <a href="index.php?action=list&onlybad=1&noindex=1">😭問題投稿のみ</a> /
-      <a href="index.php?action=list&nofilter=1&noindex=1">問題込みで表示</a>
-    </li>
+      <li><a href="index.php?action=list&onlybad=1&noindex=1">⛔問題投稿(閲覧注意)</a></li>
+      <li><a href="index.php?action=list&nofilter=1&noindex=1">⛔問題込みで表示</a></li>
   </ul>
 </div><!-- /addon_block -->
 
-</div><!-- end of #recent_list -->
 {{ include parts_html_footer.html }}
 
