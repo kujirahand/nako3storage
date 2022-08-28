@@ -440,3 +440,23 @@ function n3s_list_setIcon(&$list) {
         $i['icon'] = "images/0-$icon.png";
     }
 }
+function n3s_list_setTagLink(&$list) {
+    foreach ($list as &$i) {
+        $i['tag'] = isset($i['tag']) ? $i['tag'] : '';
+        $i['tag_link'] = n3s_makeTagLink($i['tag']);
+    }
+}
+
+function n3s_makeTagLink($tag) {
+    if ($tag == '') {
+        return '-';
+    }
+    $tag_a = explode(',', $tag);
+    $tag_link = [];
+    foreach ($tag_a as $t) {
+        $label = htmlspecialchars($t, ENT_QUOTES);
+        $tagenc = urlencode($t);
+        $tag_link[] = "<a href='index.php?search_word={$tagenc}&action=search&target=tag'>$label</a>";
+    }
+    return implode(', ', $tag_link);
+}

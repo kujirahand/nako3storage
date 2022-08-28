@@ -284,6 +284,8 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
             $a['ext'] = '.'.$a['nakotype'];
             break;        
     }
+    // tag
+    $a['tag_link'] = n3s_makeTagLink($a['tag']);
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);

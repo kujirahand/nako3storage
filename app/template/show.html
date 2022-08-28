@@ -60,6 +60,12 @@
         {{ endif }}
       </span>
     </li>
+    <li>
+      <span class="lbl">ライセンス:</span> {{ $copyright }}
+      ({{e:echo $copyright_desc[$copyright]}})
+    </li>
+    <li><span class="lbl">タイプ:</span> {{ $nakotype }}</li>
+    <li><span class="lbl">タグ:</span> {{ $tag_link | raw }}</li>
     <li><span class="lbl">利用バージョン:</span> {{ $version }}</li>
     <li>
       <span class="lbl">投稿日時:</span> {{ $ctime | datetime }}
@@ -67,11 +73,6 @@
         (編集: {{$mtime | datetime}})
       {{ endif }}
     </li>
-    <li>
-      <span class="lbl">ライセンス:</span> {{ $copyright }}
-      ({{e:echo $copyright_desc[$copyright]}})
-    </li>
-    <li><span class="lbl">タイプ:</span> {{ $nakotype }}</li>
     {{if $is_private == 0}}
     <li><span class="private">公開の投稿</span></li>
     {{endif}}

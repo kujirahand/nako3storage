@@ -61,7 +61,6 @@
         <a href="index.php?action=show&page={{$i.app_id}}">
           🌲{{$i.title | check_mudai}}</a>
         {{if $i.fav > 0}}⭐{{$i.fav}}{{endif}}
-        <span class="memo">{{$i.tag}}</span>
       </div>
       <div class="search_info">
         <div>
@@ -82,6 +81,9 @@
           </code></div>
           {{else}}
           <span class="memo">{{$i.memo | trim100}}</span>
+          {{endif}}
+          {{if $i.tag != ''}}
+          <span class="memo">(タグ: {{$i.tag_link | raw}} )</span>
           {{endif}}
         </div>
       </div>

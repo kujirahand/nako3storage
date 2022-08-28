@@ -43,7 +43,6 @@ function n3s_list_get()
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
         $wheres[] = 'bad <= 2';
-        $wheres[] = 'tag != "なでしこ3本"';
     }
     // check onlybad parameters
     if ($onlybad >= 1) { // 通報された投稿のみ表示 #18
@@ -75,7 +74,7 @@ function n3s_list_get()
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
         $h = $db->prepare(
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?'
         );
@@ -150,6 +149,9 @@ function n3s_list_get()
     n3s_list_setIcon($list);
     n3s_list_setIcon($ranking);
     n3s_list_setIcon($ranking_all);
+    n3s_list_setTagLink($list);
+    n3s_list_setTagLink($ranking);
+    n3s_list_setTagLink($ranking_all);
     return [
         "mode" => $mode,
         "list" => $list,
