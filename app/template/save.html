@@ -71,7 +71,7 @@
     </p>
     <p>
       <label>タグ(省略可):
-        <span class="info">タグ(DNCL,ゲーム,ツールなど)をカンマで区切って指定。</span><br />
+        <span class="info">タグ(DNCL,DNCL2,ゲーム,ツールなど)をカンマで区切って指定。</span><br />
         <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
         &nbsp;&nbsp;<span class="info">(↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載</span>
       </label>
@@ -345,7 +345,7 @@ setTimeout(()=>{
 
   // タグの確認
   const tag = document.getElementById('tag')
-  const hasDNCL = (body.indexOf('!DNCLモード') >= 0) || (body.indexOf('！DNCLモード') >= 0) || (body.indexOf('💡DNCLモード') >= 0)
+  const hasDNCL = (body.indexOf('!DNCL') >= 0) || (body.indexOf('！DNCL') >= 0) || (body.indexOf('💡DNCL') >= 0)
   if (hasDNCL && tag.value.indexOf('DNCL') < 0) {
     const a = []
     for (const t of tag.value.split(',')) {
