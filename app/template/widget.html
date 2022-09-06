@@ -4,6 +4,7 @@
     <title>{{$title | check_mudai}} by {{$author | check_nanasi}} - なでしこv{{ $version }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="skin/def/pure-min.css">
+    <link rel="stylesheet" href="index.php?action=file&page=basic.css&m={{ $n3s_css_mtime }}">
     <!-- Open Graph -->
     <meta property="og:title" content="{{$title | check_mudai}}-{{$author | check_nanasi}}作">
     <meta property="og:type" content="product">
@@ -91,9 +92,9 @@
     </div>
     <div id="runbox">
       <!-- 3.1.19以上 -->
-      <div id="nako3_output"></div>
+      <div id="nako3_output" style="display:none;"></div>
       <!-- 3.1.18以下 -->
-      <div class="nako3row nako3info" id="nako3_info"></div>
+      <div class="nako3row nako3info" id="nako3_info" style="display:none;"></div>
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
     </div><!-- /#runbox -->
