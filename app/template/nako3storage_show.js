@@ -107,6 +107,20 @@ function runButtonOnClick() { // 実行ボタンを押した時
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
+  if (verInt >= 3372) {
+    // デバッグモードが使える
+    const opt = navigator.nako3.debugOption
+    const chk = document.getElementById('debugCheck')
+    if (chk) {
+      if (chk.checked) {
+        opt.useDebug = true
+        opt.waitTime = 0.3
+        opt.messageAction = 'nako3storage.debug.line'
+      } else {
+        opt.useDebug = false
+      }
+    }
+  }
   // コードを取得する
   var code = getValue()
   // 空なら実行しない
@@ -182,5 +196,4 @@ const clearButton = document.getElementById("clearButton")
 const runbox = document.getElementById('runbox')
 runButton.onclick = runButtonOnClick
 clearButton.onclick = nako3_clear
-
 

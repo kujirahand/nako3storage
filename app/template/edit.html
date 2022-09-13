@@ -42,6 +42,7 @@
           <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
           <button id="clearButton" class="pure-button">クリア</button>
           <button id="tempSaveButton" class="pure-button" onclick="tmepSaveClick()">一時保存</button>
+          <label for="debugCheck" style="border: 1px silver dotted; padding: 6px;"><input id="debugCheck" type="checkbox" class="pure-checkbox">デバッグ</label>
           <span id="tempInfoLabel"></span>
         </span>
         <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
@@ -161,6 +162,24 @@ window.addEventListener('beforeunload', function(event) {
     event.returnValue = '';
   }
 });
+
+// デバッグメッセージの受信
+window.addEventListener('message', (e) => {
+  if (!e.data || !e.data.action) { return }
+  if (e.data.action !== 'nako3storage.debug.line') { return }
+  const line = e.data.line
+  if (typeof line !== 'string') { return }
+  if (!navigator.__aceEditor) { return }
+  const chk = document.getElementById('debugCheck')
+  if (!chk || !chk.checked) { return }
+  const m = line.match(/l(\+?\d+):/)
+  if (!m) { return }
+  const lineNo = parseInt(m[1])
+  if (lineNo >= 1) {
+    navigator.__aceEditor.gotoLine(lineNo)
+  }
+})
+
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>

@@ -60,6 +60,7 @@ function setupAceEditor() {
   })
   setValue = function(text) { editorObjects.editor.setValue(text) }
   getValue = function() { return editorObjects.editor.getValue() }
+  navigator.__aceEditor = editorObjects.editor
   initAce = true
 }
 
