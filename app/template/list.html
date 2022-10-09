@@ -1,7 +1,11 @@
 {{ include parts_html_header.html }}
 
+<style>
+  .id_small { font-size: 0.7em; color: silver; }
+  #recent_list a { text-decoration: none; } 
+</style>
+
 <div class="list info">{{ $top_message | raw }}</div>
-<div class="list info">😀 これまで貯蔵庫に{{ $total_post }}件の投稿がありました!!</div>
 
 {{ if $find_user_id gt 0 }}
   <!-- ユーザー紹介 -->
@@ -79,7 +83,7 @@
       {{ for $ranking as $r }}
       <tr>
           <td>
-              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
+              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24"> {{$r.title | check_mudai }}</a>
               {{if $r.fav gt 0}}
               <br><span class='memo'>{{$r.fav | star}}</span>
               {{endif}}
@@ -121,13 +125,16 @@
         <th>タイトル</th>
         <th>説明</th>
     </tr>
+    {{e: $n = 0; }}
     {{ for $list as $r }}
       {{ if empty($r['title']) }}
         <!-- broken data -->
       {{ else }}
         <tr>
             <td>
-                <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
+                <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">
+                  <span class="id_small">{{ $r.app_id }}.</span>
+                  {{ $r.title | check_mudai }}</a>
                 {{if $r.fav gt 0}}
                 <br><span class='memo'>{{$r.fav | star}}</span>
                 {{endif}}

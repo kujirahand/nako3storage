@@ -1,5 +1,6 @@
 <?php
-const MAX_APP = 15; // 何件まで表示するか
+// const MAX_APP = 15; // 何件まで表示するか
+const MAX_APP = 3; // 何件まで表示するか
 
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
@@ -83,8 +84,8 @@ function n3s_list_get()
     }
     // next
     $min_id = PHP_INT_MAX;
-    foreach ($list as &$row) {
-        $id = $row['app_id'];
+    foreach ($list as &$rr) {
+        $id = $rr['app_id'];
         if ($min_id >= $id) {
             $min_id = $id - 1;
         }
@@ -142,8 +143,8 @@ function n3s_list_get()
     // --------------------------------------------------------
     // ■ 統計情報
     // --------------------------------------------------------
-    $row = db_get1('SELECT count(*) FROM apps');
-    $total_post = $row['count(*)'];
+    // $toukei = db_get1('SELECT count(*) FROM apps');
+    // $total_post = $toukei['count(*)'];
 
     // アイコンを付ける
     n3s_list_setIcon($list);
@@ -161,7 +162,7 @@ function n3s_list_get()
         "find_user_id" => $find_user_id,
         "find_user_info" => $find_user_info,
         "noindex" => $noindex,
-        "total_post" => $total_post,
+        // "total_post" => $total_post,
         "onlybad" => $onlybad,
     ];
 }
