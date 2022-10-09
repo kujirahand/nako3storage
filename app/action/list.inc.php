@@ -1,6 +1,5 @@
 <?php
-// const MAX_APP = 15; // 何件まで表示するか
-const MAX_APP = 3; // 何件まで表示するか
+const MAX_APP = 15; // 何件まで表示するか
 
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
