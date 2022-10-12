@@ -18,12 +18,13 @@ function n3s_web_widget()
     // sandbox
     $sandbox_url = n3s_get_config('sandbox_url', '');
     $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&editkey={$editkey}";
-    // --- 特別扱いする投稿 ---
+    // (互換性のために) 特別扱いする投稿 --- https://bit.ly/3Vpk1RI
     if ($page == 991) {
         $url = $a['iframe_url'];
         header('location:'.$url);
         echo "<html><body><a href='$url'>$url</a>";
         exit;
     }
+    // ここまで
     n3s_template_fw('widget_frame.html', $a);
 }
