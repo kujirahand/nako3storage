@@ -1,4 +1,5 @@
 php_value error_log php_error_n3s_nadesi.log
+DirectoryIndex index.php index.html
 
 # for "id.nako3"
 <IfModule mod_rewrite.c>
