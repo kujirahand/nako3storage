@@ -1,6 +1,6 @@
 <?php
 const MAX_APP = 15; // 何件まで表示するか
-const MAX_PAGE_OFFSET = 5; // 5p以降は表示しない
+const MAX_PAGE_OFFSET = 20; // 20p以降は表示しない
 
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
