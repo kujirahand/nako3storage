@@ -49,3 +49,6 @@ $n3s_config = [
     "app_root_url" => "http://localhost/repos/nako3storage/",
     "sandbox_params" => "allow-modals allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation allow-downloads",
 ];
+
+// timezone
+date_default_timezone_set('Asia/Tokyo');

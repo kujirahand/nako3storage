@@ -66,7 +66,7 @@ function n3s_list_get()
         $h = $db->prepare(
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
-            ' ORDER BY app_id DESC LIMIT ?'
+            ' ORDER BY mtime DESC LIMIT ?'
         );
         $h->execute($statements);
         $list = $h->fetchAll();
