@@ -99,10 +99,12 @@ function t_date($v)
 }
 function t_date2($v)
 {
+    if ($v == 0) { return '-'; }
     return date('Y-m-d', $v);
 }
 function t_datetime($v)
 {
+    if ($v == 0) { return '-'; }
     return date('Y/m/d H:i', $v);
 }
 // format

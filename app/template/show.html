@@ -61,6 +61,9 @@
       </span>
     </li>
     <li>
+      <span class="lbl">タイトル:</span> {{ $title }}
+    </li>
+    <li>
       <span class="lbl">ライセンス:</span> {{ $copyright }}
       ({{e:echo $copyright_desc[$copyright]}})
     </li>
@@ -68,7 +71,7 @@
     <li><span class="lbl">タグ:</span> {{ $tag_link | raw }}</li>
     <li><span class="lbl">利用バージョン:</span> {{ $version }}</li>
     <li>
-      <span class="lbl">投稿日時:</span> {{ $ctime | datetime }}
+      <span class="lbl">作成日時:</span> {{ $ctime | datetime }}
       {{ if $ctime != $mtime }}
         (編集: {{$mtime | datetime}})
       {{ endif }}
@@ -200,7 +203,6 @@
 var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
 var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
 var editorObjects = null
-var msie = {{e:echo ($msie)?'true':'false'}};
 
 // nako3storage info
 const baseurl = "{{ $baseurl | safe }}";

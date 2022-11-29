@@ -289,7 +289,6 @@ function n3s_action_save_data_raw($data, $agent)
             }
         }
     }
-    $a['mtime'] = time();
     // 連続投稿を防ぐ
     $a['body'] = trim($a['body']);
     $hash = $a['prog_hash'] = hash('sha256', $a['body']);
