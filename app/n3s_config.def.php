@@ -34,6 +34,7 @@ $n3s_config = [
     "n3s_css_mtime" => filemtime("$app_dir/template/basic.css"),
     "nako3storage_version" => N3S_APP_VERSION,
     "nako_default_version" => NAKO_DEFAULT_VERSION,
+    "session_lifetime" => 60 * 60 * 24, // 24時間セッションを保持
     // for twitter login
     "twitter_api_key" => "",
     "twitter_api_secret" => "",

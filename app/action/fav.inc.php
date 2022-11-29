@@ -1,7 +1,6 @@
 <?php
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
-@session_start();
 
 function n3s_web_fav()
 {
