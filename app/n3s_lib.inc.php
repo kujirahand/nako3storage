@@ -376,18 +376,23 @@ function n3s_updateProgram($app_id, $data)
     $sql = <<< EOS
         UPDATE apps SET
         app_name=:app_name,
-        title=:title, author=:author, email=:email,
+        title=:title,
+        author=:author,
+        email=:email,
         url=:url, memo=:memo,
         canvas_w=:canvas_w, canvas_h=:canvas_h,
         access_key=:access_key,
-        version=:version, is_private=:is_private,
+        version=:version,
+        is_private=:is_private,
         custom_head=:custom_head,
         copyright=:copyright,
         editkey=:editkey,
         nakotype=:nakotype,
         tag=:tag,
         prog_hash=:prog_hash,
-        ref_id=:ref_id, ip=:ip, mtime=:mtime
+        ref_id=:ref_id, 
+        ip=:ip,
+        mtime=:mtime
         WHERE app_id=:app_id;
 EOS;
     db_exec($sql, [
@@ -405,7 +410,7 @@ EOS;
         ":canvas_w"   => $a['canvas_w'],
         ":canvas_h"   => $a['canvas_h'],
         ":ip"         => $a['ip'],
-        ":mtime"      => $a['mtime'],
+        ":mtime"      => time(), // 確実に毎回アップデートする (#158)
         ":app_id"     => $a['app_id'],
         ":access_key" => $a['access_key'],
         ":custom_head"=> $a['custom_head'],
