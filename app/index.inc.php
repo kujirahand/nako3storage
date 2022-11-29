@@ -31,11 +31,10 @@ function n3s_action()
     // モジュールを取得
     $file_action = $n3s_config['dir_action'] . "/$action.inc.php";
     $func_action = "n3s_{$agent}_{$action}";
-
-    // WEBであればセッションを使う
-    if ($agent === 'web') {
-        session_start();
-    }
+    // セッションの開始
+    ini_set( "session.gc_maxlifetime", $n3s_config['session_lifetime']); // セッションの最大時間を指定
+    @session_start(); // セッションの会誌
+    //
     if (file_exists($file_action)) {
         include_once $file_action;
         if (function_exists($func_action)) {
