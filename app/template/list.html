@@ -114,7 +114,11 @@
 {{ if $mode == 'ranking' }}
   <h1>人気順の表示</h1>
 {{ else }}
-  <h1>最新の投稿  {{ if $onlybad }} - 通報のあった投稿{{endif}}</h1>
+  {{ if $offset == 0 }}
+  <h1>最新の投稿  {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
+  {{ else }}
+  <h1>投稿の一覧(更新順) (page.{{e:echo $offset+1}})  {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
+  {{ endif }}
 {{ endif }}
 
 {{ if count($list) == 0 }}
