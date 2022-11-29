@@ -1,6 +1,6 @@
 <?php
 const MAX_APP = 15; // 何件まで表示するか
-const MAX_PAGE_OFFSET = 20; // 20p以降は表示しない
+const MAX_PAGE_OFFSET = 500; // 500以降は表示しない
 
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
@@ -85,7 +85,7 @@ function n3s_list_get()
     }
     // next
     $next_url = n3s_getURL('all', 'list', [
-        'offset' => ($offset+1),
+        'offset' => ($offset + MAX_APP),
         'nofilter' => $nofilter,
         'user_id' => $find_user_id,
         'onlybad' => $onlybad,
