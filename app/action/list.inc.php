@@ -1,5 +1,6 @@
 <?php
 const MAX_APP = 15; // 何件まで表示するか
+const MAX_PAGE_OFFSET = 5; // 5p以降は表示しない
 
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
@@ -23,11 +24,10 @@ function n3s_list_get()
     if ($onlybad || $nofilter) { // サーチエンジンから検索されないようにする
         $noindex = 1;
     }
+
     // 検索のページャーのため
-    $app_id = intval(empty($n3s_config['app_id']) ? 0 : $_GET['app_id']);
-    if ($app_id <= 0) {
-        $app_id = PHP_INT_MAX;
-    }
+    $offset = intval(empty($_GET['offset']) ? 0 : $_GET['offset']);
+    if ($offset > MAX_PAGE_OFFSET) { $offset = MAX_PAGE_OFFSET; }
 
     // --------------------------------------------------------
     // データベースに接続
@@ -39,7 +39,8 @@ function n3s_list_get()
     // オプションを確認して条件などを設定
     // --------------------------------------------------------
     // list (app_id for list pager)
-    $wheres = array('app_id <= ?', 'tag != "w_noname"');
+    $wheres = array('tag != "w_noname"');
+    $statements = [];
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
         $wheres[] = 'bad <= 2';
@@ -53,10 +54,8 @@ function n3s_list_get()
         $wheres[] = "user_id = $find_user_id";
         $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id]);
     }
-    $statements = array($app_id);
     // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';
-    $statements[] = MAX_APP;
     $list = [];
 
     // --------------------------------------------------------
@@ -66,8 +65,10 @@ function n3s_list_get()
         $h = $db->prepare(
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
-            ' ORDER BY mtime DESC LIMIT ?'
+            ' ORDER BY mtime DESC LIMIT ? OFFSET ?'
         );
+        $statements[] = MAX_APP;
+        $statements[] = $offset;
         $h->execute($statements);
         $list = $h->fetchAll();
     }
@@ -78,34 +79,25 @@ function n3s_list_get()
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?'
         );
+        $statements[] = MAX_APP;
         $h->execute($statements);
         $list = $h->fetchAll();
     }
     // next
-    $min_id = PHP_INT_MAX;
-    foreach ($list as &$rr) {
-        $id = $rr['app_id'];
-        if ($min_id >= $id) {
-            $min_id = $id - 1;
-        }
-    }
     $next_url = n3s_getURL('all', 'list', [
-        'app_id' => $min_id,
+        'offset' => ($offset+1),
         'nofilter' => $nofilter,
         'user_id' => $find_user_id,
         'onlybad' => $onlybad,
         'noindex' => $noindex,
     ]);
-    if ($app_id === 0) {
-        $next_url = "";
-    } // トップなので次はない
 
     // --------------------------------------------------------
     // ■ Ranking (トップページだけに表示する)
     // --------------------------------------------------------
     $ranking = [];
     $ranking_all = [];
-    if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0) {
+    if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0 && $offset == 0) {
         // Nヶ月以内に更新されたアプリ
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
@@ -121,7 +113,7 @@ function n3s_list_get()
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
         // 上位N件を取る
         shuffle($ranking);
-        $ranking = array_splice($ranking, 0, 10);
+        $ranking = array_splice($ranking, 0, 7);
         // 重なる投稿を削除
         $all = [];
         foreach ($ranking_all as $row) {
@@ -163,6 +155,7 @@ function n3s_list_get()
         "noindex" => $noindex,
         // "total_post" => $total_post,
         "onlybad" => $onlybad,
+        "offset" => $offset,
     ];
 }
 
