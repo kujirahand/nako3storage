@@ -73,8 +73,10 @@ function n3s_check_private(&$a, $agent, $action)
             // 入力画面
             n3s_template_fw('show_input_editkey.html', [
                 'app_id' => $a['app_id'],
-                'author' => $a['author']
-            ]);
+                'author' => $a['author'],
+                'run' => empty($_GET['run']) ? 0 : $_GET['run'],
+                'back' => $action,
+        ]);
             exit;
         }
         n3s_error(
