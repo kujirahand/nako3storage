@@ -47,7 +47,7 @@ $n3s_config = [
     "sandbox_url" => "", 
     // "app_root_url" => "https://n3s.nadesi.com/", // 末尾にスラッシュを入れること!!
     "app_root_url" => "http://localhost/repos/nako3storage/",
-    "sandbox_params" => "allow-modals allow-forms allow-scripts allow-popups allow-top-navigation-by-user-activation allow-downloads",
+    "sandbox_params" => "allow-same-origin allow-modals allow-forms allow-scripts allow-popups allow-top-navigation-by-user-activation allow-downloads",
 ];
 
 // timezone
