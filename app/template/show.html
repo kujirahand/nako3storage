@@ -178,7 +178,9 @@
 
 <div class="ctrl_block" style="text-align:right;">
   <div class="memo">
-    通報数:<span id="bad">{{$bad}}</span>
+    通報数:
+    {{e: $bad = empty($bad) ? 0 : $band; }}
+    <span id="bad">{{$bad}}</span>
   </div>
   <div class="memo">
     <a href="{{$badlink}}">通報って何？</a>
