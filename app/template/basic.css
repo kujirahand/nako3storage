@@ -402,3 +402,8 @@ ul.devblock span.lbl {
   padding: 0.5em;
   color: gray;
 }
+.iframe_memo {
+  padding: 8px;
+  text-align: right;
+  font-size: 0.9em;
+}

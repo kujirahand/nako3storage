@@ -12,6 +12,7 @@ function n3s_web_widget_frame()
     n3s_widgetd_check_private($a);
     // run mode?
     $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
+    $a['allow'] = isset($_GET['allow']) ? intval($_GET['allow']) : 0;
     $a['mute_title'] = isset($_GET['mute_title']) ? intval($_GET['mute_title']) : 0;
     $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
     $tags = isset($a['tag']) ? explode(',', $a['tag']) : [];

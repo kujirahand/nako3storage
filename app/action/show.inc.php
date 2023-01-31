@@ -262,10 +262,12 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
+    $wurl_run_allow = "$n3s_url/widget.php?$app_id&run=1&allow=1";
     $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";
     $a['widget_url_run'] = $wurl_run;
+    $a['widget_url_run_allow'] = $wurl_run_allow;
     $a['root_url'] = n3s_get_config('baseurl', '');
     $a['url_images'] = n3s_get_config('url_images', '');
     $a['readonly'] = $readonly;

@@ -32,6 +32,11 @@
       <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
       {{ else }}
       <iframe id="iframe_contents" src="{{ $sandbox_url }}" sandbox="{{$sandbox_params}}"></iframe>
+        {{ if $widget_url_run }}
+        <div class="iframe_memo">
+          <a href="{{$widget_url_run_allow}}">→セキュリティ制約なく実行</a>
+        </div>
+        {{ endif }}
       {{ endif }}
       <!-- /widget -->
     {{ else }}
@@ -226,6 +231,11 @@ window.addEventListener('message', function(e) {
     break;
   }
 }, false)
+
+// domのエラーをハンドリング
+document.addEventListener('error', function(e) {
+  console.log('[document.onerror]', e)
+})
 
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
