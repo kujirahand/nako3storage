@@ -1,4 +1,4 @@
-php_value error_log php_error_n3s_nadesi.log
+php_value error_log /home/users/1/kujirahand1914/php_error_n3s_nadesi.log
 DirectoryIndex index.php index.html
 
 # for "id.nako3"
