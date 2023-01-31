@@ -231,13 +231,8 @@ window.addEventListener('message', function(e) {
     break;
   }
 }, false)
-
-// domのエラーをハンドリング
-window.addEventListener('error', function(e) {
-  console.log('[document.onerror]', e)
-})
-
 </script>
+
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
 
