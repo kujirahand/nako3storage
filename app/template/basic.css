@@ -228,6 +228,22 @@ h2 {
   padding: 4px;
   margin: 4px;
 }
+#nako3_div table {
+  border-left: 1px solid silver;
+  border-top: 1px solid silver;
+  border-collapse: collapse;
+  padding: 0px;
+  margin: 0px;
+}
+#nako3_div th, 
+#nako3_div td {
+  border-right: 1px solid silver;
+  border-bottom: 1px solid silver;
+  border-collapse: collapse;
+  border-spacing: 0;
+  padding: 0.4em;
+  margin: 0px;
+}
 
 .fav_block {
   padding: 1em;
@@ -407,3 +423,4 @@ ul.devblock span.lbl {
   text-align: right;
   font-size: 0.9em;
 }
+
