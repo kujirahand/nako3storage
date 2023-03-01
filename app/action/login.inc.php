@@ -97,7 +97,7 @@ function n3s_web_login_callback()
     $oauth_token = empty($_GET['oauth_token']) ? '' : $_GET['oauth_token'];
     // check session
     if (empty($_SESSION['oauth_token']) || empty($_SESSION['oauth_token_secret'])) {
-        n3s_error('Twitterへのログインに失敗', $e->getMessage());
+        n3s_error('Twitterへのログインに失敗', 'ログインに失敗しました。');
         return;
     }
 
