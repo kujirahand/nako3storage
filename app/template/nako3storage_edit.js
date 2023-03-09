@@ -30,6 +30,8 @@ function setupEditor() {
     setTimeout(function() { setupEditor() }, 100);
     return
   }
+  // ブレイクポイントのための設定
+  navigator.nako3.__breakpoints = []
   // setup editor
   if (navigator.nako3.setupEditor && useAce) {
     setupAceEditor()

@@ -92,7 +92,8 @@ function to_html(s, br) {
 }
 // エディタのUI操作
 function runButtonOnClick() { // 実行ボタンを押した時
-  // なでしこのバージョンチェック
+
+  // なでしこのバージョンチェックして必要な関数を登録する
   var va = nako_version.split(".")
   var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
   console.log('nako.version=' + verInt)
@@ -108,6 +109,14 @@ function runButtonOnClick() { // 実行ボタンを押した時
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
   if (verInt >= 3372) {
+    // ブレイクポイントのための処理
+    navigator.nako3.addListener('beforeRun', (g) => {
+      navigator.nako3.__global = g
+      // グローバルを得る
+      const v0 = g.__varslist[0]
+      v0['__DEBUGブレイクポイント一覧'] = navigator.nako3.__breakpoints
+    })
+    changeBreakpointButtons()
     // デバッグモードが使える
     const opt = navigator.nako3.debugOption
     const chk = document.getElementById('debugCheck')
@@ -188,6 +197,9 @@ function showError(msg) {
     console.error(msg)
   }
 }
+function changeBreakpointButtons() {
+  document.querySelector('#breakpointButtons').style.display = (navigator.nako3.__breakpoints.length > 0) ? 'block' : 'none';
+}
 
 //--------------------------
 // run and clear
@@ -197,3 +209,37 @@ const runbox = document.getElementById('runbox')
 runButton.onclick = runButtonOnClick
 clearButton.onclick = nako3_clear
 
+// ---
+// Event for Breakpoint
+window.addEventListener('message', (e) => {
+  if (!navigator.nako3) { return }
+  if (!e.data || !e.data.action) { return }
+  const action = e.data.action
+  if (action === 'breakpoint:on') {
+    navigator.nako3.__breakpoints.push(e.data.row+1)
+    document.querySelector('#debugCheck').checked = 'checked'
+  }
+  if (action === 'breakpoint:off') {
+    const i = navigator.nako3.__breakpoints.indexOf(e.data.row+1)
+    navigator.nako3.__breakpoints.splice(i, 1)
+  }
+  if (navigator.nako3.__global) {
+    navigator.nako3.__global.__v0['__DEBUGブレイクポイント一覧'] = navigator.nako3.__breakpoints
+  }
+  changeBreakpointButtons()
+})
+function breakpointPlay() {
+  if (!navigator.nako3) { return }
+  const nako3 = navigator.nako3
+  if (!nako3.__global) { return }
+  nako3.__global.__v0['__DEBUG待機フラグ'] = 1
+  console.log('@@breakpointPlay')
+}
+function breakpointNext() {
+  if (!navigator.nako3) { return }
+  const nako3 = navigator.nako3
+  if (!nako3.__global) { return }
+  nako3.__global.__v0['__DEBUG待機フラグ'] = 1
+  nako3.__global.__v0['__DEBUG強制待機'] = 1
+  console.log('@@breakpointNext')
+}
