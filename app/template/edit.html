@@ -43,6 +43,11 @@
           <button id="clearButton" class="pure-button">クリア</button>
           <button id="tempSaveButton" class="pure-button" onclick="tmepSaveClick()">一時保存</button>
           <label for="debugCheck" style="border: 1px silver dotted; padding: 6px;"><input id="debugCheck" type="checkbox" class="pure-checkbox">デバッグ</label>
+          <span id="breakpointButtons" style="display:none">
+            <span style="font-size:0.5em;">ブレイクポイント: </span>
+            <button id="breakpointPlay" class="pure-button" onclick="breakpointPlay()">→ 再開</button>
+            <button id="breakpointNext" class="pure-button" onclick="breakpointNext()">↓ 一行次へ</button>
+          </span>
           <span id="tempInfoLabel"></span>
         </span>
         <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
