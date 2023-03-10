@@ -198,7 +198,10 @@ function showError(msg) {
   }
 }
 function changeBreakpointButtons() {
-  document.querySelector('#breakpointButtons').style.display = (navigator.nako3.__breakpoints.length > 0) ? 'block' : 'none';
+  const buttons = document.querySelector('#breakpointButtons')
+  if (buttons && navigator.nako3 && navigator.nako3.__breakpoints) {
+    buttons.style.display = (navigator.nako3.__breakpoints.length > 0) ? 'block' : 'none';
+  }
 }
 
 //--------------------------
