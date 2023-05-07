@@ -1,14 +1,17 @@
 {{ include parts_html_header.html }}
 
 <div class="showblock">
-    <h1>パスワードの変更</h1>
+    <h1>パスワードの設定</h1>
+    <div class="info_box">
+        作業を完了するため、次のフォームにてパスワードを指定してください。
+    </div>
     <div class="info_box">
         <h3>{{ $error }}</h3>
         <div>
             <form class="pure-form pure-form-stacked" action="index.php?action=login&page=setpw" method="POST">
                 <label for="email">メールアドレス</label>
                 <input type="email" name="email" id="email" value="{{ $email }}" readonly>
-                <label for="password">パスワード</label>
+                <label for="password">パスワード (10文字以上を推奨/最低8文字)</label>
                 <input type="password" name="password" id="password" placeholder="パスワード" required>
                 <label for="password">パスワード(確認用)</label>
                 <input type="password" name="password2" id="password2" placeholder="パスワード" required>
