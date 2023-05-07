@@ -1,0 +1,23 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>パスワードの変更</h1>
+    <div class="info_box">
+        <h3>{{ $error }}</h3>
+        <div>
+            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=setpw" method="POST">
+                <label for="email">メールアドレス</label>
+                <input type="email" name="email" id="email" value="{{ $email }}" readonly>
+                <label for="password">パスワード</label>
+                <input type="password" name="password" id="password" placeholder="パスワード" required>
+                <label for="password">パスワード(確認用)</label>
+                <input type="password" name="password2" id="password2" placeholder="パスワード" required>
+                <input type="hidden" name="pass_token" value="{{ $pass_token }}">
+                <button type="submit" class="pure-button pure-button-primary">パスワード変更</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{{ include parts_html_footer.html }}
