@@ -1,0 +1,37 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>ログイン</h1>
+    <div class="info_box">
+        <div>
+            すみません。2023年4月末をもって、Twitter APIは利用できなくなりました。<br>
+            既にご登録の皆様も、<a href="index.php?action=login&page=register">改めて新規登録</a>をお願いします😿<br>
+            あるいは、手動登録で良ければ、<a href="https://twitter.com/kujirahand">@kujirahand</a>までDM送ってください。
+            その際、登録したいメールアドレスを教えてください。
+        </div>
+    </div>
+    <br>
+    <div class="info_box">
+        <h3>二度目以降のご利用の場合</h3>
+        <div>
+            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=trylogin" method="POST">
+                <label for="email2">メールアドレス</label>
+                <input type="email" name="email" id="email2" placeholder="メールアドレス" required>
+                <label for="password">パスワード</label>
+                <input type="password" name="password" id="password2" placeholder="パスワード" required>
+                <button type="submit" class="pure-button pure-button-primary">ログイン</button>
+            </form>
+        </div>
+    </div>
+    <br>
+    <div class="info_box">
+        <a href="index.php?action=login&page=register">ユーザーの新規登録</a>
+    </div>
+    <br>
+    <div class="info_box">
+        <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
+    </div>
+</div>
+
+
+{{ include parts_html_footer.html }}

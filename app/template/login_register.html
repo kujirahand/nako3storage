@@ -1,0 +1,24 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>ユーザー新規登録 - はじめてのご利用の場合</h1>
+    <div class="info_box">
+        <h3>{{ $error | raw }}</h3>
+        <div>
+            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=register" method="POST">
+                <label for="email">メールアドレス(email)</label>
+                <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{$email}}" required>
+                <label for="password">パスワード(英数大文字/小文字/数字/記号を組み合わせて10桁以上で)</label>
+                <input type="password" name="password" id="password" placeholder="パスワード" required>
+                <label for="password2">パスワード(確認用)</label>
+                <input type="password" name="password2" id="password2" placeholder="パスワード(確認用)" required>
+                <label for="name">お名前</label>
+                <input type="text" name="name" id="name" placeholder="お名前" value="{{$name}}" required>
+                <button type="submit" class="pure-button pure-button-primary">登録</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{{ include parts_html_footer.html }}

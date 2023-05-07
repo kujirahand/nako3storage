@@ -1,0 +1,28 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>パスワードを忘れた場合</h1>
+    <div class="info_box">
+        <h3>{{ $error }}</h3>
+        <div>
+            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=forgot" method="POST">
+                <label for="email">メールアドレス</label>
+                <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{ $email }}" required>
+                <label for="quiz">クイズ: 全部ひらがなで以下に「草花」と入力してください。</label>
+                <input type="text" name="quiz" id="quiz" placeholder="クイズの答えを入力" required>
+                <!--
+                <label for="quiz2">クイズ2: 全部カタカナで以下に「私は二度とパスワードを忘れません」と入力してください。</label>
+                <input type="text" name="quiz2" id="quiz2" placeholder="クイズの答えを入力" required>
+                -->
+                <button type="submit" class="pure-button pure-button-primary">パスワードの変更を申請</button>
+            </form>
+            <div style="border: 1px solid silver; padding: 0.4em; border: 8px;">
+                なお、上記ボタンを押すとメールが送信されます。<br>
+                メールに記載されたURLにアクセスして変更ボタンを押すとパスワードが更新されます。
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{{ include parts_html_footer.html }}

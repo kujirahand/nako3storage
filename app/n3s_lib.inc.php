@@ -16,6 +16,8 @@ require_once __DIR__ . '/fw_database.lib.php';
 
 // database version
 define("N3S_DB_VERSION", 3);
+// TODO: 将来的に個別のハッシュを設定できるようにする
+define("LOGIN_HASH_SALT_DEFAULT", "97mwXXq08tku4eN6#YvbS0~cn0U8sb[PChfOjYe_ruJ5]RiVscCS");
 
 function n3s_db_init()
 {
@@ -214,7 +216,6 @@ function n3s_get_user_name()
     return 0;
 }
 
-
 function n3s_get_login_info()
 {
     if (! n3s_is_login()) {
@@ -244,6 +245,55 @@ function n3s_is_admin()
     }
     return false;
 }
+
+function n3s_get_user_id_by_email($email) 
+{
+    $row = db_get1(
+        'SELECT user_id FROM users WHERE email=?',
+        [$email]
+    );
+    if ($row === false || $row === null) {
+        return 0;
+    }
+    return $row['user_id'];
+}
+
+function n3s_login_password_to_hash($password) {
+    $hash = hash('sha256', $password.'::'.LOGIN_HASH_SALT_DEFAULT);
+    return 'def::'.$hash;
+}
+
+function n3s_add_user($email, $password, $name) {
+    $hash = n3s_login_password_to_hash($password);
+    $user_id = db_insert(
+        'INSERT INTO users (email, password, name) VALUES (?,?,?)',
+        [$email, $hash, $name]
+    );
+    return $user_id;
+}
+
+function n3s_login($email, $password)
+{
+    $user_id = n3s_get_user_id_by_email($email);
+    if ($user_id <= 0) {
+        return false;
+    }
+    $hash = n3s_login_password_to_hash($password);
+    $user = db_get1(
+        'SELECT * FROM users WHERE user_id=? AND password=?',
+        [$user_id, $hash]
+    );
+    if ($user === false || $user === null) {
+        return false;
+    }
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['name'] = $user['name'];
+    $_SESSION['screen_name'] = $user['name'];
+    $_SESSION['profile_url'] = '';
+    return true;
+}
+
 
 function n3s_getEditToken($key = 'default', $update = true)
 {
