@@ -54,8 +54,7 @@
       <span>
         {{if $user_id gt 0}}
           <a href="index.php?action=list&user_id={{$user_id}}">
-            <img src="{{$profile_url}}" width="48" height="48">
-            {{ $author | check_nanasi }} 作
+            ⭐ {{ $author | check_nanasi }} 作
           </a>
         {{else}}
           {{ $author | check_nanasi }} 作
