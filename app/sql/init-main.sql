@@ -40,6 +40,9 @@ CREATE TABLE apps (
 
 CREATE TABLE users (
   user_id     INTEGER PRIMARY KEY,
+  email       TEXT DEFAULT '', /* メールアドレス */
+  password    TEXT DEFAULT '', /* ハッシュ化して保存 */
+  pass_token  TEXT DEFAULT '', /* パスワードリセット用のトークン */
   name        TEXT DEFAULT '',
   screen_name TEXT DEFAULT '',
   description TEXT DEFAULT '',
@@ -48,6 +51,7 @@ CREATE TABLE users (
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
+
 
 
 CREATE TABLE comments (
@@ -84,6 +88,11 @@ CREATE TABLE bookmarks (
 );
 
 /*
+2023/05/07
+ALTER TABLE users ADD COLUMN email TEXT DEFAULT '';
+ALTER TABLE users ADD COLUMN password TEXT DEFAULT '';
+ALTER TABLE users ADD COLUMN pass_token TEXT DEFAULT '';
+
 2021/11/11
 ALTER TABLE apps ADD COLUMN app_name TEXT DEFAULT '';
 ALTER TABLE apps ADD COLUMN prog_hash TEXT DEFAULT '';

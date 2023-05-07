@@ -118,7 +118,7 @@ function db_table_exists($table, $dbname = 'main')
 {
     $r = db_get1(
         "SELECT * FROM sqlite_master ".
-    "WHERE type='table' AND name=?",
+        "WHERE type='table' AND name=?",
         [$table],
         $dbname
     );
