@@ -60,6 +60,7 @@ if (basename($file) === 'wnako3webworker.js') {
 // redirect
 header('Access-Control-Allow-Origin: *');
 header("location: $url", TRUE, 307);
+header("x-memo: $file;");
 exit;
 
 function useCache($ver, $url, $file, $ext = '') {
@@ -99,6 +100,10 @@ function useCache($ver, $url, $file, $ext = '') {
     echo $body;
   } else if ($ext === 'js') {
     header('content-type: text/javascript; charset=utf-8');
+    echo $body;
+  } else if ($ext === 'map') {
+    header('content-type: application/json; charset=utf-8');
+    header("x-memo: $url"); 
     echo $body;
   } else {
     header("location: $cache_url_file", TRUE, 307);
