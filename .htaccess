@@ -15,6 +15,8 @@ RewriteRule ^new$ /index.php?action=edit&page=new [L,R]
 RewriteRule ^list$ /index.php?page=all&action=list [L]
 RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L,R]
 RewriteRule ^show/([0-9a-zA-Z_\-]+)$ /index.php?page=$1&action=show [L,R]
+# sourcemap
+RewriteRule ^([0-9a-z_\-]+)\.js\.map$ /cdn.php?f=release/$1.js.map
 </IfModule>
 
 
