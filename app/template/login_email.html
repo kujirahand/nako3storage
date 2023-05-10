@@ -2,16 +2,23 @@
 
 <div class="showblock">
     <h1>ログイン</h1>
-    <div class="info_box">
+
+    <div class="info_box" style="background-color: #FFF0F0;">
         <div>
-残念なことにTwitterアカウントによるログイン認証を停止させられてしましました。
-<a href="https://github.com/kujirahand/nako3storage/issues/168">(#168)</a><br>
-それで、お手数ですが、<br>
-（1）以前のアカウントを特に使わないという方は新規登録をお願いします。<br>
-（2）以前のアカウントを引き継ぎたいという方は、
-Twitter @kujirahand までDMにてログイン認証で使いたいメールアドレスを通知してください。
-手動にてTwitter IDとログイン認証を接続する処理を行います。
-たくさん投稿してくださっていた皆様気軽にDMにてメールアドレスをお伝えください。
+            Twitterアカウントによるログイン認証ができなくなりました
+            <a href="https://github.com/kujirahand/nako3storage/issues/168">(#168)</a>。それで...<br>
+            <ul>
+                <li>（1）以前のアカウントを特に使わないという方は<a href="index.php?action=login&page=register">新規登録(メール認証)</a>をお願いします。</li>
+                <li>（2）引き継ぎたい方は、
+                    Twitterの<a href="https://twitter.com/kujirahand">@kujirahand</a>まで
+                    DMにてログイン認証で使いたいメールアドレスを通知してください。
+                    Twitter IDと貯蔵庫アカウントを接続する処理を行います。
+                    たくさん投稿してくださっていた皆様気軽にDMにてメールアドレスをお伝えください。
+                </li>
+            </ul>
+            <p>なお、メール認証にて、うまくログインできないことがあれば、
+                <a href="https://nadesi.com/cgi/kaizen3/index.php?m=thread&threadid=71">こちらまで</a>ご連絡ください。
+            </p>
         </div>
     </div>
     <br>
@@ -24,6 +31,7 @@ Twitter @kujirahand までDMにてログイン認証で使いたいメールア�
                 <label for="password">パスワード</label>
                 <input type="password" name="password" id="password2" placeholder="パスワード" required>
                 <button type="submit" class="pure-button pure-button-primary">ログイン</button>
+                <input type="hidden" name="edit_token" value="{{ $edit_token }}" />
             </form>
         </div>
     </div>
