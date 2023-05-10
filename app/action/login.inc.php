@@ -203,18 +203,29 @@ function n3s_web_login_trylogin() {
     $email = empty($_POST['email']) ? '' : $_POST['email'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
     if ($email != '' && $password != '') {
-        $email = trim($email);
-        $password = trim($password);
-        $user_id = n3s_get_user_id_by_email($email);
-        if ($user_id > 0) {
-            $isOK = n3s_web_login_execute($email, $password);
-            if ($isOK) { return; }
-            $error = 'メールアドレスかパスワードが間違っています。';
+        // トークンのチェック
+        if (!n3s_checkEditToken()) {
+            $error = 'セッションが切れました。もう一度ログインしてください。';
+        } else {
+            // ログインのチェック
+            $email = trim($email);
+            $password = trim($password);
+            $user_id = n3s_get_user_id_by_email($email);
+            if ($user_id > 0) {
+                $isOK = n3s_web_login_execute($email, $password);
+                if ($isOK) {
+                    return;
+                }
+                $error = 'メールアドレスかパスワードが間違っています。';
+            }
         }
     }
+    $token = n3s_getEditToken();
+    
     n3s_template_fw('login_email.html', [
         'email' => $email,
         'error' => $error,
+        'token' => $token,
     ]);
 }
 
