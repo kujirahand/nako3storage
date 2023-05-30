@@ -1,0 +1,37 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>{{ $name }} の情報</h1>
+    <div class="info_box">
+        <h3>{{ $error }}</h3>
+        <div>
+            <form class="pure-form pure-form-stacked" action="index.php?action=userinfo&mode=update&page={{ $user_id }}" method="POST">
+                {{ if $is_self }}
+                <label for="name">お名前</label>
+                <input type="text" name="name" id="name" placeholder="お名前" value="{{ $name }}" required>
+                <!-- メールの変更は認証が必要になるため今後対応する
+                <label for="email">メールアドレス</label>
+                <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{ $email }}" required>
+                -->
+                <label for="desc">一言プロフィール</label>
+                <input type="text" name="description" id="desc" value="{{ $description }}" placeholder="" style="width:90%;">
+                <input type="submit" class="pure-button pure-button-primary" value="修正">
+                <div style="border: 1px solid silver; padding: 0.4em; border: 8px;">
+                    なお、上記ボタンを押すと情報が更新されます。
+                </div>
+                {{ else }}
+                <div>お名前:<br>{{ $name }}</div><br>
+                <div>一言プロフィール:<br>{{ $description }}</div>
+                {{ endif }}
+            </form>
+        </div>
+    </div><br>
+    {{ if $is_self }}
+    <div class="info_box">
+        <a class="pure-button" href="index.php?action=login&page=forgot">パスワードの変更</a>
+    </div>
+    {{ endif; }}
+</div>
+
+
+{{ include parts_html_footer.html }}

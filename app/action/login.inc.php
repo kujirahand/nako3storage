@@ -118,7 +118,7 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     $body .= "なでしこ3貯蔵庫\r\n";
     $body .= "https://n3s.nadesi.com/\r\n";
     mb_send_mail($sendto, $subject, $body);
-    if (explode(':', $host)[0] === 'localhost') {
+    if (explode(':', $host.':')[0] === 'localhost') {
         echo "<pre>".$body."</pre>";
     }
 }
