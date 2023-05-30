@@ -12,10 +12,10 @@
   <div style="padding:1em; border: 1px solid silver; background-color: #fff0f0;">
       <div style="padding-left:1em;">閲覧するには「編集キー」が必要です。</div>
       <form action="index.php" method="GET">
-      <input type="hidden" name="action" value="{{$action}}">
-      <input type="hidden" name="page" value="{{$app_id}}">
-      <input type="hidden" name="run" value="{{$run}}">
-      <input type="hidden" name="allow" value="{{$allow}}">
+      <input type="hidden" name="action" value="{{ $action }}">
+      <input type="hidden" name="page" value="{{ $app_id }}">
+      <input type="hidden" name="run" value="{{ $run }}">
+      <input type="hidden" name="allow" value="{{ $allow }}">
       <input type="password" name="editkey" value="">
       <input class="pure-button pure-button-primary" type="submit" value="閲覧" style="width:6em;">
     </form>

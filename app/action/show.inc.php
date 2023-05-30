@@ -223,6 +223,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
         $url = '';
     }
     $a['url'] = $url;
+    if (empty($a['bad'])) { $a['bad'] = 0; }
     // get link url
     $a['newNakoVersion'] = NAKO_DEFAULT_VERSION;
     $a['badlink'] = n3s_getURL('about', 'bad');
@@ -288,7 +289,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
             break;
         default:
             $a['ext'] = '.'.$a['nakotype'];
-            break;        
+            break;
     }
     // tag
     $a['tag'] = empty($a['tag']) ? '' : $a['tag'];
