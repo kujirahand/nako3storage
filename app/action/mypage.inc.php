@@ -43,6 +43,7 @@ function n3s_web_mypage()
     $link_all_fav = n3s_getURL('all', 'mypage', ['fav'=>'all']);
     $link_mypage = n3s_getURL('all', 'mypage', []);
     $link_materil = n3s_getURL('all', 'mypage', ['mode' => 'material']);
+    $link_userinfo = n3s_getURL($user_id, 'userinfo', []);
     // -----------------------------------
     // 表示モードの確認
     // -----------------------------------
@@ -65,6 +66,7 @@ function n3s_web_mypage()
             'link_next_page' => $link_next_material_page,
             'link_mypage' => $link_mypage,
             'link_material' => $link_materil,
+            'link_userinfo' => $link_userinfo,
             'page' => $page,
         ]);
         return;
@@ -102,6 +104,7 @@ function n3s_web_mypage()
         'link_all_fav' => $link_all_fav,
         'link_next_page' => $link_next_page,
         'link_mypage' => $link_mypage,
+        'link_userinfo' => $link_userinfo,
         'page' => $page,
         'link_material' => $link_materil,
     ]);
