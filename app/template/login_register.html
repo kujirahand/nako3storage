@@ -8,7 +8,7 @@
             <form class="pure-form pure-form-stacked" action="index.php?action=login&page=register" method="POST">
                 <label for="email">メールアドレス(email)</label>
                 <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{$email}}" required>
-                <label for="name">お名前</label>
+                <label for="name">お名前(12文字以内)</label>
                 <input type="text" name="name" id="name" placeholder="お名前" value="{{$name}}" required>
                 <button type="submit" class="pure-button pure-button-primary">登録</button>
             </form>

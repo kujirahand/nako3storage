@@ -7,7 +7,7 @@
         <div>
             <form class="pure-form pure-form-stacked" action="index.php?action=userinfo&mode=update&page={{ $user_id }}" method="POST">
                 {{ if $is_self }}
-                <label for="name">お名前</label>
+                <label for="name">お名前(10文字以内)</label>
                 <input type="text" name="name" id="name" placeholder="お名前" value="{{ $name }}" required>
                 <!-- メールの変更は認証が必要になるため今後対応する
                 <label for="email">メールアドレス</label>
