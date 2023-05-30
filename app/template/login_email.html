@@ -2,26 +2,6 @@
 
 <div class="showblock">
     <h1>ログイン</h1>
-
-    <div class="info_box" style="background-color: #FFF0F0;">
-        <div>
-            Twitterアカウントによるログイン認証ができなくなりました
-            <a href="https://github.com/kujirahand/nako3storage/issues/168">(#168)</a>。それで...<br>
-            <ul>
-                <li>（1）以前のアカウントを特に使わないという方は<a href="index.php?action=login&page=register">新規登録(メール認証)</a>をお願いします。</li>
-                <li>（2）引き継ぎたい方は、
-                    Twitterの<a href="https://twitter.com/kujirahand">@kujirahand</a>まで
-                    DMにてログイン認証で使いたいメールアドレスを通知してください。
-                    Twitter IDと貯蔵庫アカウントを接続する処理を行います。
-                    たくさん投稿してくださっていた皆様気軽にDMにてメールアドレスをお伝えください。
-                </li>
-            </ul>
-            <p>なお、メール認証にて、うまくログインできないことがあれば、
-                <a href="https://nadesi.com/cgi/kaizen3/index.php?m=thread&threadid=71">こちらまで</a>ご連絡ください。
-            </p>
-        </div>
-    </div>
-    <br>
     <div class="info_box">
         <h3>{{ $error }}</h3>
         <div>
@@ -42,6 +22,13 @@
     <br>
     <div class="info_box">
         <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
+    </div>
+    <br>
+    <div class="info_box" style="background-color: #FFF0F0;">
+        <div>
+            (メモ) Twitterアカウントによるログイン認証ができなくなりました
+            <a href="https://github.com/kujirahand/nako3storage/issues/168">(#168)</a>。
+        </div>
     </div>
 </div>
 
