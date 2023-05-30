@@ -37,6 +37,8 @@ function n3s_web_userinfo()
         $description2 = empty($_POST['description']) ? '' : $_POST['description'];
         if ($name == '' || $description2 == '') {
             $error = '空白の項目があります。全て正しく埋めてください。';
+        } if (mb_strlen($name) > 12) {
+            $error = '名前は12文字以内にしてください。';
         } else {
             db_exec('UPDATE users set name=?, description=?, mtime=? WHERE user_id=?',
             [

@@ -49,8 +49,8 @@ function n3s_web_login_register()
     if ($email != '' && $name != '') {
         $error = '';
         $name = trim($name);
-        if ($name == '') {
-            $error = '名前を入力してください。';
+        if ($name == '' || mb_strlen($name) > 12) {
+            $error = '名前を12文字以内で入力してください。';
         }
         if ($email == '') {
             $error = 'メールアドレスを入力してください。';
