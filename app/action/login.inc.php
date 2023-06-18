@@ -138,7 +138,7 @@ function n3s_web_login_forgot()
     $email = empty($_POST['email']) ? $email_get : trim($_POST['email']);
     $email2 = empty($_POST['email2']) ? $email_get : trim($_POST['email2']);
     $quiz = empty($_POST['quiz']) ? '' : $_POST['quiz'];
-    if ($email != '') 
+    if ($email != '') {
         $email = trim($email);
         $quiz = trim($quiz);
         if ($quiz != 'くさばな') {
@@ -158,6 +158,7 @@ function n3s_web_login_forgot()
     }
     n3s_template_fw('login_forgot.html', [
         'email' => $email,
+        'email2' => $email2,
         'error' => $error,
     ]);
 }
