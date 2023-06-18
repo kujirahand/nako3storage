@@ -134,14 +134,18 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
 function n3s_web_login_forgot()
 {
     $error = '';
-    $email_get = empty($_GET['email']) ? '' : $_GET['email'];
-    $email = empty($_POST['email']) ? $email_get : $_POST['email'];
+    $email_get = empty($_GET['email']) ? '' : trim($_GET['email']);
+    $email = empty($_POST['email']) ? $email_get : trim($_POST['email']);
+    $email2 = empty($_POST['email2']) ? $email_get : trim($_POST['email2']);
     $quiz = empty($_POST['quiz']) ? '' : $_POST['quiz'];
-    if ($email != '') {
+    if ($email != '') 
         $email = trim($email);
         $quiz = trim($quiz);
         if ($quiz != 'くさばな') {
             $error = 'クイズの答えを入力してください。';
+        }
+        if ($email != $email2) {
+            $error = 'メールアドレスが合致しません。';
         }
         if ($error == '') {
             $user_id = n3s_get_user_id_by_email($email);
