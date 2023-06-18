@@ -1,6 +1,7 @@
 <?php
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
+define('ITAZURA_ANSWER', 'ニンゲン');
 
 // no api login
 function n3s_api_login()
@@ -42,18 +43,24 @@ function n3s_web_login_register()
 {
     $error = '登録に必要な項目を入力してください。';
     // get parametes
-    $email = empty($_POST['email']) ? '' : $_POST['email'];
-    $name = empty($_POST['name']) ? '' : $_POST['name'];
-    $twitter_id = empty($_POST['twitter_id']) ? '' : $_POST['twitter_id'];
+    $email = empty($_POST['email']) ? '' : trim($_POST['email']);
+    $email2 = empty($_POST['email2']) ? '' : trim($_POST['email2']);
+    $name = empty($_POST['name']) ? '' : trim($_POST['name']);
+    $itazura = empty($_POST['itazura']) ? '' : trim($_POST['itazura']);
     // check params
     if ($email != '' && $name != '') {
         $error = '';
-        $name = trim($name);
         if ($name == '' || mb_strlen($name) > 12) {
             $error = '名前を12文字以内で入力してください。';
         }
         if ($email == '') {
             $error = 'メールアドレスを入力してください。';
+        }
+        if ($email != $email2) {
+            $error = '確認用に入力されたメールアドレスが合致しません。';
+        }
+        if ($itazura != ITAZURA_ANSWER) {
+            $error = 'イタズラ防止用の質問が間違っています。お手数ですが、質問に答えください。';
         }
         // emailの検証
         if (!preg_match('#^[a-zA-Z0-9\.\-\_]+\@[a-zA-Z0-9\.\-\_]+\.[a-zA-Z0-9]+$#', $email)) {
@@ -85,8 +92,8 @@ function n3s_web_login_register()
 
     n3s_template_fw('login_register.html', [
         'email' => $email,
+        'email2' => $email2,
         'name' => $name,
-        'twitter_id' => $twitter_id,
         'error' => $error,
     ]);
 }
@@ -107,17 +114,18 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     $sendto = $email;
     $subject = ($action == 'register') ? '[なでしこ3貯蔵庫] ユーザー登録について' : '[なでしこ3貯蔵庫]パスワード再設定について';
     $actionName = ($action == 'register') ? 'ユーザー登録' : 'パスワードの再設定';
-    $body = "親愛なるユーザーの皆様:\r\n\r\n" . "「なでしこ3貯蔵庫」の事務局です。\r\n";
-    $body .= "メールにて{$actionName}の旨を承っております。\r\n\r\n";
+    $body = "親愛なるなでしこ貯蔵庫ユーザーの皆様:\r\n\r\n" . "「なでしこ3貯蔵庫」の事務局です。\r\n";
+    $body .= "貯蔵庫からの操作よりメールにて{$actionName}の旨を承っております。\r\n\r\n";
     $body .= "もしも、{$actionName}する場合は、以下のURLをクリックしてください。\r\n";
     $body .= "{$baseurl}?action=login&page=setpw&p={$passtoken_enc}\r\n";
     $body .= "\r\n";
-    $body .= "{$actionName}に覚えがない場合、本メールは削除してください。。\r\n";
+    $body .= "※ただし、{$actionName}に覚えがない場合、本メールはそのまま削除してください。\r\n";
+    $body .= "ご迷惑をおかけして申し訳ありません。\r\n";
     $body .= "\r\n";
     $body .= "------------------\r\n";
-    $body .= "なでしこ3貯蔵庫\r\n";
-    $body .= "https://n3s.nadesi.com/\r\n";
-    mb_send_mail($sendto, $subject, $body);
+    $body .= "なでしこ3貯蔵庫「事務局」より\r\n";
+    $body .= "https://n3s.nadesi.com/\r\n\r\n";
+    @mb_send_mail($sendto, $subject, $body);
     if (explode(':', $host.':')[0] === 'localhost') {
         echo "<pre>".$body."</pre>";
     }
