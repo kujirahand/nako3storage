@@ -5,15 +5,16 @@
     <div class="info_box">
         <h3>{{ $error }}</h3>
         <div>
-            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=forgot" method="POST">
+            <form class="pure-form pure-form-stacked" 
+                action="index.php?action=login&page=forgot"
+                method="POST"
+                onsubmit="checkForm()">
                 <label for="email">メールアドレス</label>
                 <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{ $email }}" required>
+                <label for="email2">メールアドレス(確認用)</label>
+                <input type="email" name="email2" id="email2" placeholder="メールアドレス(確認用)" value="{{ $email2 }}" required>
                 <label for="quiz">クイズ: 全部ひらがなで以下に「草花」と入力してください。</label>
                 <input type="text" name="quiz" id="quiz" placeholder="クイズの答えを入力" required>
-                <!--
-                <label for="quiz2">クイズ2: 全部カタカナで以下に「私は二度とパスワードを忘れません」と入力してください。</label>
-                <input type="text" name="quiz2" id="quiz2" placeholder="クイズの答えを入力" required>
-                -->
                 <button type="submit" class="pure-button pure-button-primary">パスワードの変更を申請</button>
             </form>
             <div style="border: 1px solid silver; padding: 0.4em; border: 8px;">
@@ -23,6 +24,33 @@
         </div>
     </div>
 </div>
+<script>
+    function trim(s) {
+        s = '' + s
+        return s.replace(/^\s+/, '').replace(/\s+$/, '')
+    }
+    function checkForm() {
+        // emailの検証
+        const email = document.querySelector('#email')
+        const email2 = document.querySelector('#email2')
+        const email_v1 = trim(email.value)
+        const email_v2 = trim(email2.value)
+        if (email_v1 != email_v2 || email_v1 == '') {
+            alert('メールアドレスが間違っているようです。見直してください。')
+            email.focus()
+            return false
+        }
+        // イタズラ防止
+        const itazura = document.querySelector('#itazura')
+        const itazura_v = trim(itazura.value)
+        if (itazura_v == '' || name_v.length > 100) {
+            alert('お手数ですがイタズラ防止用の問題にお答えください。')
+            itazura_v.focus()
+            return false
+        }
+        return true
+    }
+</script>
 
 
 {{ include parts_html_footer.html }}
