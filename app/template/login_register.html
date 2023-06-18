@@ -5,11 +5,18 @@
     <div class="info_box">
         <h3>{{ $error | raw }}</h3>
         <div>
-            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=register" method="POST">
-                <label for="email">メールアドレス(email)</label>
+            <form class="pure-form pure-form-stacked"
+                action="index.php?action=login&page=register" 
+                method="POST"
+                onsubmit="checkForm()">
+                <label for="email">メールアドレス</label>
                 <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{$email}}" required>
+                <label for="email">もう一度メールアドレスを入力(確認用)</label>
+                <input type="email" name="email" id="email2" placeholder="メールアドレス" value="{{$email2}}" required>
                 <label for="name">お名前(12文字以内)</label>
                 <input type="text" name="name" id="name" placeholder="お名前" value="{{$name}}" required>
+                <label for="name">イタズラ防止のため、カタカナで「人間」と入力してください</label>
+                <input type="text" name="itazura" id="itazura" placeholder="質問の答えを入力" value="" required>
                 <button type="submit" class="pure-button pure-button-primary">登録</button>
             </form>
         </div>
@@ -22,6 +29,40 @@
         </div>
     </div>
 </div>
-
+<script>
+    function trim(s) {
+        s = '' + s
+        return s.replace(/^\s+/, '').replace(/\s+$/, '')
+    }
+    function checkForm() {
+        // emailの検証
+        const email = document.querySelector('#email')
+        const email2 = document.querySelector('#email2')
+        const email_v1 = trim(email.value)
+        const email_v2 = trim(email2.value)
+        if (email_v1 != email_v2 || email_v1 == '') {
+            alert('メールアドレスが間違っているようです。見直してください。')
+            email.focus()
+            return false
+        }
+        // 名前の検証
+        const name = document.querySelector('#name')
+        const name_v = trim(name.value)
+        if (name_v == '' || name_v.length > 12) {
+            alert('名前は12文字以内で入力してください。')
+            name.focus()
+            return false
+        }
+        // イタズラ防止
+        const itazura = document.querySelector('#itazura')
+        const itazura_v = trim(itazura.value)
+        if (itazura_v == '' || name_v.length > 100) {
+            alert('お手数ですがイタズラ防止用の問題にお答えください。')
+            itazura_v.focus()
+            return false
+        }
+        return true
+    }
+</script>
 
 {{ include parts_html_footer.html }}
