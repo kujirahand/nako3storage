@@ -479,19 +479,64 @@ EOS;
         $dbname
     );
     // save to nadesiko3hub
-    n3s_nadesiko3hub_save($app_id, $data);
+    n3s_nadesiko3hub_save($app_id, $a);
     return $app_id;
 }
 
 function n3s_nadesiko3hub_save($app_id, $data) {
     // ライセンスを確認して問題なければ、nadesiko3hubに保存
     $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
-    if (!$nadesiko3hub_enabled) { return; }
-    // ライセンスの確認
+    $nadesiko3hub_dir = n3s_get_config('nadesiko3hub_dir', '');
+    if (!$nadesiko3hub_enabled || $nadesiko3hub_dir == '') { return; }
+    // プログラムが空ならばスキップ
+    $body = empty($data['body']) ? '' : $data['body'];
+    // ライセンスの確認 (ライセンスがない場合は保存しない)
     $copyright = $data['copyright'];
-    if ($copyright == '') { return; }
-    if ($copyright == '未指定') { return; }
-    // TODO
+    if ($copyright == '未指定' || $copyright == '自分用') { $copyright = ''; } // 未指定と自分用は保存しない
+    // 保存先を決定(フォルダ1つずつに500件)
+    $dirno = floor($app_id / 500) * 500;
+    $dirname = sprintf('%05d', $dirno);
+    $savedir = $nadesiko3hub_dir . '/' . $dirname;
+    if (!file_exists($savedir)) { @mkdir($savedir); }
+    $savefile = $savedir . '/' . $app_id . '.nako3';
+    // 非公開であれば保存しない(また非公開にされたり、著作権を自分用にされたら削除)
+    if ($data['is_private'] == 1 || $body == '' || $copyright == '') {
+        if (file_exists($savefile)) {
+            unlink($savefile);
+        }
+        return;
+    }
+    // メタ情報を追加
+    $memo = empty($data['memo']) ? '' : $data['memo'];
+    $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
+    $mtime = date('Y-m-d H:i:s', $data['mtime']);
+    $meta  = "### [作品情報]\n";
+    $meta .= "### タイトル={$data['title']}\n";
+    $meta .= "### 作者={$data['author']}(user_id={$data['user_id']})\n";
+    $meta .= "### ライセンス={$data['copyright']}\n";
+    $meta .= "### 説明={$memo}\n";
+    $meta .= "### 対象バージョン={$data['version']}\n";
+    $meta .= "### URL={$data['url']}\n";
+    $meta .= "### 種類={$data['nakotype']}\n";
+    $meta .= "### タグ={$data['tag']}\n";
+    $meta .= "### 更新日時={$mtime}\n";
+    $meta .= "###\n\n";
+    // 保存
+    $body = str_replace("\r\n", "\n", $body); // 改行コードを統一
+    $body = str_replace("\r", "\n", $body);
+    file_put_contents($savefile, $meta.$body);
+}
+
+function n3s_nadesiko3hub_update_all() {
+    $all = db_get('SELECT * FROM apps WHERE is_private=0 ORDER BY app_id DESC');
+    foreach ($all as $a) {
+        $app_id = $a['app_id'];
+        $body = n3s_getMaterialData($app_id);
+        $a['body'] = empty($body['body']) ? '' : $body['body'];
+        $len = mb_strlen($a['body']);
+        echo "[$app_id] {$a['title']}({$len}字)\n";
+        n3s_nadesiko3hub_save($app_id, $a);
+    }
 }
 
 function n3s_list_setIcon(&$list) {
