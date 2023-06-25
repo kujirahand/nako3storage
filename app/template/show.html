@@ -178,7 +178,7 @@
   </div>
   {{ endif }}
 
-  {{ if $is_private == 0 }}
+  {{ if $is_private == 0 && ($copyright != '' && $copyright != '自分用' && $copyright != '未指定') }}
   {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
   <div class="blogparts">
     <span class="memo">📍なでしこハブ:</span><br>
