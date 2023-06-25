@@ -178,6 +178,18 @@
   </div>
   {{ endif }}
 
+  {{ if $is_private == 0 }}
+  {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
+  <div class="blogparts">
+    <span class="memo">📍なでしこハブ:</span><br>
+    <div class="memo" style="padding-left: 1em;">
+      <ur>
+        <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/blob/main/{{$app_dir}}/{{$app_id}}.nako3">ソースの確認</a></li>
+        <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/commits/main/{{$app_dir}}/{{$app_id}}.nako3">編集履歴の確認</a></li>
+      </ur>
+  </div>
+  {{ endif }}
+
 </div><!-- /ctrl_block --><!-- /URL -->
 
 <div class="ctrl_block" style="text-align:right;">
