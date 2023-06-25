@@ -478,7 +478,20 @@ EOS;
         [$a['body'], $app_id],
         $dbname
     );
+    // save to nadesiko3hub
+    n3s_nadesiko3hub_save($app_id, $data);
     return $app_id;
+}
+
+function n3s_nadesiko3hub_save($app_id, $data) {
+    // ライセンスを確認して問題なければ、nadesiko3hubに保存
+    $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
+    if (!$nadesiko3hub_enabled) { return; }
+    // ライセンスの確認
+    $copyright = $data['copyright'];
+    if ($copyright == '') { return; }
+    if ($copyright == '未指定') { return; }
+    // TODO
 }
 
 function n3s_list_setIcon(&$list) {
