@@ -307,7 +307,6 @@ function n3s_action_save_data_raw($data, $agent)
             exit;
         }
     }
-
     // 新規投稿の場合
     if ($app_id == 0) {
         return n3s_saveNewProgram($a);

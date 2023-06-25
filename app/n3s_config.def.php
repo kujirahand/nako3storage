@@ -35,11 +35,6 @@ $n3s_config = [
     "nako3storage_version" => N3S_APP_VERSION,
     "nako_default_version" => NAKO_DEFAULT_VERSION,
     "session_lifetime" => 60 * 60 * 24, // 24時間セッションを保持
-    // for twitter login
-    "twitter_api_key" => "",
-    "twitter_api_secret" => "",
-    "twitter_acc_token" => "",
-    "twitter_acc_secret" => "",
     // for analytics
     "analytics" => "",
     // sandbox
@@ -48,6 +43,9 @@ $n3s_config = [
     // "app_root_url" => "https://n3s.nadesi.com/", // 末尾にスラッシュを入れること!!
     "app_root_url" => "http://localhost/repos/nako3storage/",
     "sandbox_params" => "allow-same-origin allow-modals allow-forms allow-scripts allow-popups allow-top-navigation-by-user-activation allow-downloads",
+    // hub
+    "nadesiko3hub_enabled" => false,
+    "nadesiko3hub_dir" => "$root/nadesiko3hub",
 ];
 
 // timezone
