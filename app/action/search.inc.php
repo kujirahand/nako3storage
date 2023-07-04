@@ -19,8 +19,8 @@ function n3s_list_search()
     $target = isset($_GET['target']) ? $_GET['target'] : 'normal';
     $offset = intval(isset($_GET['offset']) ? $_GET['offset'] : '0');
     $error = '';
-    if (mb_strlen($search_word) < 3) {
-        $error = '検索語は3文字以上で指定してください。';
+    if (mb_strlen($search_word) < 2) {
+        $error = '検索語は2文字以上で指定してください。';
     }
     if ($search_word == '' || $error != '') {
         return [
@@ -86,7 +86,8 @@ function n3s_list_search()
     elseif ($target == 'program') {
         // Google検索に投げる!!
         $enc = urldecode($search_word);
-        header("Location: https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$enc}");
+        // header("Location: https://www.google.com/search?q=site%3A%2F%2Fn3s.nadesi.com+{$enc}");
+        header("Location: https://github.com/search?q=repo%3Akujirahand%2Fnadesiko3hub%20{$enc}&type=code");
         echo '現在不可軽減のため、アプリ内の全文検索を停止しています。すみません。';
         exit;
         
