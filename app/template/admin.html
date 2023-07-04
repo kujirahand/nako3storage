@@ -1,0 +1,26 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+    <h1>管理者専用ページ</h1>
+    <h2>ログ</h2>
+    <div>
+        <ul>
+        {{ for $logs as $log }}
+            {{ if $log['log_level'] >= 1 }}
+            <li>{{ $log.ctime | datetime }} <b>{{ $log.kind }} - {{ $log.body }}</b></li>
+            {{ else }}
+            <li>{{ $log.ctime | datetime }} {{ $log.kind }} - {{ $log.body }} </li>
+            {{ endif }}
+        {{ endfor }}
+        </ul>
+    </div>
+    <div>
+        <a href="{{$next_link}}" class="pure-button">次のページ</a>
+        {{if $prev_link }}
+            <a href="{{$prev_link}}" class="pure-button">前のページ</a>
+        {{endif}}
+    </div>
+
+</div>
+
+{{ include parts_html_footer.html }}
