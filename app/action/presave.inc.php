@@ -13,12 +13,12 @@ function n3s_web_presave()
     n3s_action_save_check_param($a);
 
     // default presave value
-    $a["rewrite"] = 'no';
+    $a["load_src"] = 'no';
 
     // check mode
     $mode = empty($_GET['mode']) ? 'save' : $_GET['mode'];
     if ($mode === 'afterlogin') {
-        $a['rewrite'] = 'yes';
+        $a['load_src'] = 'yes';
     }
   
     // ログインしていないとき、ログイン後このページに戻ってくるように

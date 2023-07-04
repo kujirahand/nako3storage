@@ -13,7 +13,7 @@
   {{ if !n3s_is_login() }}
     <div class="info_box" style="margin:1em;">
       <p><b>現在ログインしていません。</b></p>
-      <p>Twitterアカウントでログインすると自分の投稿をまとめて管理できます。
+      <p>ログインすると自分の投稿をまとめて管理できます。
         公開せず自分だけのために保存もできます。</p>
       <p id="login_link" style="display:none">
         <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">
@@ -22,7 +22,7 @@
     </div>
   {{ endif }}
 
-  {{ if $rewrite == 'yes' }}
+  {{ if $load_src == 'yes' }}
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
   {{ endif }}
 
@@ -212,9 +212,9 @@
 </div>
 
 <script>
-// rewrite yes か no のみ
+// load_src yes か no のみ
 const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
-switch ('{{$rewrite}}') {
+switch ('{{$load_src}}') {
   //
   case 'no': saveToLocalStorage(); break;
   case 'yes': loadFromLocalStorage(); break;
