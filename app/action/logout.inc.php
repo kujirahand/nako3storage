@@ -11,6 +11,7 @@ function n3s_web_logout()
     unset($_SESSION['n3s_login']);
     unset($_SESSION['user_id']);
     unset($_SESSION['n3s_backurl']);
+    unset($_SESSION['name']);
     // message
     n3s_template_fw('basic.html', ['contents'=>'ログアウトしました。']);
 }
