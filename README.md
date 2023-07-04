@@ -23,26 +23,14 @@
  - `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
  - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
  - `bash scripts/setup.sh`コマンドを実行する
- - 必要ライブラリ(Twitterの認証)のインストール `cd app` そして `composer install`
- - `./n3s_config.ini.php` に以下のようなTwitterの認証情報を指定
+ - 必要ライブラリのインストール `cd app` そして `composer install`
+ - `./n3s_config.ini.php` に以下のように情報を指定
 
 ```
 <?php
 global $n3s_config;
-// Twitterの認証情報を記述
-$n3s_config['twitter_api_key'] = 'xxx';
-$n3s_config['twitter_api_secret'] = 'xxx';
-$n3s_config['twitter_acc_token'] = 'xxx-xxx';
-$n3s_config['twitter_acc_secret'] = 'xxxxxx';
 // 管理ユーザーのIDを配列で指定
 $n3s_config['admin_users'] = [PHP_INT_MAX];
-```
-
-まず、Twitterの開発者サイトでアプリ登録してください。
-Twitterのアプリ側でCallback先のURLを指定します。
-
-```
-(設置したURL)/callback.php
 ```
 
 ## 安全に運用するためのTips
@@ -63,7 +51,7 @@ $n3s_config['sandbox_url'] = 'https://n3s-sandbox.example.com/';
 
  ```
  <iframe width="232" height="320"
-  src="http://localhost/repos/nako3storage/widget.php?1">
+  src="https://n3s.nadesi.com/widget.php?1">
 </iframe>
  ```
 
@@ -71,7 +59,7 @@ srcにオプションrun=1やmute_name=1を追加すると実行ボタンを押�
 
  ```
  <iframe width="232" height="320"
-  src="http://localhost/repos/nako3storage/widget.php?1&run=1&mute_name=1">
+  src="https://n3s.nadesi.com/widget.php?1&run=1&mute_name=1">
 </iframe>
  ```
 
@@ -99,6 +87,5 @@ GETでアクセスすると、プログラムと情報を取得できる。
 ## 仕様
 
 - `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
-
 
 
