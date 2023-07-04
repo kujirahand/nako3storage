@@ -263,7 +263,7 @@ function n3s_web_login_trylogin() {
                 $errCount++;
                 $_SERVER['n3s_trylogin_count'] = $errCount;
                 $error = "メールアドレスかパスワードが間違っています。(試行回数: {$errCount}/5回目)";
-                db_exec("INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?)", [0, $ip, $email, time()], 'log');
+                db_exec("INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)", [0, $ip, $email, time()], 'log');
             }
         }
     }
