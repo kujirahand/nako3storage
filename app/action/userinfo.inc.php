@@ -21,6 +21,7 @@ function n3s_web_userinfo()
         n3s_error('ユーザーIDが不正です', 'ユーザー情報でユーザーIDが不正です。');
         return;
     }
+    $old_name = $user['name'];
     // 自身？
     $self = n3s_get_login_info();
     $is_self = ($user_id == $self['user_id']);
@@ -50,6 +51,7 @@ function n3s_web_userinfo()
             $name = $name2;
             $description = $description2;
             $error = '更新しました！！';
+            n3s_log("{$name}(以前:{$old_name})", "ユーザー情報更新", 1);
         }
     }
 

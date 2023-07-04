@@ -24,6 +24,17 @@
   padding-left: 1em;
 }
 
+#n3s_footer {
+  border-top: 1px dotted gray;
+  padding: 4px;
+  font-size: 0.8em;
+}
+
+#n3s_footer .applink {
+  padding: 12px;
+  text-align: center;
+  font-size: 0.8em;
+}
 .header-right {
   text-align: right;
   padding: 0.5em;
@@ -202,17 +213,6 @@ h2 {
 
 .next_button_div {
   padding: 1em;
-}
-
-#n3s_footer {
-  border-top: 1px dotted gray;
-  padding: 1em;
-  font-size: 0.8em;
-}
-#n3s_footer .applink {
-  padding: 12px;
-  text-align: center;
-  font-size: 0.8em;
 }
 
 .nako3_div {
