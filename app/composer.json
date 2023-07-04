@@ -1,12 +1,11 @@
 {
-    "name": "kujiramac/lib",
+    "name": "kujirahand/lib",
     "authors": [
         {
             "name": "kujirahand",
-            "email": "kujira@kujirahand.com"
+            "email": "web@kujirahand.com"
         }
     ],
     "require": {
-        "abraham/twitteroauth": "^2.0"
     }
 }
