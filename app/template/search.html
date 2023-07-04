@@ -32,7 +32,7 @@
         <label class="pure-radio">
           <input type="radio" name="target" value="program"
             {{if $target eq 'program'}}checked="true"{{endif}}>
-          プログラムから探す
+          プログラムから探す(GitHub - なでしこハブを全検索)
         </label>
       </div>
     </fieldset>
@@ -42,11 +42,12 @@
 <!-- search result -->
 {{ if $search_word != '' }}
 <div class="list search_list">
-  {{ if $error != '' }}
-  <div style="color:gray; border:1px solid #ffa0a0; padding:0.7em;">
-    {{$error}}</div>
-  {{ endif }}
   
+  {{ if $error != '' }}
+  <div style="color:red; border:1px solid #ffa0a0; padding:0.7em;">{{$error}}</div>
+  {{ endif }}
+
+{{ if $error == '' /* no_error */ }}
   <h1>検索結果</h1>
   {{ if !$list }}
   <div>
@@ -54,7 +55,7 @@
     すみません。
   </div>
   {{ else }}
-    <ul>
+  <ul>
     {{ for $list as $i }}
     <li>
       <div class="search_title">
@@ -89,8 +90,9 @@
       </div>
     </li>
     {{ endfor }}
-    </ul>
+  </ul>
   {{ endif }}
+{{ endif /* end of no_error */ }}
 </div>
 {{ endif }}
 
