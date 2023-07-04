@@ -251,18 +251,18 @@ function n3s_web_login_trylogin() {
                 // ip_check に記録するので、ここには記録しない
                 // n3s_log("email={$email},error=パスワードの間違い", "trylogin");
                 // ログイン失敗した回数を確認
-                $errCount = isset($_SERVER['n3s_trylogin_count']) ? $_SERVER['n3s_trylogin_count'] : 0;
+                $errCount = isset($_SESSION['n3s_trylogin_count']) ? $_SESSION['n3s_trylogin_count'] : 0;
                 if ($errCount >= 5) {
-                    unset($_SERVER['n3s_trylogin_count']);
+                    unset($_SESSION['n3s_trylogin_count']);
                     n3s_error('ログイン失敗',
                         "ログインに5回以上失敗しました。しばらく時間をおいてから再度お試しください。".
-                        "あるいは、<a href='idnex.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。", 
+                        "あるいは、<a href='index.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。", 
                         true);
                     exit;
                 }
                 $errCount++;
-                $_SERVER['n3s_trylogin_count'] = $errCount;
-                $error = "メールアドレスかパスワードが間違っています。(試行回数: {$errCount}/5回目)";
+                $_SESSION['n3s_trylogin_count'] = $errCount;
+                $error = "メールアドレスかパスワードが間違っています。#{$errCount}";
                 db_exec("INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)", [0, $ip, $email, time()], 'log');
             }
         }
