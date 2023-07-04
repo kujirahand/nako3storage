@@ -256,26 +256,6 @@ function n3s_web_login_execute($user_id, $password) {
     return true;
 }
 
-/*
-function n3s_web_login_callback()
-{
-    // パラメータを得る
-    // set session
-    $_SESSION['n3s_login'] = time();
-    $_SESSION['user_id'] = $user_id;
-    $_SESSION['name'] = $name;
-    $_SESSION['screen_name'] = $screen_name;
-    $_SESSION['profile_url'] = $profile_url;
-    // message
-    $backurl = n3s_getBackURL();
-    if ($backurl == '') {
-        $mypage = n3s_getURL('my', 'mypage');
-        $backurl = $mypage;
-    }
-    header('location:'.$backurl);
-}
-*/
-
 function iget($info, $key, $def = '')
 {
     if (!isset($info[$key])) {

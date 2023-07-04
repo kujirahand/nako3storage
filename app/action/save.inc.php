@@ -36,7 +36,7 @@ function n3s_show_save_form($mode)
         n3s_web_save_check($app_id, $a);
         $a['agree'] = 'checked';
     }
-    $_GET['rewrite'] = empty($_GET['rewrite']) ? '' : $_GET['rewrite'];
+    $_GET['load_src'] = empty($_GET['load_src']) ? '' : $_GET['load_src'];
 
     if (!empty($_POST['body'])) {
         $cols = ["body", "canvas_w", "canvas_h", "version"];
@@ -47,11 +47,11 @@ function n3s_show_save_form($mode)
     // パラメータチェックを行う (ここでチェックは行わない)
     n3s_action_save_check_param($a, false);
   
-    // rewrite パラメータのチェック
-    //      yes : localStorageからデータを読み出してフォームを埋める(Twitterログイン後に内容を復元する)
+    // load_src パラメータのチェック
+    //      yes : localStorageからデータを読み出してフォームを埋める(ログイン後に内容を復元する)
     //      no : localStorageへデータを保存(ページ遷移しても大丈夫なように)
     //      @see save.html
-    $a['rewrite'] = $_GET['rewrite'] = ($_GET['rewrite'] == 'yes') ? 'yes' : 'no';
+    $a['load_src'] = $_GET['load_src'] = ($_GET['load_src'] == 'yes') ? 'yes' : 'no';
 
     // ログイン情報を反映させる
     if ($app_id == 0 && n3s_is_login()) {
@@ -61,8 +61,8 @@ function n3s_show_save_form($mode)
     }
     $a['presave'] = 'no';
     $a['edit_token'] = n3s_getEditToken();
-    // set backurl
-    n3s_setBackURL(n3s_getURL($app_id, 'save', ['rewrite'=>$a['rewrite']]));
+    // set backurl (ログインした後、戻って来れるように)
+    n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src'=>'yes']));
     n3s_template_fw('save.html', $a);
 }
 
