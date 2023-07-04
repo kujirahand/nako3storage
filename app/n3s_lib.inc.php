@@ -30,6 +30,12 @@ function n3s_db_init()
         $dir_sql.'/init-main.sql',
         'main'
     );
+    // set log db
+    database_set(
+        $n3s_config['file_db_log'],
+        $dir_sql.'/init-log.sql',
+        'log'
+    );
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -288,9 +294,12 @@ function n3s_login($email, $password)
     }
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user_id;
-    $_SESSION['name'] = $user['name'];
+    $_SESSION['name'] = $name = $user['name'];
     $_SESSION['screen_name'] = $user['name'];
     $_SESSION['profile_url'] = '';
+    // log
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    n3s_log("$email,ip={$ip},name={$name}", "login", 1);
     return true;
 }
 
@@ -409,7 +418,8 @@ function n3s_saveNewProgram(&$data)
         $dbname
     );
     $data['app_id'] = $app_id;
-
+    // log
+    n3s_log("app_id={$app_id},user_id={$a['user_id']},author={$a['author']},", '新規投稿');
     // 実際のデータに反映するようにアップデート
     n3s_updateProgram($app_id, $data);
     return $app_id;
@@ -478,6 +488,7 @@ EOS;
         [$a['body'], $app_id],
         $dbname
     );
+    n3s_log("app_id={$app_id},author={$a['author']},title={$a['title']},user_id={$a['user_id']},", '作品更新');
     // save to nadesiko3hub
     n3s_nadesiko3hub_save($app_id, $a);
     return $app_id;
@@ -526,6 +537,7 @@ function n3s_nadesiko3hub_save($app_id, $data) {
     $body = str_replace("\r\n", "\n", $body); // 改行コードを統一
     $body = str_replace("\r", "\n", $body);
     file_put_contents($savefile, $meta.$body);
+    n3s_log("app_id={$app_id}", 'ハブ保存');
 }
 
 function n3s_nadesiko3hub_update_all() {
@@ -573,4 +585,18 @@ function n3s_makeTagLink($tag) {
         $tag_link[] = "<a href='index.php?search_word={$tagenc}&action=search&target=tag'>$label</a>";
     }
     return implode(', ', $tag_link);
+}
+
+function n3s_log($msg, $kind='info', $level=0)
+{
+    db_exec('INSERT INTO logs(log_level, kind, body, ctime) VALUES (?,?,?,?)', [
+        intval($level), $kind, $msg, time(),
+    ], 'log');
+}
+
+function n3s_warn($msg)
+{
+    $kind = 'warn';
+    $level = 1;
+    n3s_log($msg, $kind, $level);
 }

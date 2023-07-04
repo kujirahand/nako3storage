@@ -83,44 +83,17 @@
       {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
       <label for='{{$key}}'>
         <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
-        ({{e: echo $copyright_desc[$key] }})
+        - <span style="font-size:0.8em;">{{e: echo $copyright_desc[$key] }}</span>
       </label>&nbsp;<br>
       {{ endfor }}
+      <p style="font-size:0.8em;color:#333;padding:6px;">
+        ※上記の「未指定」「自分用」以外を選択すると、定期的にプログラムが「<a target="_blank" href="https://github.com/kujirahand/nadesiko3hub">なでしこハブ</a>」にバックアップが行われます。
+        すると、プログラムの部分検索ができるようになり、オープンソースや「なでしこ」の発展に貢献できます。
+        おすすめは「MIT」で「なでしこ」と同じライセンスです。
+      </p>
       </blockquote>
     </p>
-    <div id="private_options" style="border:1px dotted silver; padding: 8px; margin: 8px;">
-      <p>
-        <label>公開設定:<br />
-          {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
-          {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
-          {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
-          <select id="is_private" name="is_private">
-            <option value="0" {{$is_private0}}>作品を公開</option>
-            {{if ($is_private == 1) || ($user_id > 0) }}
-            <option value="1" {{$is_private1}}>非公開</option>
-            {{endif}}
-            <option value="2" {{$is_private2}}>限定的に公開</option>
-          </select>
-        </label>
-      </p>
-      {{ if !n3s_is_login() }}
-      <p>
-        <label>編集キー:
-          <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
-          <br />
-          <input id="editkey" name="editkey" type="password" value="" />
-        </label>
-      </p>
-      {{ else }}
-      <p>
-        <label>限定公開キー:
-          <span class="info">作品を限定公開する場合、以下の公開キーを入力してください。</span>
-          <br />
-          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
-        </label>
-      </p>
-      {{ endif }}  
-    </div>
+        
     <div id="save_options_button">
       <a class="pure-button" onclick='show_save_options(true)'>保存オプションを表示 ≫</a>
     </div>
@@ -128,6 +101,40 @@
       <p>
         <a class="pure-button" onclick='show_save_options(false)'>≪ 保存オプションを隠す</a>
       </p>
+
+      <div id="private_options" style="border:1px dotted silver; padding: 8px; margin: 8px;">
+        <p>
+          <label>公開設定:<br />
+            {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
+            {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
+            {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
+            <select id="is_private" name="is_private">
+              <option value="0" {{$is_private0}}>作品を公開</option>
+              {{if ($is_private == 1) || ($user_id > 0) }}
+              <option value="1" {{$is_private1}}>非公開</option>
+              {{endif}}
+              <option value="2" {{$is_private2}}>限定的に公開</option>
+            </select>
+          </label>
+        </p>
+        {{ if !n3s_is_login() }}
+        <p>
+          <label>編集キー:
+            <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
+            <br />
+            <input id="editkey" name="editkey" type="password" value="" />
+          </label>
+        </p>
+        {{ else }}
+        <p>
+          <label>限定公開キー:
+            <span class="info">作品を限定公開する場合、以下の公開キーを入力してください。</span>
+            <br />
+            <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
+          </label>
+        </p>
+        {{ endif }}
+      </div><!-- end of #private_options -->
       <p>
         <label>利用なでしこバージョン:
           <span class="info">通常は変更の必要はありません。</span>

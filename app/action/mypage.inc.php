@@ -8,7 +8,7 @@ define('MAX_MYPAGE_MATERIALS', 20);
 // no api login
 function n3s_api_mypage()
 {
-    n3s_api_output($ng, ['msg'=>'should use web access']);
+    n3s_api_output('ng', ['msg'=>'should use web access']);
 }
 
 function n3s_web_mypage()

@@ -5,6 +5,9 @@
   [<a href="{{ $link_material }}">私の素材</a>]
   [<a href="{{ $link_all_fav }}">お気に入り</a>]
   [<a href="{{ $link_userinfo }}">設定変更</a>]
+  {{ if n3s_is_admin() }}
+  [<a href="{{e: echo n3s_getURL('', 'admin') }}">管理者ページ</a>]
+  {{ endif }}
 </div>
 
 <div class="showblock">
