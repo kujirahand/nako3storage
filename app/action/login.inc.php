@@ -102,7 +102,8 @@ function n3s_web_login_register()
 
 function n3s_web_login_setpw_sendmail($user_id, $email, $action) 
 {
-    $passtoken = "{$user_id}-" . hash('sha256', $email . time());
+    $hashOrigin = $email . '#' . time() . '#' . rand();
+    $passtoken = "{$user_id}-" . hash('sha256', $hashOrigin);
     db_exec(
         "UPDATE users SET pass_token=? WHERE user_id=?",
         [$passtoken, $user_id]
@@ -171,18 +172,33 @@ function n3s_web_login_forgot()
 
 function n3s_web_login_setpw()
 {
+    // check token
     $email = '';
     $passtoken_get = empty($_GET['p']) ? '' : $_GET['p'];
-    if ($passtoken_get != '') {
-        $row = db_get1('SELECT * FROM users WHERE pass_token=? LIMIT 1', [$passtoken_get]);
-        if ($row) {
-            $email = $row['email'];
-        } else {
-            n3s_log("[forgot] email={$email},error=パスワードの設定失敗/トークンの入力ミス", "info");
-            n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
-            exit;
-        }
+    if ($passtoken_get == '') {
+        $passtoken_get = empty($_POST['pass_token']) ? '' : $_POST['pass_token'];
     }
+    if ($passtoken_get == '') {
+        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+        exit;
+    }
+    // get user_id
+    if (strpos($passtoken_get, '-') !== FALSE) {
+        list($user_id, $_passtoken_hash) = explode('-', $passtoken_get);
+    } else {
+        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+        exit;
+    }
+    // get email
+    $row = db_get1('SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', [$passtoken_get, $user_id]);
+    if ($row) {
+        $email = $row['email'];
+    } else {
+        n3s_log("[forgot] email={$email},error=パスワードの設定失敗/トークンの入力ミス", "info");
+        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+        exit;
+    }
+    // パスワードのチェック
     $error = '';
     $passtoken_post = empty($_POST['pass_token']) ? '' : $_POST['pass_token'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
@@ -198,16 +214,16 @@ function n3s_web_login_setpw()
         }
         if ($error == '') {
             // pass_tokenの検証
-            $row = db_get1('SELECT * FROM users WHERE pass_token=? LIMIT 1', [$passtoken_post]);
+            $row = db_get1('SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', [$passtoken_post, $user_id]);
             if (!$row) {
-                n3s_log("[forgot] email={$email},error=パスワードの設定失敗/トークンの入力ミス", "info");
+                n3s_log("[forgot] email={$email},user_id={$user_id},error=パスワードの設定失敗/トークンの入力ミス", "info");
                 n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
                 exit;
             }
             $hash = n3s_login_password_to_hash($password);
             db_exec(
-                'UPDATE users SET password=?, pass_token="", mtime=? WHERE pass_token=?', 
-                [$hash, time(), $passtoken_post]);
+                'UPDATE users SET password=?, pass_token="", mtime=? WHERE (pass_token=?) AND (user_id=?)', 
+                [$hash, time(), $passtoken_post, $user_id]);
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
             n3s_info('パスワードを設定しました', '<a href="index.php?action=login">ログインしてください。</a>', true);
             exit;

@@ -8,7 +8,7 @@
             <form class="pure-form pure-form-stacked" 
                 action="index.php?action=login&page=forgot"
                 method="POST"
-                onsubmit="checkForm()">
+                onsubmit="return checkForm()">
                 <label for="email">メールアドレス</label>
                 <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{ $email }}" required>
                 <label for="email2">メールアドレス(確認用)</label>
