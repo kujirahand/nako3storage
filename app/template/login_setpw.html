@@ -8,7 +8,10 @@
     <div class="info_box">
         <h3>{{ $error }}</h3>
         <div>
-            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=setpw" method="POST">
+            <form class="pure-form pure-form-stacked" 
+                action="index.php?action=login&page=setpw" 
+                method="POST"
+                onsubmit="return checkForm()">
                 <label for="email">メールアドレス</label>
                 <input type="email" name="email" id="email" value="{{ $email }}" readonly>
                 <label for="password">パスワード (10文字以上を推奨/最低8文字)</label>
@@ -21,6 +24,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    function trim(s) {
+        s = '' + s
+        return s.replace(/^\s+/, '').replace(/\s+$/, '')
+    }
+    function checkForm() {
+        // emailの検証
+        const password1 = document.querySelector('#password')
+        const password2 = document.querySelector('#password2')
+        const pw1 = trim(password1.value)
+        const pw2 = trim(password2.value)
+        if (pw1 != pw2 || pw1 == '') {
+            alert('パスワードが間違っているようです。見直してください。')
+            password1.focus()
+            return false
+        }
+        if (pw1.length < 8) {
+            alert('パスワードは8文字以上にしてください。')
+            password1.focus()
+            return false
+        }
+        return true
+     }
+</script>
 
 
 {{ include parts_html_footer.html }}
