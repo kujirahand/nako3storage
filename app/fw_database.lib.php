@@ -91,9 +91,12 @@ function db_insert($sql, $params = array(), $dbname = 'main')
 {
     $db = database_get($dbname);
     $stmt = $db->prepare($sql);
-    $stmt->execute($params);
-    $id = $db->lastInsertId();
-    return $id;
+    $result = $stmt->execute($params);
+    if ($result) {
+        $id = $db->lastInsertId();
+        return $id;
+    }
+    return 0;
 }
 
 function db_get($sql, $params = array(), $dbname = 'main')
