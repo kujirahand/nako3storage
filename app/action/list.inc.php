@@ -104,11 +104,11 @@ function n3s_list_get()
 
         $ranking_all = db_get('SELECT * FROM apps '.
             'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
-            'ORDER BY fav DESC LIMIT 10', []);
+            'ORDER BY fav DESC LIMIT 20', []);
 
         $ranking = db_get('SELECT * FROM apps '.
             'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
-            'ORDER BY fav DESC LIMIT 25', [$mtime]);
+            'ORDER BY fav DESC LIMIT 30', [$mtime]);
 
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
         // 上位N件を取る
@@ -128,7 +128,7 @@ function n3s_list_get()
             }
         }
         shuffle($ranking_all);
-        $ranking_all = array_splice($ranking_all, 0, 5);
+        $ranking_all = array_splice($ranking_all, 0, 10);
     }
 
     // --------------------------------------------------------
