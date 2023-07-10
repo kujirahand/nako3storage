@@ -12,7 +12,7 @@ $copyright_list = [
   '自分用' => true,
 ];
 $copyright_desc= [
-  '未指定' => '未指定/貯蔵庫のみ<hr>',
+  '未指定' => '未指定/貯蔵庫のみ',
   'CC0' => '著作権破棄',
   'CC-BY-ND' => '著作権表示/改変不可',
   'MIT' => '<a target="_blank" href="https://ja.wikipedia.org/wiki/MIT_License">改変可/表示</a>',
