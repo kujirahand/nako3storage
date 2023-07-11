@@ -146,7 +146,7 @@ function n3s_template_fw($name, $params)
     global $DIR_TEMPLATE_CACHE, $DIR_TEMPLATE, $FW_TEMPLATE_PARAMS;
     $DIR_TEMPLATE = $n3s_config['dir_template'];
     $DIR_TEMPLATE_CACHE = $n3s_config['dir_cache'];
-    $p = $params + $n3s_config;
+    $p = $n3s_config + $params;
     // IE対策のためmsieパラメータをセット
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     $agent = strtolower($useragent);
@@ -429,31 +429,32 @@ function n3s_updateProgram($app_id, $data)
 {
     $a = $data;
     // check
-    $data["mtime"] = time();
+    $a["mtime"] = time(); // 確実に毎回アップデートする (#158)
     $a['body'] = trim($a['body']);
     $a['prog_hash'] = hash('sha256', $a['body']);
     // update info
     $sql = <<< EOS
         UPDATE apps SET
-        app_name=:app_name,
-        title=:title,
-        author=:author,
-        email=:email,
-        url=:url, memo=:memo,
-        canvas_w=:canvas_w, canvas_h=:canvas_h,
-        access_key=:access_key,
-        version=:version,
-        is_private=:is_private,
-        custom_head=:custom_head,
-        copyright=:copyright,
-        editkey=:editkey,
-        nakotype=:nakotype,
-        tag=:tag,
-        prog_hash=:prog_hash,
-        ref_id=:ref_id, 
-        ip=:ip,
-        mtime=:mtime
-        WHERE app_id=:app_id;
+            app_name=:app_name,
+            title=:title,
+            author=:author,
+            email=:email,
+            url=:url, memo=:memo,
+            canvas_w=:canvas_w, canvas_h=:canvas_h,
+            access_key=:access_key,
+            version=:version,
+            is_private=:is_private,
+            custom_head=:custom_head,
+            copyright=:copyright,
+            editkey=:editkey,
+            nakotype=:nakotype,
+            tag=:tag,
+            prog_hash=:prog_hash,
+            ref_id=:ref_id, 
+            ip=:ip,
+            mtime=:mtime
+        WHERE
+            app_id=:app_id;
 EOS;
     db_exec($sql, [
         ":app_name"   => $a['app_name'],
@@ -470,7 +471,7 @@ EOS;
         ":canvas_w"   => $a['canvas_w'],
         ":canvas_h"   => $a['canvas_h'],
         ":ip"         => $a['ip'],
-        ":mtime"      => time(), // 確実に毎回アップデートする (#158)
+        ":mtime"      => $a['mtime'],
         ":app_id"     => $a['app_id'],
         ":access_key" => $a['access_key'],
         ":custom_head"=> $a['custom_head'],

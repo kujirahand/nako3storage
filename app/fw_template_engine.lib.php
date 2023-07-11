@@ -26,9 +26,6 @@ function template_render($tpl_filename, $tpl_params)
     global $DIR_TEMPLATE;
     global $DIR_TEMPLATE_CACHE;
     global $FW_TEMPLATE_PARAMS;
-    // extract variable
-    extract($FW_TEMPLATE_PARAMS);
-    extract($tpl_params);
     // check template
     $file_template = $DIR_TEMPLATE."/$tpl_filename";
     if (! file_exists($file_template)) {
@@ -38,23 +35,30 @@ function template_render($tpl_filename, $tpl_params)
     }
   
     // check cache file
-    $mtime = filemtime($file_template);
+    $mtime_tpl = filemtime($file_template);
     if (TEMPLATE_CACHE_TYPE === 'DATETYPE') {
         $file_cache = $DIR_TEMPLATE_CACHE.'/'.
-        $tpl_filename.'.'.$mtime.'_'.TEMPLATE_VERSION.'.php';
+        $tpl_filename.'.'. $mtime_tpl.'_'.TEMPLATE_VERSION.'.php';
         if (file_exists($file_cache) && TEMPLATE_USE_CACHE) {
+            // extract variable
+            extract($FW_TEMPLATE_PARAMS);
+            extract($tpl_params);
+            // include
             include($file_cache);
             return;
         }
     } else /* if (TEMPLATE_CACHE_TYPE == 'SAMEFILE') */ {
-    $file_cache = $DIR_TEMPLATE_CACHE.'/'.$tpl_filename.'.php';
-    $mtime_cache = file_exists($file_cache) ? filemtime($file_cache) : 0;
-    if ($mtime < $mtime_cache && TEMPLATE_USE_CACHE) {
-        include($file_cache);
-        return;
+        $file_cache = $DIR_TEMPLATE_CACHE.'/'.$tpl_filename.'.php';
+        $mtime_cache = file_exists($file_cache) ? filemtime($file_cache) : 0;
+        if ($mtime_tpl < $mtime_cache && TEMPLATE_USE_CACHE) {
+            // extract variable
+            extract($FW_TEMPLATE_PARAMS);
+            extract($tpl_params);
+            // include
+            include($file_cache);
+            return;
+        }
     }
-  }
-  
     // create cache
     $fw_contents = "<?php /*[fw_template_engine.lib.php] ".TEMPLATE_VERSION.
           "*/";
@@ -129,8 +133,14 @@ function template_render($tpl_filename, $tpl_params)
         return "";
     },
   ], $fw_contents);
-    file_put_contents($file_cache, $fw_contents);
-    include($file_cache);
+    // save cache
+    $__file_cache = $file_cache;
+    $__fw_contents = $fw_contents;
+    // extract variable
+    extract($FW_TEMPLATE_PARAMS);
+    extract($tpl_params);
+    file_put_contents($__file_cache, $__fw_contents);
+    include($__file_cache);
 }
 
 function check_eq_flag($cond)
