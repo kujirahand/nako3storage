@@ -521,6 +521,7 @@ function n3s_nadesiko3hub_save($app_id, $data) {
     // メタ情報を追加
     $memo = empty($data['memo']) ? '' : $data['memo'];
     $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
+    if (empty($data['mtime'])) { $data['mtime'] = 0; }
     $mtime = date('Y-m-d H:i:s', $data['mtime']);
     $meta  = "### [作品情報]\n";
     $meta .= "### 掲載URL=https://n3s.nadesi.com/id.php?{$app_id}\n";
