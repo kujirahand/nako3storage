@@ -18,9 +18,6 @@ function n3s_web_save()
       return n3s_action_save_delete($_POST, 'web');
     case 'reset_bad': // 迷惑投稿をリセット
       return n3s_action_save_reset_bad($_POST, 'web');
-    // 安全のため無効にしている
-    // case 'verup_0_7': // update database (#80)
-    //   return n3s_action_save_verup_0_7();
     default:
         // なでしこ簡易エディタなどからの投稿
         return n3s_show_save_form($mode);
@@ -403,32 +400,4 @@ function n3s_action_save_reset_bad($params)
 function randomStr($length = 8)
 {
     return substr(bin2hex(random_bytes($length)), 0, $length);
-}
-
-function n3s_action_save_verup_0_7()
-{
-    $apps = db_get('SELECT app_id, material_id FROM apps ORDER BY app_id', [], 'main');
-    foreach ($apps as $app) {
-        $app_id = $app['app_id'];
-        $m_id = $app['material_id'];
-        if ($app_id == $m_id) {
-            continue;
-        }
-        $r = db_get1('SELECT * FROM materials WHERE material_id=?', [$m_id], 'material');
-        if (!$r) {
-            continue;
-        }
-        $body = $r['body'];
-        $dbname = n3s_getMaterialDB($app_id);
-        db_insert(
-            'INSERT INTO materials (material_id, body)'.
-      'VALUES(?,?)',
-            [$app_id, $body],
-            $dbname
-        );
-        db_exec('UPDATE apps SET material_id=? WHERE app_id=?', [$app_id,$app_id]);
-        echo "($app_id: $m_id)\n";
-    }
-    echo "ok.\n";
-    exit;
 }
