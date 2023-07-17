@@ -20,7 +20,7 @@
 ## 詳細なインストール方法
 
  - SSHでWebサーバーにログインする。
- - `git clone https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
+ - `git clone --recursive https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
  - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
  - `bash scripts/setup.sh`コマンドを実行する
  - 必要ライブラリのインストール `cd app` そして `composer install`
@@ -31,6 +31,14 @@
 global $n3s_config;
 // 管理ユーザーのIDを配列で指定
 $n3s_config['admin_users'] = [PHP_INT_MAX];
+```
+
+### git cloneで--recursiveを忘れた時
+
+以下を実行してください。既存のリポジトリでエラーが出る場合も以下を実行してください。
+
+```
+git submodule update --init --recursive
 ```
 
 ## 安全に運用するためのTips
