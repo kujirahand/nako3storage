@@ -43,7 +43,7 @@ function n3s_list_get()
     $statements = [];
     // check nofilter parameters
     if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
-        $wheres[] = 'bad <= 2';
+        $wheres[] = 'bad == 0';
     }
     // check onlybad parameters
     if ($onlybad >= 1) { // 通報された投稿のみ表示 #18
