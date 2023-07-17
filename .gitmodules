@@ -1,0 +1,3 @@
+[submodule "app/fw_simple"]
+	path = app/fw_simple
+	url = git@github.com:kujirahand/php_fw_simple.git
