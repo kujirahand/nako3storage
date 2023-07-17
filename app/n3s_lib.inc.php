@@ -11,8 +11,8 @@ require_once dirname(__DIR__).'/nako_version.inc.php';
 require_once __DIR__.'/mime.inc.php';
 
 // fw_template_engine
-require_once __DIR__ . '/php_fw_simple/fw_template_engine.lib.php';
-require_once __DIR__ . '/php_fw_simple/fw_database.lib.php';
+require_once __DIR__ . '/fw_simple/fw_template_engine.lib.php';
+require_once __DIR__ . '/fw_simple/fw_database.lib.php';
 
 // database version
 define("N3S_DB_VERSION", 3);
