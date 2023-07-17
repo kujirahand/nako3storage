@@ -111,7 +111,7 @@
   {{ endif }}
 {{ endif }}
 
-{{ if count($list) == 0 }}
+{{ if (!$list) }}
   <div class="showblock">😔 見つかりませんでした。</div>
 {{ else }}
 <table width="100%">
