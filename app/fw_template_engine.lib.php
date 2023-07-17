@@ -41,8 +41,12 @@ function template_render($tpl_filename, $tpl_params)
         $tpl_filename.'.'. $mtime_tpl.'_'.TEMPLATE_VERSION.'.php';
         if (file_exists($file_cache) && TEMPLATE_USE_CACHE) {
             // extract variable
-            extract($FW_TEMPLATE_PARAMS);
-            extract($tpl_params);
+            if ($FW_TEMPLATE_PARAMS) {
+                extract($FW_TEMPLATE_PARAMS);
+            }
+            if ($tpl_params) {
+                extract($tpl_params);
+            }
             // include
             include($file_cache);
             return;
@@ -52,8 +56,12 @@ function template_render($tpl_filename, $tpl_params)
         $mtime_cache = file_exists($file_cache) ? filemtime($file_cache) : 0;
         if ($mtime_tpl < $mtime_cache && TEMPLATE_USE_CACHE) {
             // extract variable
-            extract($FW_TEMPLATE_PARAMS);
-            extract($tpl_params);
+            if ($FW_TEMPLATE_PARAMS) {
+                extract($FW_TEMPLATE_PARAMS);
+            }
+            if ($tpl_params) {
+                extract($tpl_params);
+            }
             // include
             include($file_cache);
             return;
@@ -137,8 +145,12 @@ function template_render($tpl_filename, $tpl_params)
     $__file_cache = $file_cache;
     $__fw_contents = $fw_contents;
     // extract variable
-    extract($FW_TEMPLATE_PARAMS);
-    extract($tpl_params);
+    if ($FW_TEMPLATE_PARAMS) {
+        extract($FW_TEMPLATE_PARAMS);
+    }
+    if ($tpl_params) {
+        extract($tpl_params);
+    }
     file_put_contents($__file_cache, $__fw_contents);
     include($__file_cache);
 }
