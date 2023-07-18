@@ -40,8 +40,9 @@ function n3s_api_image()
         header("Location: $url");
         exit;
     }
-    
+
     // output
-    header('Content-Type: '.n3s_get_mime($ext));
+    header('Content-Type: ' . n3s_get_mime($ext));
+    header("Content-Disposition: attachment; filename=\"{$id}{$ext}\"");
     readfile($path);
 }
