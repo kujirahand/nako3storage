@@ -17,6 +17,7 @@ function n3s_get_mime($ext)
         "xml" => "text/xml",
         "json" => "application/json",
         "js" => "text/javascreipt",
+        "mid" => "audio/midi",
     ];
     $ext = strtolower($ext);
     if (isset($mime[$ext])) {
