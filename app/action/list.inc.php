@@ -32,7 +32,6 @@ function n3s_list_get()
     // --------------------------------------------------------
     // データベースに接続
     // --------------------------------------------------------
-    $db = n3s_get_db();
     $find_user_info = [];
 
     // --------------------------------------------------------
@@ -42,7 +41,7 @@ function n3s_list_get()
     $wheres = array('tag != "w_noname"');
     $statements = [];
     // check nofilter parameters
-    if ($nofilter < 1) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
+    if ($nofilter < 1 && $onlybad == 0) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
         $wheres[] = 'bad == 0';
     }
     // check onlybad parameters
@@ -62,26 +61,21 @@ function n3s_list_get()
     // 表示モードごとに処理を分ける
     // --------------------------------------------------------
     if ($mode === 'list' || $mode === 'search') { // 通常 or 検索モード
-        $h = $db->prepare(
+        $sql = 
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
-            ' ORDER BY mtime DESC LIMIT ? OFFSET ?'
-        );
-        $statements[] = MAX_APP;
-        $statements[] = $offset;
-        $h->execute($statements);
-        $list = $h->fetchAll();
+            ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
+        $list = db_get($sql, [MAX_APP, $offset]);
+
     }
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
-        $h = $db->prepare(
+        $sql =
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
-            ' ORDER BY fav DESC, app_id DESC LIMIT ?'
-        );
+            ' ORDER BY fav DESC, app_id DESC LIMIT ?';
         $statements[] = MAX_APP;
-        $h->execute($statements);
-        $list = $h->fetchAll();
+        $list = db_get($sql, $statements);
     }
     // next
     $next_url = n3s_getURL('all', 'list', [
@@ -136,7 +130,6 @@ function n3s_list_get()
     // --------------------------------------------------------
     // $toukei = db_get1('SELECT count(*) FROM apps');
     // $total_post = $toukei['count(*)'];
-
     // アイコンを付ける
     n3s_list_setIcon($list);
     n3s_list_setIcon($ranking);
@@ -156,6 +149,7 @@ function n3s_list_get()
         // "total_post" => $total_post,
         "onlybad" => $onlybad,
         "offset" => $offset,
+        "is_admin" => n3s_is_admin(),
     ];
 }
 
