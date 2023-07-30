@@ -163,6 +163,58 @@
 {{ endif }}
 </div><!-- end of #recent_list -->
 
+{{ if ($list2) }}
+<div class="list">
+<h1>ログインなしの投稿の一覧</h1>
+<table width="100%">
+  <tr>
+    <th>タイトル</th>
+    <th>説明</th>
+  </tr>
+  {{e: $n = 0; }}
+  {{ for $list2 as $r }}
+  {{ if empty($r['title']) }}
+  <!-- broken data -->
+  {{ else }}
+  <tr>
+    <td>
+      <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">
+        {{ $r.title | check_mudai }}</a>
+      {{if $r.fav gt 0}}
+      <br><span class='memo'>{{$r.fav | star}}</span>
+      {{endif}}
+      {{if $r.bad gt 0}}
+      <span class="memo">⛔{{$r.bad}}</span>
+      {{endif}}
+    </td>
+    <td>
+      {{if $r.user_id gt 0}}
+      <span class="dev">
+        <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
+      </span>
+      {{else}}
+      <span class="dev">{{$r.author | check_nanasi }} 作</span>
+      {{endif}}
+      <br>
+      <span class="postmemo">{{$r.memo | trim100 }}</span>
+      <span class="date">({{$r.mtime | date2}})</span>
+      {{if $r.tag != ""}}
+      <span class="memo">(タグ: {{$r.tag_link | raw}})</span>
+      {{endif}}
+    </td>
+  </tr>
+  {{ endif }}
+  {{ endfor }}
+</table>
+
+{{ if $next_url }}
+<div class="next_button_div">
+  <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
+</div>
+{{ endif }}
+{{ endif }}
+</div><!-- end of #recent_list -->
+
 <div class="addon_block" style="border: 1px solid silver">
   <a class="pure-button" href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a>
   {{if n3s_is_login()}}

@@ -56,17 +56,28 @@ function n3s_list_get()
     // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';
     $list = [];
+    $list2 = [];
 
     // --------------------------------------------------------
     // 表示モードごとに処理を分ける
     // --------------------------------------------------------
     if ($mode === 'list' || $mode === 'search') { // 通常 or 検索モード
+        // user_id > 0
+        $wheres1 = unserialize(serialize($wheres));
+        $wheres1[] = "user_id > 0";
         $sql = 
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
-            ' WHERE ' . implode(' AND ', $wheres) .
+            ' WHERE ' . implode(' AND ', $wheres1) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
         $list = db_get($sql, [MAX_APP, $offset]);
-
+        // user_id == 0
+        $wheres2 = unserialize(serialize($wheres));
+        $wheres2[] = "user_id == 0";
+        $sql2 =
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
+            ' WHERE ' . implode(' AND ', $wheres2) .
+            ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
+        $list2 = db_get($sql2, [MAX_APP, $offset]);
     }
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
@@ -76,8 +87,10 @@ function n3s_list_get()
             ' ORDER BY fav DESC, app_id DESC LIMIT ?';
         $statements[] = MAX_APP;
         $list = db_get($sql, $statements);
+        $list2 = [];
     }
-    // next
+    // --------------------------------------------------------
+    // next url link
     $next_url = n3s_getURL('all', 'list', [
         'offset' => ($offset + MAX_APP),
         'nofilter' => $nofilter,
@@ -132,14 +145,17 @@ function n3s_list_get()
     // $total_post = $toukei['count(*)'];
     // アイコンを付ける
     n3s_list_setIcon($list);
+    n3s_list_setIcon($list2);
     n3s_list_setIcon($ranking);
     n3s_list_setIcon($ranking_all);
     n3s_list_setTagLink($list);
+    n3s_list_setTagLink($list2);
     n3s_list_setTagLink($ranking);
     n3s_list_setTagLink($ranking_all);
     return [
         "mode" => $mode,
         "list" => $list,
+        "list2" => $list2,
         "next_url" => $next_url,
         "ranking" => $ranking,
         "ranking_all" => $ranking_all,
