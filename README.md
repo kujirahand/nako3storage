@@ -22,6 +22,7 @@
  - SSHでWebサーバーにログインする。
  - `git clone --recursive https://github.com/kujirahand/nako3storage`コマンドを実行し、Gitのリポジトリをcloneする
  - `cd nako3storage`コマンドを実行し、cloneしたディレクトリに移動する
+ - `mkdir cache`コマンドを実行し、キャッシュ用のディレクトリを作成する
  - `bash scripts/setup.sh`コマンドを実行する
  - 必要ライブラリのインストール `cd app` そして `composer install`
  - `./n3s_config.ini.php` に以下のように情報を指定
