@@ -521,8 +521,10 @@ function n3s_nadesiko3hub_save($app_id, $data) {
     // メタ情報を追加
     $memo = empty($data['memo']) ? '' : $data['memo'];
     $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
-    if (empty($data['mtime'])) { $data['mtime'] = 0; }
+    // mtime
+    if (empty($data['mtime'])) { $data['mtime'] = $data['ctime']; }
     $mtime = date('Y-m-d H:i:s', $data['mtime']);
+    //
     $meta  = "### [作品情報]\n";
     $meta .= "### 掲載URL=https://n3s.nadesi.com/id.php?{$app_id}\n";
     $meta .= "### タイトル={$data['title']}\n";
@@ -551,6 +553,17 @@ function n3s_nadesiko3hub_update_all() {
         $len = mb_strlen($a['body']);
         echo "[$app_id] {$a['title']}({$len}字)\n";
         n3s_nadesiko3hub_save($app_id, $a);
+    }
+    # update mtime
+    $all = db_get('SELECT * FROM apps ORDER BY app_id DESC');
+    foreach ($all as $a) {
+        $app_id = $a['app_id'];
+        $mtime = $a['mtime'];
+        $ctime = $a['ctime'];
+        $title = $a['title'];
+        if (!empty($mtime)) { continue; }
+        db_exec("UPDATE apps SET mtime=$ctime WHERE app_id=$app_id");
+        echo "update mtime app_id=$app_id $title\n";
     }
 }
 
