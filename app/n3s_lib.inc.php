@@ -554,7 +554,8 @@ function n3s_nadesiko3hub_update_all() {
         echo "[$app_id] {$a['title']}({$len}字)\n";
         n3s_nadesiko3hub_save($app_id, $a);
     }
-    # update mtime
+    /*
+    # update mtime (mtime=0の作品がいくつかあったので緊急の処置)
     $all = db_get('SELECT * FROM apps ORDER BY app_id DESC');
     foreach ($all as $a) {
         $app_id = $a['app_id'];
@@ -565,6 +566,7 @@ function n3s_nadesiko3hub_update_all() {
         db_exec("UPDATE apps SET mtime=$ctime WHERE app_id=$app_id");
         echo "update mtime app_id=$app_id $title\n";
     }
+    */
 }
 
 function n3s_list_setIcon(&$list) {
