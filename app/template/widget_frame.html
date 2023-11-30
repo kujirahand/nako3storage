@@ -13,8 +13,9 @@
             height: 100vh;
         }
     </style>
-    </head>
-    <body>
-        <iframe id="iframe_contents" src="{{ $iframe_url }}" sandbox="{{$sandbox_params}}"></iframe>
-    </body>
+  </head>
+  <body>
+    <iframe id="iframe_contents" src="{{ $iframe_url }}" sandbox="{{ $sandbox_params }}"></iframe>
+  </body>
 </html>
+
