@@ -264,7 +264,7 @@ function list_image()
         $max_id = $i['image_id'] - 1;
         $fname = $i['filename'];
         $is_image = false;
-        if (preg_match('/\.(jpg|jpeg|png|gif)$/', $fname)) {
+        if (preg_match('/\.(jpg|jpeg|png|gif|svg)$/', $fname)) {
             $is_image = true;
         }
         $i['is_image'] = $is_image;
