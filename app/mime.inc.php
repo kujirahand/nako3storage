@@ -8,7 +8,7 @@ function n3s_get_mime($ext)
         "jpe" => "image/jpeg",
         "gif" => "image/gif",
         "png" => "image/png",
-        "svg" => "image/svg",
+        "svg" => "image/svg+xml",
         "mp3" => "audio/mpeg",
         "ogg" => "audio/ogg",
         "oga" => "audio/ogg",
