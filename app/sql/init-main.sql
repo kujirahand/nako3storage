@@ -38,22 +38,6 @@ CREATE TABLE apps (
   mtime       INTEGER DEFAULT 0
 );
 
-CREATE TABLE users (
-  user_id     INTEGER PRIMARY KEY,
-  email       TEXT DEFAULT '', /* メールアドレス */
-  password    TEXT DEFAULT '', /* ハッシュ化して保存 */
-  pass_token  TEXT DEFAULT '', /* パスワードリセット用のトークン */
-  name        TEXT DEFAULT '',
-  screen_name TEXT DEFAULT '',
-  description TEXT DEFAULT '',
-  twitter_id  INTEGER DEFAULT 0,
-  profile_url TEXT DEFAULT '',
-  ctime       INTEGER DEFAULT 0,
-  mtime       INTEGER DEFAULT 0
-);
-
-
-
 CREATE TABLE comments (
   comment_id    INTEGER PRIMARY KEY,
   user_id       INTEGER DEFAULT 0,
@@ -88,6 +72,8 @@ CREATE TABLE bookmarks (
 );
 
 /*
+2024/01/28 ユーザー情報を分離
+
 2023/05/07
 ALTER TABLE users ADD COLUMN email TEXT DEFAULT '';
 ALTER TABLE users ADD COLUMN password TEXT DEFAULT '';

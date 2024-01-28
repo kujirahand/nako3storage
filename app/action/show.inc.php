@@ -240,7 +240,10 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     }
     if ($a['user_id'] > 0) {
         // ユーザー情報を取得
-        $user = db_get1("SELECT * FROM users WHERE user_id=?", [$a['user_id']]);
+        $user = db_get1(
+            "SELECT * FROM users WHERE user_id=?", 
+            [$a['user_id']],
+            "users");
         $a['profile_url'] = $user['profile_url'];
         $a['screen_name'] = $user['screen_name'];
     } else {
