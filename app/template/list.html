@@ -163,6 +163,24 @@
 {{ endif }}
 </div><!-- end of #recent_list -->
 
+{{ if $top_users }}
+<div class="list" id="user_list">
+  <h1>人気ユーザーの一覧</h1>
+  <div class="showblock">
+    {{ for $top_users as $u }}
+      {{ if $u.user_id == 0}}
+        👑{{ $u.name }}<span class="memo">({{ $u.count }})</span> /
+      {{ else }}
+        <a href="index.php?action=list&user_id={{$u.user_id}}">
+          👑{{ $u.name }}<span class="memo">({{ $u.count }})</span>
+        </a> / 
+      {{ endif }}
+    {{ endfor }}
+    <a href="index.php?action=list&mode=ranking&term=all">人気作品...</a>
+  </div>
+</div>
+{{ endif }}
+
 {{ if ($list2) }}
 <div class="list">
 <h1>ログインなしの投稿の一覧</h1>

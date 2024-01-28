@@ -33,6 +33,7 @@ function n3s_list_get()
     // データベースに接続
     // --------------------------------------------------------
     $find_user_info = [];
+    $top_users = [];
 
     // --------------------------------------------------------
     // オプションを確認して条件などを設定
@@ -105,17 +106,19 @@ function n3s_list_get()
     $ranking = [];
     $ranking_all = [];
     if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0 && $offset == 0) {
-        // 全期間
+        // 全期間を取得
         $ranking_all = db_get('SELECT * FROM apps '.
             'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
             'ORDER BY fav DESC LIMIT 30', []);
 
-        // Nヶ月以内に更新されたアプリ
+        // Nヶ月以内に更新されたアプリを取得
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $ranking = db_get('SELECT * FROM apps '.
             'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 1) AND (is_private = 0) AND (tag != "w_noname")'.
             'ORDER BY fav DESC LIMIT 40', [$mtime]);
+        // ランキング情報を得る
+        $ranking_total = $ranking_all + $ranking;
 
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
         // 上位N件を取る
@@ -136,6 +139,27 @@ function n3s_list_get()
         }
         shuffle($ranking_all);
         $ranking_all = array_splice($ranking_all, 0, 5);
+
+        // 人気のユーザー (#185)
+        $users = [];
+        $user_names = [];
+        foreach ($ranking_total as $row) {
+            $user_id = $row['user_id'];
+            $name = $row['author'];
+            if (empty($users[$user_id])) {
+                $users[$user_id] = 0;
+            }
+            $users[$user_id] += 1;
+            $users_names[$user_id] = $name;
+        }
+        arsort($users);
+        foreach ($users as $user_id => $count) {
+            $top_users[] = [
+                'user_id' => $user_id,
+                'name' => $users_names[$user_id],
+                'count' => $count,
+            ];
+        }
     }
 
     // --------------------------------------------------------
@@ -166,6 +190,7 @@ function n3s_list_get()
         "onlybad" => $onlybad,
         "offset" => $offset,
         "is_admin" => n3s_is_admin(),
+        "top_users" => $top_users,
     ];
 }
 
@@ -183,6 +208,7 @@ function n3s_api_list()
             "author" => $row['author'],
             "memo" => $row['memo'],
             "mtime" => $row['mtime'],
+            "top_users" => [],
         );
     }
     n3s_api_output(true, array(
