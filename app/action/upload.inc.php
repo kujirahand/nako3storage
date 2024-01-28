@@ -149,7 +149,7 @@ function show_image()
     // url
     $filename = $im['filename'];
     $user_id = $im['user_id'];
-    $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
+    $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], "users");
     $image_url = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
     // can_edit
     $can_edit = false;
@@ -222,7 +222,7 @@ function delete_image()
     }
     // url
     $user_id = $im['user_id'];
-    $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id]);
+    $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], "users");
     
     // can_edit
     $can_edit = false;

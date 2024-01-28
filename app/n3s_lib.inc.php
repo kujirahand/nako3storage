@@ -36,6 +36,12 @@ function n3s_db_init()
         $dir_sql.'/init-log.sql',
         'log'
     );
+    // set users db
+    database_set(
+        $n3s_config['file_db_users'],
+        $dir_sql.'/init-users.sql',
+        'users'
+    );
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -256,7 +262,8 @@ function n3s_get_user_id_by_email($email)
 {
     $row = db_get1(
         'SELECT user_id FROM users WHERE email=?',
-        [$email]
+        [$email],
+        'users'
     );
     if ($row === false || $row === null) {
         return 0;
@@ -273,7 +280,8 @@ function n3s_add_user($email, $password, $name) {
     $hash = n3s_login_password_to_hash($password);
     $user_id = db_insert(
         'INSERT INTO users (email, password, name) VALUES (?,?,?)',
-        [$email, $hash, $name]
+        [$email, $hash, $name],
+        'users'
     );
     return $user_id;
 }
@@ -287,7 +295,8 @@ function n3s_login($email, $password)
     $hash = n3s_login_password_to_hash($password);
     $user = db_get1(
         'SELECT * FROM users WHERE user_id=? AND password=?',
-        [$user_id, $hash]
+        [$user_id, $hash],
+        'users'
     );
     if ($user === false || $user === null) {
         return false;

@@ -70,7 +70,6 @@ function n3s_web_login_register()
         // all parameters are ok
         if ($error == '') {
             // check email
-            $db = n3s_get_db();
             $user_id = n3s_get_user_id_by_email($email);
             if ($user_id != 0) {
                 $error = 'このメールアドレスは既に登録されています。';
@@ -106,7 +105,8 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     $passtoken = "{$user_id}-" . hash('sha256', $hashOrigin);
     db_exec(
         "UPDATE users SET pass_token=? WHERE user_id=?",
-        [$passtoken, $user_id]
+        [$passtoken, $user_id],
+        'users'
     );
     // メールの送信
     $passtoken_enc = urlencode($passtoken);
@@ -190,7 +190,10 @@ function n3s_web_login_setpw()
         exit;
     }
     // get email
-    $row = db_get1('SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', [$passtoken_get, $user_id]);
+    $row = db_get1(
+        'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', 
+        [$passtoken_get, $user_id],
+        'users');
     if ($row) {
         $email = $row['email'];
     } else {
@@ -214,7 +217,10 @@ function n3s_web_login_setpw()
         }
         if ($error == '') {
             // pass_tokenの検証
-            $row = db_get1('SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', [$passtoken_post, $user_id]);
+            $row = db_get1(
+                'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1',
+                [$passtoken_post, $user_id],
+                'users');
             if (!$row) {
                 n3s_log("[forgot] email={$email},user_id={$user_id},error=パスワードの設定失敗/トークンの入力ミス", "info");
                 n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
@@ -223,7 +229,8 @@ function n3s_web_login_setpw()
             $hash = n3s_login_password_to_hash($password);
             db_exec(
                 'UPDATE users SET password=?, pass_token="", mtime=? WHERE (pass_token=?) AND (user_id=?)', 
-                [$hash, time(), $passtoken_post, $user_id]);
+                [$hash, time(), $passtoken_post, $user_id],
+                'users');
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
             n3s_info('パスワードを設定しました', '<a href="index.php?action=login">ログインしてください。</a>', true);
             exit;

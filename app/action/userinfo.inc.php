@@ -15,7 +15,8 @@ function n3s_web_userinfo()
     // ユーザー情報を取得
     $user = db_get1(
         'SELECT * FROM users WHERE user_id=?',
-        [$user_id]
+        [$user_id],
+        "users"
     );
     if (!$user) {
         n3s_error('ユーザーIDが不正です', 'ユーザー情報でユーザーIDが不正です。');
