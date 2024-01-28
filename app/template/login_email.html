@@ -5,12 +5,26 @@
     <div class="info_box">
         <h3>{{ $error }}</h3>
         <div>
-            <form class="pure-form pure-form-stacked" action="index.php?action=login&page=trylogin" method="POST">
-                <label for="email2">メールアドレス</label>
-                <input type="email" name="email" id="email2" placeholder="メールアドレス" required>
-                <label for="password">パスワード</label>
-                <input type="password" name="password" id="password2" placeholder="パスワード" required>
-                <button type="submit" class="pure-button pure-button-primary">ログイン</button>
+            <form 
+                class="pure-form"
+                action="index.php?action=login&page=trylogin"
+                onsubmit="return onBeforeSubmit();"
+                method="POST">
+                <p>
+                    <label for="email2">メールアドレス</label><br>
+                    <input type="email" name="email" id="email2" placeholder="メールアドレス" required>
+                </p>
+                <p>
+                    <label for="password">パスワード</label><br>
+                    <input type="password" name="password" id="password2" placeholder="パスワード" required>
+                </p>
+                <p>
+                    <input type="checkbox" name="memory" id="memory" value="on">
+                    <label for="memory">メールアドレスを記憶(自分端末の時だけ)</label>
+                </p>
+                <p>
+                    <button type="submit" class="pure-button pure-button-primary">ログイン</button>
+                </p>
                 <input type="hidden" name="edit_token" value="{{ $edit_token }}" />
             </form>
         </div>
@@ -24,13 +38,37 @@
         <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
     </div>
     <br>
-    <div class="info_box" style="background-color: #FFF0F0;">
-        <div>
-            (メモ) Twitterアカウントによるログイン認証ができなくなりました
-            <a href="https://github.com/kujirahand/nako3storage/issues/168">(#168)</a>。
-        </div>
+    <div class="info_box" style="background-color: #f0f0f0; border-radius: 0.5em;">
+        (メモ) 2023年3月にTwitterログインは廃止になりました。<a href="index.php?action=login&page=register">新規ユーザー登録</a>をお願いします。
     </div>
 </div>
-
+<script>
+    //-------------------------------------------------------------
+    // メルアドを復元する
+    const KEY_EMAIL = 'nako3storage-email2';
+    const email = document.getElementById('email2');
+    const password = document.getElementById('password2');
+    const memory = document.getElementById('memory');
+    // load email from local storage
+    setTimeout(function() {
+        if (email.value === '' && localStorage[KEY_EMAIL] !== null) {
+            email.value = localStorage[KEY_EMAIL];
+            memory.checked = true;
+            password.focus()
+        }
+    }, 100);
+    function onBeforeSubmit() {
+        if (email.value == '' || password.value == '') {
+            alert('メールアドレスとパスワードを入力してください。');
+            return false;
+        }
+        if (memory.checked) {
+            localStorage[KEY_EMAIL] = email.value;
+        } else {
+            localStorage[KEY_EMAIL] = '';
+        }
+        return true;
+    }
+</script>
 
 {{ include parts_html_footer.html }}

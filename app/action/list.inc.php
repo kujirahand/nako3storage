@@ -52,7 +52,7 @@ function n3s_list_get()
     // check user_id
     if ($find_user_id > 0) {
         $wheres[] = "user_id = $find_user_id";
-        $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id]);
+        $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id], "users");
     }
     // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';
@@ -142,7 +142,7 @@ function n3s_list_get()
 
         // 人気のユーザー (#185)
         $users = [];
-        $user_names = [];
+        $users_names = [];
         foreach ($ranking_total as $row) {
             $user_id = $row['user_id'];
             $name = $row['author'];

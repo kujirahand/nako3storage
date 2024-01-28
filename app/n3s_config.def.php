@@ -27,6 +27,7 @@ $n3s_config = [
     "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
     "file_db_log" => "sqlite:{$root}/data/n3s_log.sqlite",
     "file_db_material" => "sqlite:{$root}/data/n3s_material.sqlite",
+    "file_db_users" => "sqlite:{$root}/data/n3s_users.sqlite",
     "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
     "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
     "size_upload_max" => 1024 * 1024 * 3, // 最大アップロードサイズ
