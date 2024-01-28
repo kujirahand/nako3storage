@@ -1,5 +1,6 @@
 # n3s
 data/*.sqlite
+data/*.sqlite3
 data/*.conf
 n3s_config.ini.php
 app/composer.lock
