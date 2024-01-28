@@ -100,6 +100,25 @@
   </div><!-- end of #ranking_list -->
 {{ endif /* end of ranking */ }}
 
+{{ if $top_users }}
+<div class="list" id="top_users">
+  <h1>人気ユーザーの一覧</h1>
+  <div class="showblock">
+    {{ for $top_users as $u }}
+    {{ if $u.user_id == 0}}
+    👑{{ $u.name }}<span class="memo">({{ $u.count }})</span> /
+    {{ else }}
+    <a href="index.php?action=list&user_id={{$u.user_id}}">
+      👑{{ $u.name }}<span class="memo">({{ $u.count }})</span>
+    </a> /
+    {{ endif }}
+    {{ endfor }}
+    <a href="index.php?action=list&mode=ranking&term=all">人気作品...</a>
+  </div>
+</div><!-- end of #top_users -->
+{{ endif }}
+
+<!-- #recent_lit -->
 <div class="list" id="recent_list">
 {{ if $mode == 'ranking' }}
   <h1>人気順の表示</h1>
@@ -154,32 +173,13 @@
       {{ endif }}
     {{ endfor }}
 </table>
-
-  {{ if $next_url }}
-  <div class="next_button_div">
-      <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
-  </div>
-  {{ endif }}
-{{ endif }}
-</div><!-- end of #recent_list -->
-
-{{ if $top_users }}
-<div class="list" id="user_list">
-  <h1>人気ユーザーの一覧</h1>
-  <div class="showblock">
-    {{ for $top_users as $u }}
-      {{ if $u.user_id == 0}}
-        👑{{ $u.name }}<span class="memo">({{ $u.count }})</span> /
-      {{ else }}
-        <a href="index.php?action=list&user_id={{$u.user_id}}">
-          👑{{ $u.name }}<span class="memo">({{ $u.count }})</span>
-        </a> / 
-      {{ endif }}
-    {{ endfor }}
-    <a href="index.php?action=list&mode=ranking&term=all">人気作品...</a>
-  </div>
+{{ if $next_url }}
+<div class="next_button_div">
+    <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
 </div>
 {{ endif }}
+{{ endif }}
+</div><!-- end of #recent_list -->
 
 {{ if ($list2) }}
 <div class="list">
