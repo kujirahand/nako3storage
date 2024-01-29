@@ -97,4 +97,11 @@ GETでアクセスすると、プログラムと情報を取得できる。
 
 - `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
 
+### NGワードの追加方法
+
+設定ファイル`n3s_config.ini.php`に、下記の項目を追加する。
+
+```php
+$n3s_config['ng_words'] = ["aaaa","bbbbb","cccc",...]
+```
 
