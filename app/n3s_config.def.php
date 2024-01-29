@@ -48,6 +48,8 @@ $n3s_config = [
     // hub
     "nadesiko3hub_enabled" => false,
     "nadesiko3hub_dir" => "$root/nadesiko3hub",
+    // NG Words
+    "ng_words" => ["NGワードのテスト"],
 ];
 
 // timezone
