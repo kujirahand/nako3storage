@@ -237,8 +237,6 @@ function n3s_action_save_data_raw($data, $agent)
     global $n3s_config;
 
     $is_admin = n3s_is_admin();
-    $user = n3s_get_login_info();
-    $db = n3s_get_db();
     $app_id = n3s_get_config('page', 0);
     $a = $data;
     $b = array();
@@ -260,6 +258,14 @@ function n3s_action_save_data_raw($data, $agent)
             if ($b['app_id'] != $app_id) {
                 throw new Exception("既にライブラリ名「{$b['app_name']}」は使われています。");
             }
+        }
+    }
+    // NGワードを含んでいたらエラーとする
+    $ng_words = n3s_get_config('ng_words', []);
+    foreach ($ng_words as $ng) {
+        $target = $a['body'].$a['title'].$a['author'].$a['memo'];
+        if (strpos($target, $ng) !== false) {
+            throw new Exception("申し訳ありません。NGワード「{$ng}」が含まれており、保存できません。");
         }
     }
 
