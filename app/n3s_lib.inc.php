@@ -501,7 +501,42 @@ EOS;
     n3s_log("app_id={$app_id},author={$a['author']},title={$a['title']},user_id={$a['user_id']},", '作品更新');
     // save to nadesiko3hub
     n3s_nadesiko3hub_save($app_id, $a);
+    // discord webhook
+    n3s_discord_webhook($a);
     return $app_id;
+}
+
+function n3s_discord_webhook($a) {
+    $app_root_url = n3s_get_config('app_root_url', '');
+    $discord_webhook_url = n3s_get_config('discord_webhook_url', '');
+    if ($discord_webhook_url == '') { return; }
+    //
+    $title = $a['title'];
+    $author = $a['author'];
+    $app_id = $a['app_id'];
+    $memo = $a['memo'];
+    $is_prvate = $a['is_private'];
+    // 公開設定の時のみ通知を行う
+    if ($is_prvate !== 0) {
+        return;
+    }
+    $app_url = "{$app_root_url}id.php?{$app_id}";
+    //メッセージの内容を定義
+    $contents = "{$author}さんが「{$title}」を投稿しました。\n{$app_url}\n{$memo}";
+    $message = array(
+        'username' => n3s_get_config('discord_webhook_name', 'なでしこ3貯蔵庫'),
+        'content'  => $contents
+    );
+    // curlのオプションを設定してPOST
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $discord_webhook_url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+    $_resp = curl_exec($ch);
+    curl_close($ch);
 }
 
 function n3s_nadesiko3hub_save($app_id, $data) {
