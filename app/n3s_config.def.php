@@ -50,6 +50,9 @@ $n3s_config = [
     "nadesiko3hub_dir" => "$root/nadesiko3hub",
     // NG Words
     "ng_words" => ["NGワードのテスト"],
+    // Discord
+    "discord_webhook_name" => "なでしこ3貯蔵庫",
+    "discord_webhook_url" => "",
 ];
 
 // timezone
