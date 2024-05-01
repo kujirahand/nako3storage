@@ -140,8 +140,8 @@ function runButtonOnClick() { // 実行ボタンを押した時
   // デフォルトコードを追加する
   var div_name = '#nako3_div'
   let preCode = `
-F=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定'])");
-もし、F=「function」ならば『
+__NAKO3STORAGE_F__=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定'])");
+もし、__NAKO3STORAGE_F__=「function」ならば『
   「${div_name}」へDOM親要素設定;
   「${div_name}」に「」をHTML設定;
 』をナデシコ続;
