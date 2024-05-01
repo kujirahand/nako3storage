@@ -3,6 +3,7 @@
 // =======================================
 // ウィジェットで表示する際に使うファイル
 // =======================================
+const nakoInfo = {}
 
 // 正しく実行した回数を表す
 var runCount = 0;
@@ -95,26 +96,30 @@ function runButtonOnClick() { // 実行ボタンを押した時
 
   // なでしこのバージョンチェックして必要な関数を登録する
   var va = nako_version.split(".")
-  var verInt = (va[0] * 1000) + (va[1] * 100) + (va[2] * 1)
-  console.log('nako.version=' + verInt)
-  if (verInt >= 3119) {
+  var verInt = (va[1] * 100) + (va[2] * 1)
+  nakoInfo.verInt = verInt
+  console.log('nako3.verInt=' + verInt)
+  if (verInt >= 119) {
     navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print, true)
     navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
   }
-  if (verInt >= 3021) {
+  if (verInt >= 21) {
     navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
     navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
   } else {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
-  if (verInt >= 3372) {
+  if (verInt >= 372) {
     // ブレイクポイントのための処理
     navigator.nako3.addListener('beforeRun', (g) => {
       navigator.nako3.__global = g
-      // グローバルを得る
-      const v0 = g.__varslist[0]
-      v0['__DEBUGブレイクポイント一覧'] = navigator.nako3.__breakpoints
+      // __getSysVarがないバージョンでは追加する
+      if (verInt < 600) {
+        g.__setSysVar = (k, v) => { g.__varslist[0][k] = v }
+        g.__getSysVar = (k, v) => { return (typeof g.__varslist[0][k] !== 'undefined') ? g.__varslist[0][k] : v }
+      }
+      g.__setSysVar('__DEBUGブレイクポイント一覧', navigator.nako3.__breakpoints)
     })
     changeBreakpointButtons()
     // デバッグモードが使える
@@ -140,11 +145,9 @@ function runButtonOnClick() { // 実行ボタンを押した時
   // デフォルトコードを追加する
   var div_name = '#nako3_div'
   let preCode = `
-__NAKO3STORAGE_F__=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定'])");
-もし、__NAKO3STORAGE_F__=「function」ならば『
-  「${div_name}」へDOM親要素設定;
-  「${div_name}」に「」をHTML設定;
-』をナデシコ続;
+__NAKO3STORAGE_F__=JS実行("(${verInt} >= 600)?'function':((typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM親要素設定']))");
+もし、__NAKO3STORAGE_F__=「function」ならば、「${div_name}」へDOM親要素設定。
+もし、__NAKO3STORAGE_F__=「function」ならば、「${div_name}」に「」をHTML設定。
 「#nako3_canvas」へ描画開始;
 カメ描画先=「nako3_canvas」;
 カメ全消去;`.split('\n').join('')
@@ -165,6 +168,7 @@ __NAKO3STORAGE_F__=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM
     } else {
       document.getElementById('nako3_output').style.display = 'none'
       const nako3 = navigator.nako3
+      // IE or なでしこの古いバージョン？
       if (isIE() || !nako3.loadDependencies) {
         if (nako3.runReset) {
           nako3.runReset(preCode + code, 'main', preCode);
@@ -172,6 +176,7 @@ __NAKO3STORAGE_F__=JS実行("(typeof(sys)=='undefined')?'':(typeof sys.__v0['DOM
           navigator.nako3.run(preCode + code);
         }
       } else {
+        // 取り込むを処理する
         const logger = nako3.replaceLogger()
         logger.addListener('info', (html) => { 
           nako3_print(html.noColor, nako3) 
@@ -227,7 +232,7 @@ window.addEventListener('message', (e) => {
     navigator.nako3.__breakpoints.splice(i, 1)
   }
   if (navigator.nako3.__global) {
-    navigator.nako3.__global.__v0['__DEBUGブレイクポイント一覧'] = navigator.nako3.__breakpoints
+    navigator.nako3.__global.__setSysVar('__DEBUGブレイクポイント一覧', navigator.nako3.__breakpoints)
   }
   changeBreakpointButtons()
 })
@@ -235,14 +240,14 @@ function breakpointPlay() {
   if (!navigator.nako3) { return }
   const nako3 = navigator.nako3
   if (!nako3.__global) { return }
-  nako3.__global.__v0['__DEBUG待機フラグ'] = 1
+  nako3.__global.__setSysVar('__DEBUG待機フラグ', 1)
   console.log('@@breakpointPlay')
 }
 function breakpointNext() {
   if (!navigator.nako3) { return }
   const nako3 = navigator.nako3
   if (!nako3.__global) { return }
-  nako3.__global.__v0['__DEBUG待機フラグ'] = 1
-  nako3.__global.__v0['__DEBUG強制待機'] = 1
+  nako3.__global.__setSysVar('__DEBUG待機フラグ', 1)
+  nako3.__global.__setSysVar('__DEBUG強制待機', 1)
   console.log('@@breakpointNext')
 }
