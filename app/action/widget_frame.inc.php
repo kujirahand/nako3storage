@@ -18,6 +18,7 @@ function n3s_web_widget_frame()
     $tags = isset($a['tag']) ? explode(',', $a['tag']) : [];
     for ($i = 0; $i < count($tags); $i++) { $tags[$i] = trim($tags[$i]); }
     $a['w_noname'] = in_array('w_noname', $tags);
+    $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
     n3s_template_fw('widget.html', $a);
 }
 
