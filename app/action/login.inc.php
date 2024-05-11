@@ -110,7 +110,7 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     );
     // メールの送信
     $passtoken_enc = urlencode($passtoken);
-    $http = ($_SERVER['REQUEST_SCHEME'] == 'https') ? 'https' : 'http';
+    $http = empty($_SERVER['REQUEST_SCHEME']) ? 'http' : $_SERVER['REQUEST_SCHEME'];
     $host = $_SERVER['HTTP_HOST'];
     $script_name = $_SERVER['SCRIPT_NAME'];
     $baseurl = "{$http}://{$host}{$script_name}";

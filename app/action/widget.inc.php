@@ -17,9 +17,11 @@ function n3s_web_widget()
     $mute_title = $a['mute_title'] = isset($_GET['mute_title']) ? intval($_GET['mute_title']) : 0;
     $page = $a['page'] = isset($_GET['page']) ? intval($_GET['page']) : 0;
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
+    $api_token = n3s_getAPIToken();
+    $_SESSION["api_token::$api_token"] = $page;
     // sandbox
     $sandbox_url = n3s_get_config('sandbox_url', '');
-    $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&mute_title={$mute_title}&editkey={$editkey}&allow={$allow}";
+    $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&mute_title={$mute_title}&editkey={$editkey}&allow={$allow}&api_token={$api_token}";
     // -------------------------------------------------------
     // (互換性のために) 特別扱いする投稿 --- https://bit.ly/3Vpk1RI
     if ($page == 991) {

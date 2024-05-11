@@ -312,6 +312,11 @@ function n3s_login($email, $password)
     return true;
 }
 
+function n3s_getAPIToken()
+{
+    return bin2hex(random_bytes(16));
+}
+
 
 function n3s_getEditToken($key = 'default', $update = true)
 {
@@ -660,4 +665,10 @@ function n3s_warn($msg)
     $kind = 'warn';
     $level = 1;
     n3s_log($msg, $kind, $level);
+}
+
+function n3s_getUserInfo($user_id)
+{
+    $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
+    return $user;
 }

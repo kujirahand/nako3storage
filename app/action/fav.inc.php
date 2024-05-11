@@ -36,11 +36,7 @@ function fav_who()
     $html = "<ul>";
     foreach ($rows as $r) {
         $user_id = $r['user_id'];
-        $u = db_get1(
-            'SELECT * FROM users WHERE user_id=?',
-            [$user_id],
-            "users"
-        );
+        $u = n3s_getUserInfo($user_id);
         if (!isset($u['user_id'])) {
             continue; // 見当たらない
         }
