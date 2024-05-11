@@ -8,14 +8,11 @@
     <!-- Open Graph -->
     <meta property="og:title" content="{{$title | check_mudai}}-{{$author | check_nanasi}}作">
     <meta property="og:type" content="product">
-    <meta property="og:url" 
-       content="{{$widget_url}}">
+    <meta property="og:url" content="{{$widget_url}}">
     <meta property="og:site_name" content="日本語プログラミング言語「なでしこ」">
-    <meta property="og:description" 
-       content="{{$memo}}">
-    <meta property="og:image" 
-       content="{{$root_url}}/images/0-preview.png">
-
+    <meta property="og:description" content="{{$memo}}">
+    <meta property="og:image" content="{{$root_url}}/images/0-preview.png">
+    <!-- end of Open Graph -->
 <style>
 .fullscreen {
   position: absolute;
@@ -98,7 +95,7 @@
       <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
       <div id='nako3_div' class='nako3_div'></div>
     </div><!-- /#runbox -->
-    
+
     {{ if !$mute_title }}
     {{ if !$w_noname }}
     <div class="memo">
@@ -109,7 +106,8 @@
     {{ endif }}
     {{ endif }}
     <textarea style="display:none;" readonly id="nako3code" name="body">{{ $body }}</textarea>
-            
+    <div id="api_token" style="display:none;">{{ $api_token }}</div>
+
 <!-- script for nadesiko3 -->
 {{ if $custom_head eq '' }}
 {{   $import_nako | raw }}
@@ -148,12 +146,13 @@
       {{ endif }}
       // post fame height
       function postFrameHeight() {
-        const scHeight = document.getElementsByTagName("html")[0].scrollHeight
+        let scHeight = document.getElementsByTagName("html")[0].scrollHeight
+        if (scHeight < 400) { scHeight = 400 }
+        // console.log('setFrameHeight', scHeight)
         window.parent.postMessage(["setFrameHeight", scHeight], "*")
       }
-      window.onload = function() {
-        postFrameHeight()
-      }
+      // window.onload = function() { postFrameHeight() }
     </script>
-  </div><!-- /.showblock --></body>
+  </div><!-- /.showblock -->
+  </body>
 </html>
