@@ -23,6 +23,7 @@ $n3s_config = [
     "dir_template" => "{$root}/app/template",
     'dir_cache' => $root.'/cache',
     "dir_action" => "{$root}/app/action",
+    "dir_astorage" => "{$root}/data_astorage",
     "dir_sql" => "{$root}/app/sql",
     "file_db_main" => "sqlite:{$root}/data/n3s_main.sqlite",
     "file_db_log" => "sqlite:{$root}/data/n3s_log.sqlite",
