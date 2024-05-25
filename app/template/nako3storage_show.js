@@ -38,7 +38,11 @@ function nako3_print(s, sys) {
   s = sys.__printPool + s
   sys.__printPool = ""
   // 表示ログに追加
-  sys.__v0['表示ログ'] += (s + '\n')
+  if (sys.__getSysVar === undefined) {
+    sys.__v0['表示ログ'] += (s + '\n')
+  } else {
+    sys.__setSysVar('表示ログ', sys.__getSysVar('表示ログ') + s + '\n')
+  }
   // 画面表示
   var info = $q('#nako3_info')
   if (!info) {
