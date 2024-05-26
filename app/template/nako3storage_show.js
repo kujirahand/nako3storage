@@ -58,6 +58,7 @@ function nako3_print(s, sys) {
 function nako3_clear(sys) {
   if (sys && sys.__exec) {
     sys.__printPool = ''
+    sys.__setSysVar('表示ログ', '')
   }
   // 各種表示をクリア
   $q('#nako3_info', function (e) {
