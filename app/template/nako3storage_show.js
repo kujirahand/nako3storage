@@ -30,19 +30,16 @@ var isIE = function() {
 
 // なでしこ本体に登録する関数
 function nako3_print(s, sys) {
+  nako3_addSysVar(sys)
   // check sys.__printPool
   if (typeof(sys.__printPool) === 'undefined') {
     sys.__printPool = ''
   }
   // clear sys.__printPool
   s = sys.__printPool + s
-  sys.__printPool = ""
+  sys.__printPool = ''
   // 表示ログに追加
-  if (sys.__getSysVar === undefined) {
-    sys.__v0['表示ログ'] += (s + '\n')
-  } else {
-    sys.__setSysVar('表示ログ', sys.__getSysVar('表示ログ') + s + '\n')
-  }
+  sys.__setSysVar('表示ログ', sys.__getSysVar('表示ログ') + s + '\n')
   // 画面表示
   var info = $q('#nako3_info')
   if (!info) {
@@ -57,7 +54,35 @@ function nako3_print(s, sys) {
   }
   info.style.display = 'block'
 }
-function nako3_clear(s) {
+// 「表示ログクリア」命令
+function nako3_clear(sys) {
+  if (sys && sys.__exec) {
+    sys.__printPool = ''
+  }
+  // 各種表示をクリア
+  $q('#nako3_info', function (e) {
+    if (e.tagName.toUpperCase() == 'TEXTAREA') {
+      e.value = ''
+    } else {
+      e.innerHTML = ''
+    }
+  })
+  $q('#nako3_error', function (e) {
+    e.innerHTML = ''
+    e.style.display = 'none'
+  })
+  $q('#nako3_output', function (e) {
+    e.innerHTML = ''
+    e.style.display = 'none'
+  })
+}
+
+// リセットボタンを押した時
+function nako3_clearAll(sys) {
+  if (sys && sys.__exec) {
+    sys.__printPool = ''
+  }
+  // 各種表示をクリア
   $q('#nako3_info', function (e) { 
     if (e.tagName.toUpperCase() == 'TEXTAREA') {
       e.value ='' 
@@ -95,34 +120,41 @@ function to_html(s, br) {
   }
   return s
 }
+function nako3_addSysVar(g) {
+  if (g && navigator.nako3.__verInt < 600) {
+    g.__setSysVar = (k, v) => { g.__varslist[0][k] = v }
+    g.__getSysVar = (k, v) => { return (typeof g.__varslist[0][k] !== 'undefined') ? g.__varslist[0][k] : v }
+  }
+}
+
 // エディタのUI操作
 function runButtonOnClick() { // 実行ボタンを押した時
-
   // なでしこのバージョンチェックして必要な関数を登録する
   var va = nako_version.split(".")
   var verInt = (va[1] * 100) + (va[2] * 1)
   nakoInfo.verInt = verInt
   console.log('nako3.verInt=' + verInt)
-  if (verInt >= 119) {
-    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print, true)
-    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear, true)
-  }
-  if (verInt >= 21) {
-    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
-    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
-  } else {
+  // バージョンによって表示関数を変える
+  navigator.nako3.__verInt = verInt
+  if (verInt < 21) {
     navigator.nako3.setFunc("表示", nako3_print)
     navigator.nako3.setFunc("表示ログクリア", nako3_clear)
   }
+  else if (verInt < 119) {
+    navigator.nako3.setFunc("表示", [['の', 'を', 'と']], nako3_print)
+    navigator.nako3.setFunc("表示ログクリア", [], nako3_clear)
+  } else {
+    // addFunc (key: string, josi: FuncArgs, fn: any, returnNone = true, asyncFn = false)
+    navigator.nako3.addFunc("表示", [['の', 'を', 'と']], nako3_print, true)
+    navigator.nako3.addFunc("表示ログクリア", [], nako3_clear, true)
+  }
+  // ブレイクポイントの処理
   if (verInt >= 372) {
     // ブレイクポイントのための処理
     navigator.nako3.addListener('beforeRun', (g) => {
       navigator.nako3.__global = g
       // __getSysVarがないバージョンでは追加する
-      if (verInt < 600) {
-        g.__setSysVar = (k, v) => { g.__varslist[0][k] = v }
-        g.__getSysVar = (k, v) => { return (typeof g.__varslist[0][k] !== 'undefined') ? g.__varslist[0][k] : v }
-      }
+      nako3_addSysVar(g)
       g.__setSysVar('__DEBUGブレイクポイント一覧', navigator.nako3.__breakpoints)
     })
     changeBreakpointButtons()
@@ -158,8 +190,7 @@ __NAKO3STORAGE_F__=JS実行("(${verInt} >= 600)?'function':((typeof(sys)=='undef
   // プログラムを実行
   try {
     runbox.style.display = 'block'
-    nako3_clear();
-
+    nako3_clearAll();
     // ページ内にエディタが存在してかつバージョンが3.1.19以上ならeditor.runを使える
     // 但しmsieであればeditor.runを使わない (#61)
     if (editorObjects && verInt >= 3119 && useAce) {
@@ -219,7 +250,7 @@ const runButton = document.getElementById("runButton")
 const clearButton = document.getElementById("clearButton")
 const runbox = document.getElementById('runbox')
 runButton.onclick = runButtonOnClick
-clearButton.onclick = nako3_clear
+clearButton.onclick = nako3_clearAll
 
 // ---
 // Event for Breakpoint
