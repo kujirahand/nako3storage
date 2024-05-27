@@ -39,7 +39,9 @@ function nako3_print(s, sys) {
   s = sys.__printPool + s
   sys.__printPool = ''
   // 表示ログに追加
-  sys.__setSysVar('表示ログ', sys.__getSysVar('表示ログ') + s + '\n')
+  if (sys.__getSysVar) { // コンパイラからのエラー情報ならログへの記録はスキップ
+    sys.__setSysVar('表示ログ', sys.__getSysVar('表示ログ') + s + '\n')
+  }
   // 画面表示
   var info = $q('#nako3_info')
   if (!info) {
@@ -199,7 +201,14 @@ __NAKO3STORAGE_F__=JS実行("(${verInt} >= 600)?'function':((typeof(sys)=='undef
         'preCode': preCode, 
         'outputContainer': document.getElementById('nako3_output') || undefined
       }).logger
-      logger.addListener('error', function (data) { if (data.level === 'error') { runCount = 0 } }) // エラーが飛んだらrunCountを0に戻す
+      logger.addListener(
+        'error',
+        function (data) {
+          // エラーが飛んだらrunCountを0に戻す
+          if (data.level === 'error') { runCount = 0 }
+          // エラーを表示
+          console.error('[ERROR]', data)
+        })
       runCount++ // 正しく実行した回数をチェック
     } else {
       document.getElementById('nako3_output').style.display = 'none'
