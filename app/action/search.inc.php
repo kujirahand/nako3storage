@@ -44,7 +44,7 @@ function n3s_list_search()
           'SELECT * FROM apps '.
           'WHERE '.
           '  (title LIKE ? OR tag LIKE ?)'.
-          '  AND(is_private=0) '.
+          '  AND(is_private=0)AND(tag != "w_noname")'.
           'ORDER BY fav DESC, app_id DESC '.
           'LIMIT ? OFFSET ?';
         $list = db_get($sql, [
@@ -59,7 +59,7 @@ function n3s_list_search()
           'SELECT * FROM apps '.
           'WHERE '.
           '  (tag LIKE ?)'.
-          '  AND(is_private=0) '.
+          '  AND(is_private=0)AND(tag != "w_noname")'.
           'ORDER BY fav DESC, app_id DESC '.
           'LIMIT ? OFFSET ?';
         $list = db_get($sql, [
@@ -73,7 +73,7 @@ function n3s_list_search()
           'SELECT * FROM apps '.
           'WHERE '.
           '  (author=?)'.
-          '  AND(is_private=0) '.
+          '  AND(is_private=0)AND(tag != "w_noname")'.
           'ORDER BY fav DESC, app_id DESC '.
           'LIMIT ? OFFSET ?';
         $list = db_get($sql, [
