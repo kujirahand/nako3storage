@@ -521,8 +521,9 @@ function n3s_discord_webhook($a) {
     $app_id = $a['app_id'];
     $memo = $a['memo'];
     $is_prvate = $a['is_private'];
+    $tag = $a['tag'];
     // 公開設定の時のみ通知を行う
-    if ($is_prvate !== 0) {
+    if ($is_prvate !== 0 || $tag == 'w_noname') {
         return;
     }
     $app_url = "{$app_root_url}id.php?{$app_id}";
