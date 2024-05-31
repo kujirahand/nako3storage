@@ -1,8 +1,11 @@
 <?php
-// API
-//
+//------------------------------------------------------------------
+// API for nako3storage
+//------------------------------------------------------------------
+
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
+define('KEY_ASTORAGE', 'astorage');
 
 function n3s_web_api()
 {
@@ -13,9 +16,6 @@ function n3s_api_api()
     // get parametes
     $api_token = isset($_GET['token']) ? $_GET['token'] : '';
     $page = isset($_GET['page']) ? $_GET['page'] : '';
-    $key = isset($_GET['key']) ? $_GET['key'] : '';
-    $value = isset($_GET['value']) ? $_GET['value'] : '';
-    $default = isset($_GET['default']) ? $_GET['default'] : '';
     $user_id = intval(isset($_GET['user_id']) ? $_GET['user_id'] : '0');
 
     // echo $app_id.":". $api_token . ":" . $page;
@@ -42,59 +42,83 @@ function n3s_api_api()
     }
 
     // get common info
-    $app_id = isset($_SESSION["api_token::$api_token"]) ? $_SESSION["api_token::$api_token"] : 0;
+    $app_id = isset($_SESSION["api_token::$api_token"]) ? $_SESSION["api_token::$api_token"] : -1;
+    if ($app_id === -1) {
+        api_error('invalid token');
+        exit;
+    }
+
+    // call method
+    $method = "n3s_api__{$page}__";
+    if (function_exists($method)) {
+        call_user_func_array($method, [[
+            'app_id' => $app_id,
+            'api_token' => $api_token,
+            'page' => $page,
+        ]]);
+        exit;
+    }
+    api_error("no page");
+}
+
+function n3s_api_astorage_db()
+{
+    $dir_sql = n3s_get_config('dir_sql', dirname(__DIR__)."/sql");
+
+    // get db path for dir_astorage
     $user_id = n3s_get_user_id();
-    // db path dir_astorage
     $dir_astorage = n3s_get_config('dir_astorage', '');
     if (!file_exists($dir_astorage)) {
-        api_error('[SYSTEM ERROR] dir_astorage could not write...'); exit;
-    }
-    $dbPath = $dir_astorage."/{$user_id}.json";
-
-    // astorage_put
-    if ($page == 'astorage_put') {
-        $data = [];
-        if (file_exists($dbPath)) {
-            $data = json_decode(file_load($dbPath), true);
-        }
-        if (empty($data[$app_id])) {
-            $data[$app_id] = [];
-        }
-        $data[$app_id][$key] = $value;
-        file_save($dbPath, json_encode($data));
-        n3s_api_output(true, ['message' => "saved."]);
+        api_error('[SYSTEM ERROR] dir_astorage could not write...');
         exit;
     }
+    $user_id_pad = str_pad($user_id, 4, '0', STR_PAD_LEFT);
+    $dbPath = $dir_astorage . "/{$user_id_pad}.sqlite3";
+    database_set("sqlite:$dbPath", "$dir_sql/astorage.sql", KEY_ASTORAGE);
+    return database_get(KEY_ASTORAGE);
+}
 
-    // astorage_get
-    if ($page == 'astorage_get') {
-        if (!file_exists($dbPath)) {
-            n3s_api_output(true, ['value' => $default]);
-            exit;
-        }
-        $data = json_decode(file_load($dbPath), true);
-        $value = empty($data[$app_id][$key]) ? $default : $data[$app_id][$key];
-        n3s_api_output(true, ['value' => $value]);
-        exit;
+function n3s_api__astorage_keys__($params)
+{
+    $app_id = $params['app_id'];
+    n3s_api_astorage_db();
+    $kv = db_get("SELECT * FROM items WHERE app_id=?", [$app_id], KEY_ASTORAGE);
+    $keys = [];
+    foreach ($kv as $row) {
+        $keys[] = $row["key"];
     }
+    n3s_api_output(true, ['keys' => $keys]);
+    exit;
+}
 
-    // astorage_keys
-    if ($page == 'astorage_keys') {
-        if (!file_exists($dbPath)) {
-            n3s_api_output(true, ["keys" => []]);
-            exit;
-        }
-        $data = json_decode(file_load($dbPath), true);
-        $kv = empty($data[$app_id]) ? [] : $data[$app_id];
-        $keys = [];
-        foreach ($kv as $key => $val) {
-            $keys[] = $key;
-        }
-        n3s_api_output(true, ['keys' => $keys]);
-        exit;
+function n3s_api__astorage_put__($params)
+{
+    $app_id = $params['app_id'];
+    $key = isset($_GET['key']) ? $_GET['key'] : '';
+    $val = isset($_GET['value']) ? $_GET['value'] : '';
+    n3s_api_astorage_db();
+    db_exec("DELETE FROM items WHERE app_id=? AND key=?", [$app_id, $key], KEY_ASTORAGE);
+    db_exec("INSERT INTO items (app_id, key, value, mtime) VALUES (?, ?, ?, ?)", [$app_id, $key, $val, time()], KEY_ASTORAGE);
+    n3s_api_output(true, ['message' => "saved."]);
+    exit;
+
+}
+
+function n3s_api__astorage_get__($params)
+{
+    $app_id = $params['app_id'];
+    n3s_api_astorage_db();
+    $key = isset($_GET['key']) ? $_GET['key'] : '';
+    $default = isset($_GET['default']) ? $_GET['default'] : '';
+    $r = db_get1("SELECT * FROM items WHERE app_id=? AND key=?", [$app_id, $key], KEY_ASTORAGE);
+    if ($r === false || $r === null) {
+        n3s_api_output(true, ['value' => $default]);
+    } else {
+        n3s_api_output(true, [
+            'value' => $r['value'],
+            'mtime' => $r['mtime'],
+        ]);
     }
-
-    api_error("no page");
 }
 
 function api_error($msg)
