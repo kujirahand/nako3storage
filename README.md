@@ -14,6 +14,7 @@
 
  - [Release](https://github.com/kujirahand/nako3storage/releases)からZIPファイルをダウンロードして解凍。
  - アーカイブをPHP7以上が動くWebサーバーへアップ。
+ - /appフォルダ以下に、`fw_simple`という名前で[php_fw_simple](https://github.com/kujirahand/php_fw_simple)のアーカイブをコピー。
  - dataフォルダを書き込み可能にする。
  - index.phpにアクセス。
 
