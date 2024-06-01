@@ -203,11 +203,11 @@ function n3s_api__select_items_as_user($params)
     } else {
         $sort = " ORDER BY item_id ASC";
     }
+    $items = [];
     $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_USER);
     if ($r === false || $r === null) {
-        n3s_api_output(true, []);
+        // no data
     } else {
-        $items = [];
         foreach ($r as $row) {
             $items[] = [
                 'item_id' => $row['item_id'],
@@ -215,8 +215,8 @@ function n3s_api__select_items_as_user($params)
                 'mtime' => $row['mtime'],
             ];
         }
-        n3s_api_output(true, ["values" => $items]);
     }
+    n3s_api_output(true, ["values" => $items]);
 }
 
 function n3s_api__delete_item_as_user($params)
@@ -359,11 +359,11 @@ function n3s_api__select_items_as_app($params)
     } else {
         $sort = " ORDER BY item_id ASC";
     }
+    $items = [];
     $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_APP);
     if ($r === false || $r === null) {
-        n3s_api_output(true, []);
+        // no data
     } else {
-        $items = [];
         foreach ($r as $row) {
             $items[] = [
                 'item_id' => $row['item_id'],
@@ -371,8 +371,8 @@ function n3s_api__select_items_as_app($params)
                 'mtime' => $row['mtime'],
             ];
         }
-        n3s_api_output(true, ["values" => $items]);
     }
+    n3s_api_output(true, ["values" => $items]);
 }
 
 function n3s_api__delete_item_as_app($params)
