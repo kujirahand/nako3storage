@@ -7,6 +7,15 @@ CREATE TABLE items (
     mtime INTEGER
 );
 
+CREATE TABLE keys (
+    key_id INTEGER PRIMARY KEY,
+    app_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    ctime INTEGER,
+    mtime INTEGER
+);
+
 CREATE TABLE meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
