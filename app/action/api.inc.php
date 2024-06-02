@@ -198,13 +198,12 @@ function n3s_api__select_items_as_user($params)
     $limit = isset($_REQUEST['limit']) ? intval($_REQUEST['limit']) : 30;
     if ($limit > 30) { $limit = 30; }
     $sort = isset($_REQUEST['sort']) ? strtoupper($_REQUEST['sort']) : 'ASC';
+    $sort_order = " ORDER BY item_id ASC";
     if ($sort == 'ASC' || $sort == 'DESC') {
-        $sort = " ORDER BY item_id $sort";
-    } else {
-        $sort = " ORDER BY item_id ASC";
+        $sort_order = " ORDER BY item_id $sort";
     }
     $items = [];
-    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_USER);
+    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? {$sort_order} LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_USER);
     if ($r === false || $r === null) {
         // no data
     } else {
@@ -354,13 +353,12 @@ function n3s_api__select_items_as_app($params)
         $limit = 30;
     }
     $sort = isset($_REQUEST['sort']) ? strtoupper($_REQUEST['sort']) : 'ASC';
+    $sort_order = " ORDER BY item_id ASC";
     if ($sort == 'ASC' || $sort == 'DESC') {
-        $sort = " ORDER BY item_id $sort";
-    } else {
-        $sort = " ORDER BY item_id ASC";
+        $sort_order = " ORDER BY item_id $sort";
     }
     $items = [];
-    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_APP);
+    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? {$sort_order} LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_APP);
     if ($r === false || $r === null) {
         // no data
     } else {
