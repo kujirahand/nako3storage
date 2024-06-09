@@ -166,8 +166,12 @@ function n3s_template_fw($name, $params)
     template_render($name, []);
 }
 
-function n3s_error($title, $msg, $useHTML = false)
+function n3s_error($title, $msg, $useHTML = false, $isAPI = false)
 {
+    if ($isAPI) {
+        n3s_api_output(false, ['title' => $title, 'msg' => $msg]);
+        return;
+    }
     $template = 'error.html';
     if ($useHTML) {
         $template = 'error_raw.html';
