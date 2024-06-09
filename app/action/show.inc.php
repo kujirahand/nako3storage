@@ -18,18 +18,18 @@ function n3s_api_show()
     $result = [];
     if ($a['result']) {
         $result = [
-            $a['app_id'],
-            $a['title'],
-            $a['author'],
-            $a['memo'],
-            $a['version'],
-            $a['fav'],
-            $a['ctime'],
-            $a['mtime'],
-            $a['canvas_w'],
-            $a['canvas_h'],
-            $a['user_id'],
-            $a['body'],
+            'app_id' => $a['app_id'],
+            'title' => $a['title'],
+            'author' => $a['author'],
+            'memo' => $a['memo'],
+            'version' => $a['version'],
+            'fav' => $a['fav'],
+            'ctime' => $a['ctime'],
+            'mtime' => $a['mtime'],
+            'canvas_w' => $a['canvas_w'],
+            'canvas_h' => $a['canvas_h'],
+            'user_id' => $a['user_id'],
+            'body' => $a['body'],
         ];
     }
     n3s_api_output($a['result'], $result);
