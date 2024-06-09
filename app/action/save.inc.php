@@ -4,7 +4,7 @@ require_once dirname(__DIR__).'/license.inc.php';
 
 function n3s_api_save()
 {
-    n3s_api_output(false, ["msg" => 'API経由のアクセスは停止中です。']);
+    n3s_api_output(false, ["msg" => 'すみません。API経由のアクセスは現在廃止されました。WebのUIを使ってください。']);
 }
 
 function n3s_web_save()
@@ -47,9 +47,17 @@ function n3s_show_save_form($mode)
     // load_src パラメータのチェック
     //      yes : localStorageからデータを読み出してフォームを埋める(ログイン後に内容を復元する)
     //      no : localStorageへデータを保存(ページ遷移しても大丈夫なように)
+    //      session : セッション load_src_session から復元する
     //      @see save.html
-    $a['load_src'] = $_GET['load_src'] = ($_GET['load_src'] == 'yes') ? 'yes' : 'no';
-
+    if (empty($_GET['load_src'])) { ($_GET['load_src'] = 'no'); }
+    $a['load_src'] = 'no';
+    if ($_GET['load_src'] == 'yes' || $_GET['load_src'] == 'session' || $_GET['load_src'] == 'no') {
+        $a['load_src'] = $_GET['load_src'];
+        if ($_GET['load_src'] == 'session' && isset($_SESSION["load_src_session"]["body"])) {
+            $a['body'] = $_SESSION["load_src_session"]["body"]; // rewrite body
+        }
+    }
+    
     // ログイン情報を反映させる
     if ($app_id == 0 && n3s_is_login()) {
         $user = n3s_get_login_info();
@@ -78,7 +86,12 @@ function n3s_web_save_check($app_id, &$a)
         // エラーにしない
     } else {
         if (!n3s_is_login()) {
-            n3s_error('ログインが必要', '編集するにはログインしてください。');
+            // ログインが必要 - ただし投稿した内容が消えないように配慮
+            if (isset($_REQUEST['body'])) {
+                $_SESSION["load_src_session"] = $_POST;
+            }
+            n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src'=>'session']));
+            n3s_error('ログインが必要', '編集するには <a class="pure-button" href="index.php?action=login">ログイン</a> してください。', true);
             exit;
         }
     }
