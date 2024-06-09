@@ -74,8 +74,10 @@ function n3s_check_private(&$a, $agent, $action)
         }
         if ($is_private == 1) {
             n3s_error(
-                '非公開の投稿',
-                'この投稿は非公開です。'
+                "非公開の投稿($agent)",
+                'この投稿は非公開です。',
+                false,
+                ($agent == 'api')
             );
             exit;
         }
@@ -95,7 +97,8 @@ function n3s_check_private(&$a, $agent, $action)
         }
         n3s_error(
             'この投稿は非公開です',
-            'この投稿は非公開です。'
+            'この投稿は非公開です。',
+            false, ($agent == 'api')
         );
         exit;
     }
@@ -127,8 +130,8 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // IE対策のためmsieパラメータをセット
     $msie = false;
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-    $agent = strtolower($useragent);
-    if (strstr($agent, 'trident') || strstr($agent, 'msie')) {
+    $ua = strtolower($useragent);
+    if (strstr($ua, 'trident') || strstr($ua, 'msie')) {
         $msie = true;
     }
     // 強制的になでしこのバージョンを変更するか(#101)
