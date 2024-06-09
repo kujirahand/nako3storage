@@ -45,7 +45,7 @@ git submodule update --init --recursive
 
 ### 追加で必要な設定
 
-なでしこ貯蔵庫と同じように運用するためには、WebサーバーのApacheにて下記の指定が必要です。`.htacess`に下記の設定を記述してください。
+なでしこ貯蔵庫と同じように運用するためには、WebサーバーのApacheにて下記の指定が必要です。`.htaccess`に下記の設定を記述してください。
 
 ```
 <IfModule mod_rewrite.c>
@@ -78,9 +78,9 @@ $n3s_config['sandbox_url'] = 'https://n3s-sandbox.example.com/';
 ```
 
 
-## ガジェット
+## ウィジェット機能
 
-以下のように記述することでガジェットをブログやHTMLに貼り付けできる。
+次のように記述することでガジェットをブログやHTMLに貼り付けできます。
 
  ```
  <iframe width="232" height="320"
@@ -88,7 +88,7 @@ $n3s_config['sandbox_url'] = 'https://n3s-sandbox.example.com/';
 </iframe>
  ```
 
-srcにオプションrun=1やmute_name=1を追加すると実行ボタンを押すことなくスクリプトが実行される。
+srcにオプションrun=1やmute_name=1を追加すると実行ボタンを押すことなくスクリプトが実行されます。
 
  ```
  <iframe width="232" height="320"
@@ -99,7 +99,7 @@ srcにオプションrun=1やmute_name=1を追加すると実行ボタンを押�
 
 # 外部のプログラムから保存したい場合
 
-Webフォームから、以下のURLに body=xxx&version=(なでしこバージョン) をポストすれば良い。
+Webフォームから、以下のURLに body=xxx&version=(なでしこバージョン) をポストします。
 
 ```
 <設置url>/index.php?page=0&action=presave
@@ -115,15 +115,15 @@ Webフォームから、以下のURLに body=xxx&version=(なでしこバージ�
 <設置url>/api.php?action=show&page=(app_id)
 ```
 
-GETでアクセスすると、プログラムと情報を取得できる。
+GETでアクセスすると、プログラムと情報を取得できます。
 
 ## 仕様
 
-- `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトする
+- `id.php?(id)` にアクセスすると `index.php?action=show&app_id=(id)` にリダイレクトします。
 
 ### NGワードの追加方法
 
-設定ファイル`n3s_config.ini.php`に、下記の項目を追加する。
+設定ファイル`n3s_config.ini.php`に、下記の項目を追加します。
 
 ```php
 $n3s_config['ng_words'] = ["aaaa","bbbbb","cccc",...]
