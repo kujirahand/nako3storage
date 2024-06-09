@@ -15,10 +15,24 @@ function n3s_web_show()
 function n3s_api_show()
 {
     $a = n3s_show_get('show', 'api');
-    unset($a['access_key']);
-    unset($a['editkey']);
-    unset($a['material_id']);
-    n3s_api_output($a['result'], $a);
+    $result = [];
+    if ($a['result']) {
+        $result = [
+            $a['app_id'],
+            $a['title'],
+            $a['author'],
+            $a['memo'],
+            $a['version'],
+            $a['fav'],
+            $a['ctime'],
+            $a['mtime'],
+            $a['canvas_w'],
+            $a['canvas_h'],
+            $a['user_id'],
+            $a['body'],
+        ];
+    }
+    n3s_api_output($a['result'], $result);
 }
 
 // check private app
