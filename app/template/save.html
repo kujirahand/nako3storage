@@ -218,12 +218,12 @@
 </div>
 
 <script>
-// load_src yes か no のみ
+// load_src yes か no か session のみ
 const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
 switch ('{{$load_src}}') {
-  //
   case 'no': saveToLocalStorage(); break;
   case 'yes': loadFromLocalStorage(); break;
+  case 'session': saveToLocalStorage(); break;
 }
 
 
