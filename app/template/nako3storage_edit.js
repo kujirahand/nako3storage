@@ -38,7 +38,7 @@ function setupEditor() {
   } else {
     setupTextEditor()
   }
-  setupEditorSize() 
+  setupEditorSize()
 }
 
 function setupAceEditor() {
@@ -274,7 +274,16 @@ function canvas_size_change() {
     cv.height = h
   }
 }
-
+const no_need_canvas = document.getElementById('no_need_canvas')
+if (no_need_canvas) {
+  no_need_canvas.onclick = function () {
+    canvas_w_txt.value = '0'
+    canvas_h_txt.value = '0'
+    const cv = qid('nako3_canvas')
+    cv.width = 0
+    cv.height = 0
+  }
+}
 //--------------------------
 // save button
 function saveClick(checkLength) {
