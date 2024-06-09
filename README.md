@@ -43,6 +43,29 @@ $n3s_config['admin_users'] = [PHP_INT_MAX];
 git submodule update --init --recursive
 ```
 
+### 追加で必要な設定
+
+なでしこ貯蔵庫と同じように運用するためには、WebサーバーのApacheにて下記の指定が必要です。`.htacess`に下記の設定を記述してください。
+
+```
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# plain
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).nako3$ /index.php?page=$1&action=plain&type=nako3 [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).js$ /index.php?page=$1&action=plain&type=js [L]
+RewriteRule ^plain/([0-9a-zA-Z_\-]+).(sh|csv|txt|json|bat)$ /index.php?page=$1&action=plain&type=$2 [L]
+# version
+RewriteRule ^nako_version.json$ /nako_version.php [L]
+# new / list / edit / show
+RewriteRule ^new$ /index.php?action=edit&page=new [L,R]
+RewriteRule ^list$ /index.php?page=all&action=list [L]
+RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L,R]
+RewriteRule ^show/([0-9a-zA-Z_\-]+)$ /index.php?page=$1&action=show [L,R]
+# sourcemap
+RewriteRule ^([0-9a-z_\-]+)\.js\.map$ /cdn.php?f=release/$1.js.map
+</IfModule>
+```
+
 ## 安全に運用するためのTips
 
 運用したいURL(n3s.example.com)に加えて、サンドボックスとして運用するURL(n3s-sandbox.example.com)を用意します。
