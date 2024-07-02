@@ -523,6 +523,7 @@ function n3s_discord_webhook($a) {
     $title = $a['title'];
     $author = $a['author'];
     $app_id = $a['app_id'];
+    $app_key = "$app_id";
     $memo = $a['memo'];
     $is_prvate = $a['is_private'];
     $tag = $a['tag'];
@@ -530,6 +531,30 @@ function n3s_discord_webhook($a) {
     if ($is_prvate !== 0 || $tag == 'w_noname') {
         return;
     }
+    // -------------------------------------------
+    // 3時間以内に同じ投稿があっても無視する
+    // check interval
+    $last_times = json_decode(n3s_getInfoTag('discord_webhook_last_times', '{}'), TRUE);
+    // 3時間以内のエントリのみ残す
+    $remain = [];
+    $limit = time() - 60 * 60 * 3;
+    // ~~~~~~~~~ $limit -----$val------ $now
+    foreach ($last_times as $key => $val) {
+        if ($limit < $val) {
+            $remain[$key] = $val;
+        }
+    }
+    $last_times = $remain;
+    // check interval
+    $last_t = isset($last_times[$app_key]) ? $last_times[$app_key] : 0;
+    if ($last_t == 0) { // new post
+        $last_times[$app_key] = time();
+        n3s_setInfoTag('discord_webhook_last_times', json_encode($last_times));
+    } else {
+        return;
+    }
+    // -------------------------------------------
+
     $app_url = "{$app_root_url}id.php?{$app_id}";
     //メッセージの内容を定義
     $contents = "{$author}さんが「{$title}」を投稿しました。\n{$app_url}\n{$memo}";
@@ -537,7 +562,17 @@ function n3s_discord_webhook($a) {
         'username' => n3s_get_config('discord_webhook_name', 'なでしこ3貯蔵庫'),
         'content'  => $contents
     );
+    $message_json = json_encode($message);
+    // curlを利用してポスト(非同期)
+    $curl_command = sprintf(
+        'curl -X POST %s -H "Content-Type: application/json; charset=utf-8" -d %s --insecure > /dev/null 2>&1 &',
+        escapeshellarg($discord_webhook_url),
+        escapeshellarg($message_json)
+    );
+    @exec($curl_command);
+    /*
     // curlのオプションを設定してPOST
+    // PHP code
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $discord_webhook_url);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -547,6 +582,40 @@ function n3s_discord_webhook($a) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
     $_resp = curl_exec($ch);
     curl_close($ch);
+    */
+}
+
+function n3s_getInfo($key, $def = null)
+{
+    $info = db_get1("SELECT * from info WHERE key=?", [$key]);
+    if ($info) {
+        return $info;
+    }
+    return $def;
+}
+
+function n3s_setInfo($key, $value = 0, $tag = "")
+{
+    $info = db_get1("SELECT * from info WHERE key=?", [$key]);
+    if ($info) {
+        db_exec("UPDATE info SET value=?, tag=? WHERE key=?", [$value, $tag, $key]);
+    } else {
+        db_exec("INSERT INTO info (key, value, tag) VALUES (?,?,?)", [$key, $value, $tag]);
+    }
+}
+
+function n3s_getInfoTag($key, $def = "")
+{
+    $info = db_get1("SELECT * from info WHERE key=?", [$key]);
+    if ($info) {
+        return $info["tag"];
+    }
+    return $def;
+}
+
+function n3s_setInfoTag($key, $tag)
+{
+    n3s_setInfo($key, 0, $tag);
 }
 
 function n3s_nadesiko3hub_save($app_id, $data) {
