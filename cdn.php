@@ -49,7 +49,7 @@ if (substr($file, 0, 1) === '/') {
 $file = str_replace('..', '', $file);
 $file = str_replace(':', '', $file);
 // 意図しない文字列が入っている場合はエラーを返す
-if (preg_match('#^[^a-zA-Z0-9\-\_\.\/]+$#', $file)) {
+if (preg_match('#[^a-zA-Z0-9\-\_\.\/]+$#', $file)) {
   header("HTTP/1.0 404 Not Found");
   echo "404 file not found, invalid file name";
   exit;
