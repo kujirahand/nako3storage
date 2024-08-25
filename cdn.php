@@ -72,17 +72,23 @@ function useCache($ver, $url, $file, $ext = '') {
   $save_dir = $cache_dir."/{$ver}";
   $cache_file = $save_dir."/{$file}";
   $cache_url_file = "$cache_url/{$ver}/{$file}";
+  
+  // キャッシュが存在しないので改めて取得する場合
   if (! file_exists($cache_file)) {
-    // fetch from web
+    // WEBからファイルを取得
     $body = @file_get_contents($url);
-    if ($body === '') {
+    if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2) {
+      // [失敗条件] FALSE or 空
+      // https://www.php.net/manual/ja/function.file-get-contents.php
       header("HTTP/1.0 404 Not Found");
       echo "file not found.";
       exit;
     }
     if (! file_exists($save_dir)) { mkdir($save_dir); }
+    // 取得したファイルを保存
     @file_put_contents($cache_file, $body);
   } else {
+    // キャッシュからファイルを取得
     $body = @file_get_contents($cache_file);
   }
   // output
@@ -93,12 +99,11 @@ function useCache($ver, $url, $file, $ext = '') {
       $ext = $m[1];
     }
   }
-  // output content type
-  $mime = n3s_get_mime($ext);
+  // ファイルを出力する
   if ($ext === 'css') {
     header('content-type: text/css; charset=utf-8');
     echo $body;
-  } else if ($ext === 'js') {
+  } else if ($ext === 'js' || $ext === 'mjs') {
     header('content-type: text/javascript; charset=utf-8');
     echo $body;
   } else if ($ext === 'map') {
@@ -110,7 +115,6 @@ function useCache($ver, $url, $file, $ext = '') {
   }
   exit;
 }
-
 
 function get($key, $def = '') {
   if (! isset($_GET[$key])) {
