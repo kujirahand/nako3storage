@@ -2,15 +2,17 @@
 // CDN.php --- redirect to cdn
 global $cache_dir, $CDN, $cache_url, $cache_config;
 // cache_config
-$cache_config = [
-  'cache_all' => TRUE,
-];
+$cache_config = ['cache_all' => TRUE];
 
+// --------------------------------------------------
 // get nadesiko default version
+// --------------------------------------------------
 require_once __DIR__.'/nako_version.inc.php';
 require_once __DIR__.'/app/mime.inc.php';
 
+// --------------------------------------------------
 // setting
+// --------------------------------------------------
 // ref) https://www.jsdelivr.com/
 $CDN = 'https://cdn.jsdelivr.net/npm/nadesiko3';
 $cache_dir = __DIR__.'/cache-cdn';
@@ -26,8 +28,9 @@ if ($_SERVER['HTTP_HOST'] === 'nadesi.com' && $uri === '/v3') {
 else if ($_SERVER['HTTP_HOST'] === 'n3s.nadesi.com') {
   $cache_url = 'https://n3s.nadesi.com/cache-cdn';
 }
-
+// --------------------------------------------------
 // get parameters
+// --------------------------------------------------
 $ver = get('v', NAKO_DEFAULT_VERSION);
 $file = get('f', 'release/wnako3.js');
 $run = isset($_GET['run']) ? '?run' : '';
@@ -35,14 +38,20 @@ $run = isset($_GET['run']) ? '?run' : '';
 if (! preg_match('#^3\.\d{1,3}\.\d{1,3}$#', $ver)) {
   $ver = NAKO_DEFAULT_VERSION;
 }
-
+// --------------------------------------------------
 // check parameters
+// --------------------------------------------------
 // 先頭に/があれば削る
 if (substr($file, 0, 1) === '/') {
   $file = substr($file, 1);
 }
+// fileに..や:があれば削る
+$file = str_replace('..', '', $file);
+$file = str_replace(':', '', $file);
 
+// --------------------------------------------------
 // redirect url
+// --------------------------------------------------
 $url = "{$CDN}@{$ver}/{$file}{$run}";
 
 // check mime (ex) cdn.php?f=src/wnako3_editor.css
@@ -53,11 +62,14 @@ else if (preg_match('#\.(css|html)$#', $file, $m)) {
   $ext = $m[1];
   useCache($ver, $url, $file, $ext);
 }
+// wnako3webworker.jsは特別扱いする
 if (basename($file) === 'wnako3webworker.js') {
   useCache($ver, $url, $file, 'js');
-} 
+}
 
+// --------------------------------------------------
 // redirect
+// --------------------------------------------------
 header('Access-Control-Allow-Origin: *');
 header("location: $url", TRUE, 307);
 header("x-memo: $file;");
