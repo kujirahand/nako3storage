@@ -44,7 +44,7 @@ function n3s_web_userinfo()
                 $description2,
                 time(),
                 $user_id,
-            ]);
+            ], 'users');
             $name = $name2;
             $description = $description2;
             $error = '更新しました！！';
