@@ -41,6 +41,7 @@ if (! preg_match('#^3\.\d{1,3}\.\d{1,3}$#', $ver)) {
 // --------------------------------------------------
 // check parameters
 // --------------------------------------------------
+$file = trim($file);
 // 先頭に/があれば削る
 if (substr($file, 0, 1) === '/') {
   $file = substr($file, 1);
@@ -48,10 +49,12 @@ if (substr($file, 0, 1) === '/') {
 // fileに..や:があれば削る
 $file = str_replace('..', '', $file);
 $file = str_replace(':', '', $file);
+$file = str_replace('%20', '', $file); // スペースなら削除
 // 意図しない文字列が入っている場合はエラーを返す
-if (preg_match('#[^a-zA-Z0-9\-\_\.\/]+$#', $file)) {
+if (!preg_match('#^[a-zA-Z0-9\-\_\.\/\%]+$#', $file) || $file === "" || $file === FALSE) {
   header("HTTP/1.0 404 Not Found");
-  echo "404 file not found, invalid file name";
+  $file_html = htmlspecialchars($file);
+  echo "404 file not found, invalid file name : $file_html";
   exit;
 }
 // ファイル名が長すぎる場合もエラーを返す
