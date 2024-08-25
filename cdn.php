@@ -7,8 +7,8 @@ $cache_config = ['cache_all' => TRUE];
 // --------------------------------------------------
 // get nadesiko default version
 // --------------------------------------------------
+// require_once __DIR__.'/app/mime.inc.php'; // 使っていない
 require_once __DIR__.'/nako_version.inc.php';
-require_once __DIR__.'/app/mime.inc.php';
 
 // --------------------------------------------------
 // setting
@@ -48,6 +48,18 @@ if (substr($file, 0, 1) === '/') {
 // fileに..や:があれば削る
 $file = str_replace('..', '', $file);
 $file = str_replace(':', '', $file);
+// 意図しない文字列が入っている場合はエラーを返す
+if (preg_match('#^[^a-zA-Z0-9\-\_\.\/]+$#', $file)) {
+  header("HTTP/1.0 404 Not Found");
+  echo "404 file not found, invalid file name";
+  exit;
+}
+// ファイル名が長すぎる場合もエラーを返す
+if (strlen($file) > 256) {
+  header("HTTP/1.0 404 Not Found");
+  echo "404 file not found, too long file name";
+  exit;
+}
 
 // --------------------------------------------------
 // redirect url
@@ -55,7 +67,7 @@ $file = str_replace(':', '', $file);
 $url = "{$CDN}@{$ver}/{$file}{$run}";
 
 // check mime (ex) cdn.php?f=src/wnako3_editor.css
-if ($cache_config['cache_all']) {
+if ($cache_config['cache_all']) { // 全てのファイルをキャッシュする設定の場合
   useCache($ver, $url, $file);
 }
 else if (preg_match('#\.(css|html)$#', $file, $m)) {
@@ -75,6 +87,9 @@ header("location: $url", TRUE, 307);
 header("x-memo: $file;");
 exit;
 
+// --------------------------------------------------
+// キャッシュを利用する関数
+// --------------------------------------------------
 function useCache($ver, $url, $file, $ext = '') {
   global $cache_dir, $CDN, $cache_url, $cache_config;
   // get from cdn
@@ -93,7 +108,7 @@ function useCache($ver, $url, $file, $ext = '') {
       // [失敗条件] FALSE or 空
       // https://www.php.net/manual/ja/function.file-get-contents.php
       header("HTTP/1.0 404 Not Found");
-      echo "file not found.";
+      echo "404 file not found";
       exit;
     }
     if (! file_exists($save_dir)) { mkdir($save_dir); }
