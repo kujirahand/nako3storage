@@ -42,6 +42,6 @@ function n3s_api_image()
 
     // output
     header('Content-Type: ' . n3s_get_mime($ext));
-    header("Content-Disposition: attachment; filename=\"{$id}{$ext}\"");
+    header("Content-Disposition: attachment; filename=\"{$id}.{$ext}\"");
     readfile($path);
 }
