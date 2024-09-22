@@ -19,6 +19,7 @@ function n3s_get_mime($ext)
         "json" => "application/json",
         "js" => "text/javascreipt",
         "mid" => "audio/midi",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
     $ext = strtolower($ext);
     if (isset($mime[$ext])) {

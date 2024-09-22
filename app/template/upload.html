@@ -7,14 +7,14 @@
   }
 </style>
 <div class="saveform">
-  <p>画像/音声/テキストのアップロード:</p>
+  <p>画像/音声/テキストのアップロード(最大5MB):</p>
   <div>
     <form enctype="multipart/form-data"
       action="{{$baseurl}}/index.php?action=upload&mode=go"
       method="POST" class="pure-form"
       onsubmit="return checkForm();">
       <!-- MAX_FILE_SIZE は、必ず "file" input フィールドより前に。3MBを指定。 -->
-      <input type="hidden" name="MAX_FILE_SIZE" value="3145728" />
+      <input type="hidden" name="MAX_FILE_SIZE" value="5242880" />
       <div style="padding:6px">
         <input id="userfile" name="userfile" type="file" class="pure-button" />
       </div>
@@ -58,7 +58,7 @@
 
 <script>
   function checkForm() {
-    const MAX_FILE_SIZE = 1024 * 1024 * 3
+    const MAX_FILE_SIZE = 1024 * 1024 * 5 
     const userfile = document.getElementById('userfile')
     if (!userfile.files || userfile.files.length == 0) {
       alert('ファイルを指定してください')
@@ -67,8 +67,8 @@
     const file = userfile.files[0]
     // 拡張子のチェック
     const fname = file.name.toLowerCase()
-    if (!fname.match(/\.(jpg|jpeg|png|gif|svg|mml|mp3|ogg|csv|tsv|json|txt|mid)$/)) {
-      alert('アップロードできるのは、JPEG/PNG/GIF/MP3/OGG/CSV/TSV/JSON/TXT/MIDのみです。')
+    if (!fname.match(/\.(jpg|jpeg|png|gif|svg|mml|mp3|ogg|csv|tsv|json|txt|mid|xlsx)$/)) {
+      alert('アップロードできるのは、JPEG/PNG/GIF/MP3/OGG/CSV/TSV/JSON/TXT/MID/XLSXのみです。')
       return false
     }
     // ファイルサイズのチェック

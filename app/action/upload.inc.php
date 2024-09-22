@@ -7,7 +7,7 @@ include_once dirname(__FILE__) . '/show.inc.php';
 
 // アップロード可能タイプ
 global $supported_type;
-$supported_type = 'jpg|jpeg|gif|png|svg|mml|mp3|ogg|oga|xml|txt|csv|tsv|json|mid';
+$supported_type = 'jpg|jpeg|gif|png|svg|mml|mp3|ogg|oga|xml|txt|csv|tsv|json|mid|xlsx';
 
 
 function n3s_api_upload()
@@ -91,7 +91,7 @@ function go_upload()
     $tmp_name = $userfile['tmp_name'];
     $fname = $userfile['name'];
     $size = $userfile['size'];
-    $size_upload_max = n3s_get_config('size_upload_max', 1024 * 1024 * 3);
+    $size_upload_max = n3s_get_config('size_upload_max', 1024 * 1024 * 5); // 最大ファイルの指定
     if ($size > $size_upload_max) {
         $mb = floor($size_upload_max / 1024 * 1024);
         n3s_error('アップロード失敗', "ファイルサイズが最大の{$mb}MBを超えています。");
