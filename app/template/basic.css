@@ -71,7 +71,7 @@ h2 {
 }
 .list .date {
   font-size: 0.7em;
-  color:silver;
+  color: silver;
 }
 .list .dev {
   font-size: 0.7em;
@@ -89,7 +89,7 @@ h2 {
 }
 
 .saveform {
-  padding:1em;
+  padding: 1em;
 }
 
 .saveform label {
@@ -101,7 +101,7 @@ h2 {
   width: 20em;
   margin: 8px;
 }
-.saveform input[type=checkbox] {
+.saveform input[type="checkbox"] {
   width: 2em;
 }
 
@@ -145,7 +145,8 @@ h2 {
 
 .linkblock {
   border-bottom: 1px dotted silver;
-  padding: 1em; margin: 0;
+  padding: 1em;
+  margin: 0;
   font-size: 0.8em;
   background-color: #fff0ff;
 }
@@ -224,7 +225,7 @@ h2 {
   padding: 4px;
   font-size: 0.9em;
 }
-.nako3_div input[type=checkbox] {
+.nako3_div input[type="checkbox"] {
   padding: 4px;
   margin: 4px;
 }
@@ -235,22 +236,22 @@ h2 {
   padding: 0px;
   margin: 0px;
 }
-#nako3_div th, 
+#nako3_div th,
 #nako3_div td {
+  margin: 0px;
+  padding: 0.4em;
   border-right: 1px solid silver;
   border-bottom: 1px solid silver;
   border-collapse: collapse;
   border-spacing: 0;
-  padding: 0.4em;
-  margin: 0px;
+  background-color: initial;
 }
-
 .fav_block {
   padding: 1em;
 }
 
 .fav_block #fav {
-  font-size: 1.0em;
+  font-size: 1em;
   color: #ffb0b0;
 }
 
@@ -331,7 +332,7 @@ textarea#nako3code {
 }
 
 .info_link {
-  background-color:white;
+  background-color: white;
   color: gray;
   font-size: 0.8em;
   width: 100%;
@@ -362,8 +363,8 @@ textarea#nako3code {
 }
 .search_list ul {
   list-style: none;
-  padding:1em;
-  margin:0;
+  padding: 1em;
+  margin: 0;
 }
 .search_list ul > li {
   line-height: 1.8em;
@@ -388,7 +389,7 @@ textarea#nako3code {
   background-color: #fff0f0;
 }
 #controll_buttons {
-  line-height:2.0em;
+  line-height: 2em;
   border-top: 1px dotted silver;
   padding-top: 8px;
 }
@@ -401,7 +402,7 @@ textarea#nako3code {
 }
 
 ul.devblock {
-  background-color: #f0f0f0; 
+  background-color: #f0f0f0;
   padding: 1em;
   list-style: none;
 }
@@ -423,4 +424,3 @@ ul.devblock span.lbl {
   text-align: right;
   font-size: 0.9em;
 }
-
