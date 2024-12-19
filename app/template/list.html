@@ -7,7 +7,7 @@
 
 <div class="list info">{{ $top_message | raw }}</div>
 
-{{ if $find_user_id gt 0 }}
+{{ if ($find_user_id gt 0)&&(!empty($find_user_info)) }}
   <!-- ユーザー紹介 -->
   <div class="list">
     <h1 class="list_user_profile">
