@@ -205,12 +205,14 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // add other plugins
     $pname_list = [
         'plugin_turtle',
-        'plugin_csv',
         'plugin_markup',
         'plugin_kansuji',
         'plugin_caniuse',
         'plugin_webworker'
     ];
+    if ($ver < 30600) { // もっと昔から不要になっていたけど…あとで調べる
+        $pname_list[] = 'plugin_csv';
+    }
     if ($ver < 30231) { // 3.2.31未満であれば必要
         $pname_list[] = 'plugin_datetime';
     }

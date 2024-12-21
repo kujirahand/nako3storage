@@ -32,9 +32,6 @@
       {{ if $is_private == 1 }}
       <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
       {{ else }}
-        <!--
-        <iframe id="iframe_contents" src="{{ $sandbox_url }}" sandbox="{{$sandbox_params}}"></iframe>
-        -->
         {{ if $widget_url_run }}
         <div style="text-align: center;">
           <a class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">プログラムを実行</a>
