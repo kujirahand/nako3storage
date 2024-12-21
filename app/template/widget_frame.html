@@ -11,11 +11,13 @@
             border: none;
             width: 100vw;
             height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
         }
     </style>
   </head>
   <body>
-    <iframe id="iframe_contents" src="{{ $iframe_url }}" sandbox="{{ $sandbox_params }}"></iframe>
+    <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
   </body>
 </html>
 
