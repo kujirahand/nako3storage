@@ -229,23 +229,24 @@ h2 {
   padding: 4px;
   margin: 4px;
 }
-#nako3_div table {
+
+:where(#nako3_div table) {
   border-left: 1px solid silver;
   border-top: 1px solid silver;
   border-collapse: collapse;
   padding: 0px;
   margin: 0px;
 }
-#nako3_div th,
-#nako3_div td {
+
+:where(#nako3_div th,#nako3_div td) {
   margin: 0px;
   padding: 0.4em;
   border-right: 1px solid silver;
   border-bottom: 1px solid silver;
   border-collapse: collapse;
   border-spacing: 0;
-  background-color: initial;
 }
+
 .fav_block {
   padding: 1em;
 }

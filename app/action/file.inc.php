@@ -27,7 +27,7 @@ function echo_file()
     $ext = $m[2];
 
     // パスを得る
-    $path = $n3s_config['dir_template']."/$file";
+    $path = $n3s_config['dir_resource']."/$file";
     if (! file_exists($path)) {
         header("HTTP/1.1 404 Not Found");
         exit;
