@@ -139,7 +139,7 @@ h2 {
   padding: 4px;
   border-bottom: 1px solid silver;
 }
-.showblock table tr:nth-child(odd) td {
+.showblock tr:nth-child(2n+1) td {
   background-color: #f0f0ff;
 }
 
@@ -245,6 +245,7 @@ h2 {
   border-bottom: 1px solid silver;
   border-collapse: collapse;
   border-spacing: 0;
+  background-color: initial;
 }
 
 .fav_block {
