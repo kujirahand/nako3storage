@@ -33,7 +33,7 @@ function n3s_action()
     $func_action = "n3s_{$agent}_{$action}";
     // セッションの開始
     ini_set( "session.gc_maxlifetime", $n3s_config['session_lifetime']); // セッションの最大時間を指定
-    @session_start(); // セッションの会誌
+    @session_start(); // セッションの開始
     //
     if (file_exists($file_action)) {
         include_once $file_action;
