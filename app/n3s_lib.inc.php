@@ -6,9 +6,9 @@
 global $n3s_config;
 
 // include version
-require_once dirname(__DIR__).'/nako3storage_version.inc.php';
-require_once dirname(__DIR__).'/nako_version.inc.php';
-require_once __DIR__.'/mime.inc.php';
+require_once dirname(__DIR__) . '/nako3storage_version.inc.php';
+require_once dirname(__DIR__) . '/nako_version.inc.php';
+require_once __DIR__ . '/mime.inc.php';
 
 // fw_template_engine
 require_once __DIR__ . '/fw_simple/fw_template_engine.lib.php';
@@ -27,19 +27,19 @@ function n3s_db_init()
     // set main db
     database_set(
         $n3s_config["file_db_main"],
-        $dir_sql.'/init-main.sql',
+        $dir_sql . '/init-main.sql',
         'main'
     );
     // set log db
     database_set(
         $n3s_config['file_db_log'],
-        $dir_sql.'/init-log.sql',
+        $dir_sql . '/init-log.sql',
         'log'
     );
     // set users db
     database_set(
         $n3s_config['file_db_users'],
-        $dir_sql.'/init-users.sql',
+        $dir_sql . '/init-users.sql',
         'users'
     );
 
@@ -81,7 +81,7 @@ function get_param($name, $def = '')
     }
     return $def;
 }
-  
+
 function post_param($name, $def = '')
 {
     if (isset($_POST[$name])) {
@@ -262,7 +262,7 @@ function n3s_is_admin()
     return false;
 }
 
-function n3s_get_user_id_by_email($email) 
+function n3s_get_user_id_by_email($email)
 {
     $row = db_get1(
         'SELECT user_id FROM users WHERE email=?',
@@ -275,12 +275,14 @@ function n3s_get_user_id_by_email($email)
     return $row['user_id'];
 }
 
-function n3s_login_password_to_hash($password) {
-    $hash = hash('sha256', $password.'::'.LOGIN_HASH_SALT_DEFAULT);
-    return 'def::'.$hash;
+function n3s_login_password_to_hash($password)
+{
+    $hash = hash('sha256', $password . '::' . LOGIN_HASH_SALT_DEFAULT);
+    return 'def::' . $hash;
 }
 
-function n3s_add_user($email, $password, $name) {
+function n3s_add_user($email, $password, $name)
+{
     $hash = n3s_login_password_to_hash($password);
     $user_id = db_insert(
         'INSERT INTO users (email, password, name) VALUES (?,?,?)',
@@ -366,7 +368,7 @@ function n3s_getImageDir($id)
 {
     $dir_images = n3s_get_config('dir_images', '');
     $dir_id = floor($id / 100);
-    $dir = $dir_images.'/'.sprintf('%03d', $dir_id);
+    $dir = $dir_images . '/' . sprintf('%03d', $dir_id);
     return $dir;
 }
 
@@ -379,13 +381,13 @@ function n3s_getImageFile($id, $ext, $create = false)
         }
     }
     if (substr($ext, 0, 1) !== '.') {
-        $ext = '.'.$ext;
+        $ext = '.' . $ext;
     }
-    $file = $dir."/{$id}{$ext}";
+    $file = $dir . "/{$id}{$ext}";
     return $file;
 }
 
-  
+
 // 保存先のDBを調べる
 function n3s_getMaterialDB($material_id)
 {
@@ -414,16 +416,16 @@ function n3s_saveNewProgram(&$data)
 {
     // データを $a でアクセス
     $a = $data;
-    
+
     // 日付を指定
     $a['ctime'] = $a['mtime'] = time();
-    
+
     // ログインしていれば強制的にuser_idを書き換える
     if (n3s_is_login()) {
         $a['user_id'] = n3s_get_user_id();
         $a['author'] = n3s_get_user_name();
     }
-    
+
     // update で正しい値を入れるので適当にタイトルだけ挿入
     // メインDBに入れる
     $sql = 'INSERT INTO apps (title, user_id, ctime) VALUES (?,?,?)';
@@ -492,7 +494,7 @@ EOS;
         ":mtime"      => $a['mtime'],
         ":app_id"     => $a['app_id'],
         ":access_key" => $a['access_key'],
-        ":custom_head"=> $a['custom_head'],
+        ":custom_head" => $a['custom_head'],
         ":editkey"    => $a['editkey'],
         ":copyright"  => $a['copyright'],
         ":nakotype"   => $a['nakotype'],
@@ -515,10 +517,13 @@ EOS;
     return $app_id;
 }
 
-function n3s_discord_webhook($a) {
+function n3s_discord_webhook($a)
+{
     $app_root_url = n3s_get_config('app_root_url', '');
     $discord_webhook_url = n3s_get_config('discord_webhook_url', '');
-    if ($discord_webhook_url == '') { return; }
+    if ($discord_webhook_url == '') {
+        return;
+    }
     //
     $title = $a['title'];
     $author = $a['author'];
@@ -618,21 +623,28 @@ function n3s_setInfoTag($key, $tag)
     n3s_setInfo($key, 0, $tag);
 }
 
-function n3s_nadesiko3hub_save($app_id, $data) {
+function n3s_nadesiko3hub_save($app_id, $data)
+{
     // ライセンスを確認して問題なければ、nadesiko3hubに保存
     $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
     $nadesiko3hub_dir = n3s_get_config('nadesiko3hub_dir', '');
-    if (!$nadesiko3hub_enabled || $nadesiko3hub_dir == '') { return; }
+    if (!$nadesiko3hub_enabled || $nadesiko3hub_dir == '') {
+        return;
+    }
     // プログラムが空ならばスキップ
     $body = empty($data['body']) ? '' : $data['body'];
     // ライセンスの確認 (ライセンスがない場合は保存しない)
     $copyright = $data['copyright'];
-    if ($copyright == '未指定' || $copyright == '自分用') { $copyright = ''; } // 未指定と自分用は保存しない
+    if ($copyright == '未指定' || $copyright == '自分用') {
+        $copyright = '';
+    } // 未指定と自分用は保存しない
     // 保存先を決定(フォルダ1つずつに500件)
     $dirno = floor($app_id / 500) * 500;
     $dirname = sprintf('%05d', $dirno);
     $savedir = $nadesiko3hub_dir . '/' . $dirname;
-    if (!file_exists($savedir)) { @mkdir($savedir); }
+    if (!file_exists($savedir)) {
+        @mkdir($savedir);
+    }
     $savefile = $savedir . '/' . $app_id . '.nako3';
     // 非公開であれば保存しない(また非公開にされたり、著作権を自分用にされたら削除)
     if ($data['is_private'] == 1 || $body == '' || $copyright == '') {
@@ -645,7 +657,9 @@ function n3s_nadesiko3hub_save($app_id, $data) {
     $memo = empty($data['memo']) ? '' : $data['memo'];
     $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
     // mtime
-    if (empty($data['mtime'])) { $data['mtime'] = $data['ctime']; }
+    if (empty($data['mtime'])) {
+        $data['mtime'] = $data['ctime'];
+    }
     $mtime = date('Y-m-d H:i:s', $data['mtime']);
     //
     $meta  = "### [作品情報]\n";
@@ -663,11 +677,12 @@ function n3s_nadesiko3hub_save($app_id, $data) {
     // 保存
     $body = str_replace("\r\n", "\n", $body); // 改行コードを統一
     $body = str_replace("\r", "\n", $body);
-    file_put_contents($savefile, $meta.$body);
+    file_put_contents($savefile, $meta . $body);
     n3s_log("app_id={$app_id}", 'ハブ保存');
 }
 
-function n3s_nadesiko3hub_update_all() {
+function n3s_nadesiko3hub_update_all()
+{
     $all = db_get('SELECT * FROM apps WHERE is_private=0 ORDER BY app_id DESC');
     foreach ($all as $a) {
         $app_id = $a['app_id'];
@@ -692,7 +707,8 @@ function n3s_nadesiko3hub_update_all() {
     */
 }
 
-function n3s_list_setIcon(&$list) {
+function n3s_list_setIcon(&$list)
+{
     // wnako / dncl / other
     foreach ($list as &$i) {
         $icon = isset($i['nakotype']) ? $i['nakotype'] : 'wnako';
@@ -706,14 +722,16 @@ function n3s_list_setIcon(&$list) {
         $i['icon'] = "images/0-$icon.png";
     }
 }
-function n3s_list_setTagLink(&$list) {
+function n3s_list_setTagLink(&$list)
+{
     foreach ($list as &$i) {
         $i['tag'] = isset($i['tag']) ? $i['tag'] : '';
         $i['tag_link'] = n3s_makeTagLink($i['tag']);
     }
 }
 
-function n3s_makeTagLink($tag) {
+function n3s_makeTagLink($tag)
+{
     if ($tag == '') {
         return '-';
     }
@@ -727,10 +745,13 @@ function n3s_makeTagLink($tag) {
     return implode(', ', $tag_link);
 }
 
-function n3s_log($msg, $kind='info', $level=0)
+function n3s_log($msg, $kind = 'info', $level = 0)
 {
     db_exec('INSERT INTO logs(log_level, kind, body, ctime) VALUES (?,?,?,?)', [
-        intval($level), $kind, $msg, time(),
+        intval($level),
+        $kind,
+        $msg,
+        time(),
     ], 'log');
 }
 
@@ -745,4 +766,21 @@ function n3s_getUserInfo($user_id)
 {
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
     return $user;
+}
+
+function n3s_logout()
+{
+    // logout info
+    $name = empty($_SESSION['name']) ? '?' : $_SESSION['name'];
+    $user_id = empty($_SESSION['user_id']) ? 0 : $_SESSION['user_id'];
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    // unset session
+    unset($_SESSION['n3s_login']);
+    unset($_SESSION['user_id']);
+    unset($_SESSION['n3s_backurl']);
+    unset($_SESSION['name']);
+    // log
+    if ($user_id > 0) {
+        n3s_log("user_id=$user_id,name={$name},ip={$ip}", "logout", 0);
+    }
 }
