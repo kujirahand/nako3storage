@@ -441,11 +441,11 @@ function n3s_saveNewProgram(&$data)
     // log
     n3s_log("app_id={$app_id},user_id={$a['user_id']},author={$a['author']},", '新規投稿');
     // 実際のデータに反映するようにアップデート
-    n3s_updateProgram($app_id, $data);
+    n3s_updateProgram($data);
     return $app_id;
 }
 
-function n3s_updateProgram($app_id, $data)
+function n3s_updateProgram($data)
 {
     $a = $data;
     // check
@@ -477,6 +477,7 @@ function n3s_updateProgram($app_id, $data)
             app_id=:app_id;
 EOS;
     db_exec($sql, [
+        ":app_id"     => $a['app_id'],
         ":app_name"   => $a['app_name'],
         ":title"      => $a['title'],
         ":author"     => $a['author'],
@@ -492,7 +493,6 @@ EOS;
         ":canvas_h"   => $a['canvas_h'],
         ":ip"         => $a['ip'],
         ":mtime"      => $a['mtime'],
-        ":app_id"     => $a['app_id'],
         ":access_key" => $a['access_key'],
         ":custom_head" => $a['custom_head'],
         ":editkey"    => $a['editkey'],
