@@ -51,7 +51,7 @@
     const memory = document.getElementById('memory');
     // load email from local storage
     setTimeout(function() {
-        if (email.value === '' && localStorage[KEY_EMAIL] !== null) {
+        if (email.value === '' && localStorage[KEY_EMAIL]) {
             email.value = localStorage[KEY_EMAIL];
             memory.checked = true;
             password.focus()
