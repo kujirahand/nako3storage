@@ -1,6 +1,6 @@
 <?php
 // license
-require_once dirname(__DIR__).'/license.inc.php';
+require_once dirname(__DIR__) . '/license.inc.php';
 
 function n3s_api_save()
 {
@@ -12,15 +12,15 @@ function n3s_web_save()
     // check mode
     $mode = empty($_GET['mode']) ? '?' : $_GET['mode'];
     switch ($mode) {
-    case 'edit': // DBに保存
-      return n3s_action_save_data($_POST, 'web');
-    case 'delete': // 投稿を削除
-      return n3s_action_save_delete($_POST, 'web');
-    case 'reset_bad': // 迷惑投稿をリセット
-      return n3s_action_save_reset_bad($_POST, 'web');
-    default:
-        // なでしこ簡易エディタなどからの投稿
-        return n3s_show_save_form($mode);
+        case 'edit': // DBに保存
+            return n3s_action_save_data($_POST, 'web');
+        case 'delete': // 投稿を削除
+            return n3s_action_save_delete($_POST, 'web');
+        case 'reset_bad': // 迷惑投稿をリセット
+            return n3s_action_save_reset_bad($_POST, 'web');
+        default:
+            // なでしこ簡易エディタなどからの投稿
+            return n3s_show_save_form($mode);
     }
 }
 
@@ -43,13 +43,15 @@ function n3s_show_save_form($mode)
     }
     // パラメータチェックを行う (ここでチェックは行わない)
     n3s_action_save_check_param($a, false);
-  
+
     // load_src パラメータのチェック
     //      yes : localStorageからデータを読み出してフォームを埋める(ログイン後に内容を復元する)
     //      no : localStorageへデータを保存(ページ遷移しても大丈夫なように)
     //      session : セッション load_src_session から復元する
     //      @see save.html
-    if (empty($_GET['load_src'])) { ($_GET['load_src'] = 'no'); }
+    if (empty($_GET['load_src'])) {
+        ($_GET['load_src'] = 'no');
+    }
     $a['load_src'] = 'no';
     if ($_GET['load_src'] == 'yes' || $_GET['load_src'] == 'session' || $_GET['load_src'] == 'no') {
         $a['load_src'] = $_GET['load_src'];
@@ -57,7 +59,7 @@ function n3s_show_save_form($mode)
             $a['body'] = $_SESSION["load_src_session"]["body"]; // rewrite body
         }
     }
-    
+
     // ログイン情報を反映させる
     if ($app_id == 0 && n3s_is_login()) {
         $user = n3s_get_login_info();
@@ -67,7 +69,7 @@ function n3s_show_save_form($mode)
     $a['presave'] = 'no';
     $a['edit_token'] = n3s_getEditToken();
     // set backurl (ログインした後、戻って来れるように)
-    n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src'=>'yes']));
+    n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src' => 'yes']));
     n3s_template_fw('save.html', $a);
 }
 
@@ -90,7 +92,7 @@ function n3s_web_save_check($app_id, &$a)
             if (isset($_REQUEST['body'])) {
                 $_SESSION["load_src_session"] = $_POST;
             }
-            n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src'=>'session']));
+            n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src' => 'session']));
             n3s_error('ログインが必要', '編集するには <a class="pure-button" href="index.php?action=login">ログイン</a> してください。', true);
             exit;
         }
@@ -118,7 +120,7 @@ function n3s_action_save_load_body(&$a)
     if ($material_id > 0) {
         $m = n3s_getMaterialData($material_id);
         if ($m) {
-            $a['body'] = $m['body']."\n\n\n"; // エディタに余白が必要
+            $a['body'] = $m['body'] . "\n"; // エディタに余白が必要
         }
     } else {
         $a['body'] = '';
@@ -128,27 +130,27 @@ function n3s_action_save_load_body(&$a)
 function n3s_check_field_size(&$a)
 {
     // get max size
-  $size_source_max = n3s_get_config('size_source_max', 1024 * 1024 * 5); // 5MB
-  $size_field_max = n3s_get_config('size_field_max', 1024 * 5); // 5KB
-  // check size & trim data
-  foreach ($a as $k => &$v) {
-      if (!isset($v) || !is_string($v)) {
-          continue;
-      }
-      $v = trim($v); // 値は自動でトリムする
-      $size = strlen($v);
-      // body ?
-      if ($k == 'body') {
-          if ($size > $size_source_max) {
-              throw new Exception('プログラムが最大文字数を超えています。');
-          }
-          continue;
-      }
-      // other
-      if ($size > $size_field_max) {
-          throw new Exception('フィールドが最大文字数を超えています。');
-      }
-  }
+    $size_source_max = n3s_get_config('size_source_max', 1024 * 1024 * 5); // 5MB
+    $size_field_max = n3s_get_config('size_field_max', 1024 * 5); // 5KB
+    // check size & trim data
+    foreach ($a as $k => &$v) {
+        if (!isset($v) || !is_string($v)) {
+            continue;
+        }
+        $v = trim($v); // 値は自動でトリムする
+        $size = strlen($v);
+        // body ?
+        if ($k == 'body') {
+            if ($size > $size_source_max) {
+                throw new Exception('プログラムが最大文字数を超えています。');
+            }
+            continue;
+        }
+        // other
+        if ($size > $size_field_max) {
+            throw new Exception('フィールドが最大文字数を超えています。');
+        }
+    }
 }
 
 
@@ -191,7 +193,7 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     }
     // calc version int
     $version = preg_replace("/[^0-9.]/", "", $a['version']);
-    $ver_a = explode(".", $version.'.0.0');
+    $ver_a = explode(".", $version . '.0.0');
     $major = intval($ver_a[0]); // 3_00_00
     $minor = intval($ver_a[1]); // 3_99_00
     $patch = intval($ver_a[2]); // 3_11_99
@@ -227,7 +229,7 @@ function n3s_action_save_data($data, $agent = 'web')
     global $n3s_config;
     // セキュリティ対策のためAPI経由での保存を禁止した(#51)
     if ($agent == 'api') {
-        n3s_api_output(false, array("msg"=>"You could not save from API access."));
+        n3s_api_output(false, array("msg" => "You could not save from API access."));
         return;
     }
     try {
@@ -238,8 +240,8 @@ function n3s_action_save_data($data, $agent = 'web')
         $url = "index.php?action=edit&page=$app_id#recover_btn";
         n3s_error(
             "保存に失敗",
-            "<p>".$e->getMessage()."</p>".
-            "<p><a class='pure-button' href='$url'>戻る</a></p>",
+            "<p>" . $e->getMessage() . "</p>" .
+                "<p><a class='pure-button' href='$url'>戻る</a></p>",
             true
         );
     }
@@ -276,7 +278,7 @@ function n3s_action_save_data_raw($data, $agent)
     // NGワードを含んでいたらエラーとする
     $ng_words = n3s_get_config('ng_words', []);
     foreach ($ng_words as $ng) {
-        $target = $a['body'].$a['title'].$a['author'].$a['memo'];
+        $target = $a['body'] . $a['title'] . $a['author'] . $a['memo'];
         if (strpos($target, $ng) !== false) {
             throw new Exception("申し訳ありません。NGワード「{$ng}」が含まれており、保存できません。");
         }
@@ -374,8 +376,8 @@ function n3s_action_save_delete($params)
     $db->query("DELETE FROM apps WHERE app_id=$app_id");
     // 情報
     n3s_template_fw('basic.html', [
-    'contents' => "{$app_id} を削除しました。",
-  ]);
+        'contents' => "{$app_id} を削除しました。",
+    ]);
 }
 
 function n3s_action_save_reset_bad($params)
@@ -412,8 +414,8 @@ function n3s_action_save_reset_bad($params)
     $db->query("UPDATE apps SET bad=$bad_value,mtime=$time WHERE app_id=$app_id");
     // 情報
     n3s_template_fw('basic.html', [
-    'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",
-  ]);
+        'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",
+    ]);
 }
 
 function randomStr($length = 8)
