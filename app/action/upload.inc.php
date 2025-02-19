@@ -107,8 +107,8 @@ function go_upload()
     if (preg_match($re, strtolower($fname), $m)) {
         $ext = strtolower($m[0]);
     } else {
-        n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみ".
-          "アップロードできます。 (".$supported_type.")");
+        n3s_error('アップロード失敗', "画像や音声、テキスト形式のファイルのみ" .
+            "アップロードできます。 (" . $supported_type . ")");
         return;
     }
     $user_id = n3s_get_user_id();
@@ -131,9 +131,10 @@ function go_upload()
     }
     db_exec('commit');
     $url = n3s_getURL('', 'upload', [
-        'mode'=>'show',
-        'image_id'=>$image_id]);
-    header('location:'.$url);
+        'mode' => 'show',
+        'image_id' => $image_id
+    ]);
+    header('location:' . $url);
 }
 
 function show_image()
@@ -150,7 +151,7 @@ function show_image()
     $filename = $im['filename'];
     $user_id = $im['user_id'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], "users");
-    $image_url = n3s_get_config('baseurl', '.')."/image.php?f={$filename}";
+    $image_url = n3s_get_config('baseurl', '.') . "/image.php?f={$filename}";
     // can_edit
     $can_edit = false;
     if (n3s_is_admin()) {
@@ -173,26 +174,33 @@ function show_image()
         'user' => $user,
         'can_edit' => $can_edit,
         'acc_token' => $n3s_acc_token,
+        'link_user' => n3s_getURL($user_id, 'list', ['user_id' => $user_id]),
     ]);
 }
 
 function getCopyrightName($type)
 {
     switch ($type) {
-        case 'SELF': return '自分専用(他人の使用は認めません)';
-        case 'CC0': return 'CC0(パブリックドメイン)';
-        case 'CC-BY': return 'CC-BY(著作権表示すれば誰でも使えます)';
+        case 'SELF':
+            return '自分専用(他人の使用は認めません)';
+        case 'CC0':
+            return 'CC0(パブリックドメイン)';
+        case 'CC-BY':
+            return 'CC-BY(著作権表示すれば誰でも使えます)';
     }
-    return '著作権表示不明:'.$type;
+    return '著作権表示不明:' . $type;
 }
 function getCopyrightName2($type)
 {
     switch ($type) {
-        case 'SELF': return '自分専用';
-        case 'CC0': return 'CC0';
-        case 'CC-BY': return 'CC-BY';
+        case 'SELF':
+            return '自分専用';
+        case 'CC0':
+            return 'CC0';
+        case 'CC-BY':
+            return 'CC-BY';
     }
-    return '著作権表示不明:'.$type;
+    return '著作権表示不明:' . $type;
 }
 
 function delete_image()
@@ -223,7 +231,7 @@ function delete_image()
     // url
     $user_id = $im['user_id'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], "users");
-    
+
     // can_edit
     $can_edit = false;
     if (n3s_is_admin()) {
@@ -256,8 +264,8 @@ function list_image()
     $PER_PAGE = 20;
     $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
     $images = db_get(
-        'SELECT * FROM images WHERE image_id <= ? '.
-        'ORDER BY image_id DESC LIMIT ?',
+        'SELECT * FROM images WHERE image_id <= ? ' .
+            'ORDER BY image_id DESC LIMIT ?',
         [$max_id, $PER_PAGE]
     );
     foreach ($images as &$i) {
@@ -269,10 +277,10 @@ function list_image()
         }
         $i['is_image'] = $is_image;
         $i['image_url'] = "image.php?f={$fname}";
-        $i['info_url'] = n3s_getURL('', 'upload', ['image_id'=>$i['image_id'], 'mode'=>'show']);
+        $i['info_url'] = n3s_getURL('', 'upload', ['image_id' => $i['image_id'], 'mode' => 'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
-    $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode'=>'list']);
+    $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode' => 'list']);
     n3s_template_fw('upload-list.html', [
         'images' => $images,
         'next_url' => $next_url,

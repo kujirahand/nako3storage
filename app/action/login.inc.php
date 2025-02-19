@@ -6,7 +6,7 @@ define('ITAZURA_ANSWER', 'ニンゲン');
 // no api login
 function n3s_api_login()
 {
-    n3s_api_output('ng', ['msg'=>'should use web access']);
+    n3s_api_output('ng', ['msg' => 'should use web access']);
 }
 
 function n3s_web_login()
@@ -50,8 +50,8 @@ function n3s_web_login_register()
     // check params
     if ($email != '' && $name != '') {
         $error = '';
-        if ($name == '' || mb_strlen($name) > 12) {
-            $error = '名前を12文字以内で入力してください。';
+        if ($name == '' || mb_strlen($name) > 12 || mb_strlen($name) < 4) {
+            $error = '名前を4文字以上12文字以内で入力してください。';
         }
         if ($email == '') {
             $error = 'メールアドレスを入力してください。';
@@ -99,7 +99,7 @@ function n3s_web_login_register()
     ]);
 }
 
-function n3s_web_login_setpw_sendmail($user_id, $email, $action) 
+function n3s_web_login_setpw_sendmail($user_id, $email, $action)
 {
     $hashOrigin = $email . '#' . time() . '#' . rand();
     $passtoken = "{$user_id}-" . hash('sha256', $hashOrigin);
@@ -129,8 +129,8 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     $body .= "なでしこ3貯蔵庫「事務局」より\r\n";
     $body .= "https://n3s.nadesi.com/\r\n\r\n";
     @mb_send_mail($sendto, $subject, $body);
-    if (explode(':', $host.':')[0] === 'localhost') {
-        echo "<pre>".$body."</pre>";
+    if (explode(':', $host . ':')[0] === 'localhost') {
+        echo "<pre>" . $body . "</pre>";
     }
 }
 
@@ -191,9 +191,10 @@ function n3s_web_login_setpw()
     }
     // get email
     $row = db_get1(
-        'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1', 
+        'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1',
         [$passtoken_get, $user_id],
-        'users');
+        'users'
+    );
     if ($row) {
         $email = $row['email'];
     } else {
@@ -220,7 +221,8 @@ function n3s_web_login_setpw()
             $row = db_get1(
                 'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1',
                 [$passtoken_post, $user_id],
-                'users');
+                'users'
+            );
             if (!$row) {
                 n3s_log("[forgot] email={$email},user_id={$user_id},error=パスワードの設定失敗/トークンの入力ミス", "info");
                 n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
@@ -228,9 +230,10 @@ function n3s_web_login_setpw()
             }
             $hash = n3s_login_password_to_hash($password);
             db_exec(
-                'UPDATE users SET password=?, pass_token="", mtime=? WHERE (pass_token=?) AND (user_id=?)', 
+                'UPDATE users SET password=?, pass_token="", mtime=? WHERE (pass_token=?) AND (user_id=?)',
                 [$hash, time(), $passtoken_post, $user_id],
-                'users');
+                'users'
+            );
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
             n3s_info('パスワードを設定しました', '<a href="index.php?action=login">ログインしてください。</a>', true);
             exit;
@@ -243,14 +246,15 @@ function n3s_web_login_setpw()
     ]);
 }
 
-function n3s_web_login_trylogin() {
+function n3s_web_login_trylogin()
+{
     $error = 'ログイン情報を入力してください';
     $email = empty($_POST['email']) ? '' : $_POST['email'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
     if (!$ip) {
         // ログイン攻撃を検出する (1時間以内に10回以上のログイン失敗があれば拒否する)
-        $r = db_get('SELECT count(*) FROM ip_check WHERE key=0 AND mtime>? AND ip=?', [time()-60*60, $ip]);
+        $r = db_get('SELECT count(*) FROM ip_check WHERE key=0 AND mtime>? AND ip=?', [time() - 60 * 60, $ip]);
         if ($r && $r['count(*)'] > 10) {
             n3s_log("ip={$ip},email={$email},error=ログイン失敗が多すぎる", "trylogin");
             n3s_error('ログインの拒否', 'ログイン失敗が多すぎます。しばらく時間をおいてからログインしてください。');
@@ -277,10 +281,12 @@ function n3s_web_login_trylogin() {
                 $errCount = isset($_SESSION['n3s_trylogin_count']) ? $_SESSION['n3s_trylogin_count'] : 0;
                 if ($errCount >= 5) {
                     unset($_SESSION['n3s_trylogin_count']);
-                    n3s_error('ログイン失敗',
-                        "ログインに5回以上失敗しました。しばらく時間をおいてから再度お試しください。".
-                        "あるいは、<a href='index.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。", 
-                        true);
+                    n3s_error(
+                        'ログイン失敗',
+                        "ログインに5回以上失敗しました。しばらく時間をおいてから再度お試しください。" .
+                            "あるいは、<a href='index.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。",
+                        true
+                    );
                     exit;
                 }
                 $errCount++;
@@ -291,7 +297,7 @@ function n3s_web_login_trylogin() {
         }
     }
     $token = n3s_getEditToken();
-    
+
     n3s_template_fw('login_email.html', [
         'email' => $email,
         'error' => $error,
@@ -299,10 +305,13 @@ function n3s_web_login_trylogin() {
     ]);
 }
 
-function n3s_web_login_execute($user_id, $password) {
+function n3s_web_login_execute($user_id, $password)
+{
     // login
     $ok = n3s_login($user_id, $password);
-    if (!$ok) { return false; }
+    if (!$ok) {
+        return false;
+    }
     // redirect
     $backurl = n3s_getBackURL();
     if ($backurl == '') {
@@ -320,4 +329,3 @@ function iget($info, $key, $def = '')
     }
     return $info[$key];
 }
-

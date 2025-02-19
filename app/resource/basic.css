@@ -426,3 +426,9 @@ ul.devblock span.lbl {
   text-align: right;
   font-size: 0.9em;
 }
+
+.mypage_box {
+  border: 1px solid silver;
+  padding: 1em;
+  margin: 1em;
+}

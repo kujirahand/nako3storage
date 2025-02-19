@@ -22,30 +22,26 @@
 </style>
 
 <div class="saveform">
-  <h1>{{$msg}}</h1>
+  <h1>{{$msg}} ({{ $image_id }})</h1>
   <p>以下のURLをコピーしてプログラムでご利用ください。</p>
   <div class="upload-item">
     <table>
       <tr>
-        <th>ID</th>
-        <td>{{ $image_id }}</td>
+        <th>絶対URL</th>
+        <td><input type="text" onclick="this.select()" value="{{$image_url}}"></td>
       </td>
       <tr>
         <th>提供者</th>
-        <td><a target="new" href="https://twitter.com/{{$user.screen_name}}">
-          <img src="{{$user.profile_url}}" width="24" />{{$user.name}}</a></td>
-      </td>
-      <tr>
-        <th>タイトル</th>
-        <td>{{ $title }}</td>
+        <td>
+          <a target="new" href="{{$link_user}}">{{$user.name}}</a></td>
       </td>
       <tr>
         <th>ライセンス</th>
         <td>{{ $copyright }}</td>
       </td>
       <tr>
-        <th>絶対URL</th>
-        <td><input type="text" onclick="this.select()" value="{{$image_url}}"></td>
+        <th>タイトル</th>
+        <td>{{ $title }}</td>
       </td>
     </table>
   </div>
