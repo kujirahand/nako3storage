@@ -505,8 +505,8 @@ EOS;
     $app_id = $a['app_id'];
     $dbname = n3s_getMaterialDB($app_id);
     db_exec(
-        'UPDATE materials SET body=? WHERE material_id=?',
-        [$a['body'], $app_id],
+        'UPDATE materials SET body=?, app_id=? WHERE material_id=?',
+        [$a['body'], $app_id, $app_id],
         $dbname
     );
     n3s_log("app_id={$app_id},author={$a['author']},title={$a['title']},user_id={$a['user_id']},", '作品更新');
