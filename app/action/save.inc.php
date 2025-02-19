@@ -330,7 +330,7 @@ function n3s_action_save_data_raw($data, $agent)
         return n3s_saveNewProgram($a);
     }
     // 更新の場合
-    return n3s_updateProgram($app_id, $a);
+    return n3s_updateProgram($a);
 }
 
 function n3s_action_save_delete($params)
