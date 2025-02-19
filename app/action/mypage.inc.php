@@ -133,10 +133,12 @@ function n3s_mypage_mode_del_account($user_id)
     );
     $link_mypage = n3s_getURL($user_id, 'mypage');
     // check user_id
-    if (!$user_id) {
+    $user = n3s_getUserInfo($user_id);
+    if (!$user) {
         n3s_error('ユーザーIDがありません', '', TRUE);
         return;
     }
+    $user_name = $user['name'];
     // 添付ファイルの列挙
     $files = db_get('SELECT * FROM images WHERE user_id=?', [$user_id]);
     $files_html = "<h3>削除対象のファイル</h3>\n<ul>\n";
@@ -172,6 +174,7 @@ function n3s_mypage_mode_del_account($user_id)
             "app_id" => $app_id,
             "material_id" => $material_id,
             "dbname" => n3s_getMaterialDB($app_id),
+            "title" => $app['title'],
         ];
     }
     if (count($apps) == 0) {
@@ -190,20 +193,25 @@ function n3s_mypage_mode_del_account($user_id)
             return;
         }
         // === 退会処理 ===
+        // ログに追加
+        n3s_log("+ ($user_id)『{$user_name}』が退会(n3s_mypage_mode_del_account)");
         // 添付ファイルの削除
         foreach ($files_full as $file) {
             $image_id = $file['image_id'];
             $filename = $file['filename'];
+            $file_title = $file['title'];
             if (file_exists($filename)) {
                 @unlink($filename);
             }
             $title = '(ユーザー退会のため削除されました)';
             db_exec('UPDATE images SET title=?, filename="53.png" WHERE image_id=?', [$title, $image_id]);
+            n3s_log("- 素材($image_id)『{$file_title}』($filename)を削除");
         }
         // 作品情報の削除
         foreach ($apps_full as $app) {
             $app_id = $app['app_id'];
             $material_id = $app['material_id'];
+            $app_title = $app['title'];
             if ($material_id == 0) {
                 $material_id = $app_id;
             }
@@ -219,6 +227,7 @@ function n3s_mypage_mode_del_account($user_id)
                 n3s_error('作品情報の削除に失敗しました', '', TRUE);
                 return;
             }
+            n3s_log("- アプリ($app_id)『{$app_title}』を削除");
         }
         // お気に入り情報の削除
         db_exec('DELETE FROM bookmarks WHERE user_id=?', [$user_id]);
