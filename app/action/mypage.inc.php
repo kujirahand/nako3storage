@@ -194,7 +194,7 @@ function n3s_mypage_mode_del_account($user_id)
         }
         // === 退会処理 ===
         // ログに追加
-        n3s_log("+ ($user_id)『{$user_name}』が退会(n3s_mypage_mode_del_account)");
+        n3s_log("+ ($user_id)『{$user_name}』が退会(n3s_mypage_mode_del_account)", '退会', 1);
         // 添付ファイルの削除
         foreach ($files_full as $file) {
             $image_id = $file['image_id'];
@@ -205,7 +205,7 @@ function n3s_mypage_mode_del_account($user_id)
             }
             $title = '(ユーザー退会のため削除されました)';
             db_exec('UPDATE images SET title=?, filename="53.png" WHERE image_id=?', [$title, $image_id]);
-            n3s_log("- 素材($image_id)『{$file_title}』($filename)を削除");
+            n3s_log("- 素材($image_id)『{$file_title}』($filename)を削除", '退会');
         }
         // 作品情報の削除
         foreach ($apps_full as $app) {
@@ -227,7 +227,7 @@ function n3s_mypage_mode_del_account($user_id)
                 n3s_error('作品情報の削除に失敗しました', '', TRUE);
                 return;
             }
-            n3s_log("- アプリ($app_id)『{$app_title}』を削除");
+            n3s_log("- 作品削除($app_id)『{$app_title}』", "退会");
         }
         // お気に入り情報の削除
         db_exec('DELETE FROM bookmarks WHERE user_id=?', [$user_id]);
