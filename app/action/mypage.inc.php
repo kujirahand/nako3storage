@@ -183,7 +183,8 @@ function n3s_mypage_mode_del_account($user_id)
     $apps_html .= "</ul>\n";
     // 退会処理
     // 確認画面 -> 実行
-    if ($confirm == 'yes') {
+    $q = empty($_POST['q']) ? '' : $_POST['q'];
+    if ($confirm == 'yes' && $q == 'たいかい') {
         if ($token != $token_post) {
             n3s_error(
                 '退会トークンのエラー',
@@ -267,12 +268,16 @@ function n3s_mypage_mode_del_account($user_id)
         貯蔵庫から退会すると、ユーザー情報が全て削除されます。</span>
     </p>
     <p>
-        本当に退会する場合は、以下にチェックを入れてください。
+        本当に退会する場合は、以下にチェックを入れて、質問に答えてください。
+        退会すると、作品や素材などの情報はすべて失われます。慎重に考慮してください。
     </p>
     <form method="post" action="{$link_del_account}">
         <div style="margin-left: 1em;">
             <input id="confirm" type="checkbox" name="confirm" value="yes">
             <label style="color: black; font-size: 1em;" for="confirm">アカウントを削除する</label>
+            <br><br>
+            質問: 以下にひらがなで「退会」と記入してください：<br>
+            <input id="q" type="text" name="q" value="" placeholder="質問の答えを入力">
             <input type="hidden" name="token" value="{$token}">
         </div>
         <p><input type="submit" value="退会する"></p>
