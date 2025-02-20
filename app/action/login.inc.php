@@ -82,7 +82,7 @@ function n3s_web_login_register()
                     $error = '既にメールアドレスが登録されています。<a href="index.php?action=login&page=forgot">こちらからパスワードを変更</a>してください。';
                 } else {
                     n3s_web_login_setpw_sendmail($user_id, $email, 'register');
-                    n3s_info('承りました', 'ユーザー登録のためのURLを記述したメールを送信しました。');
+                    n3s_web_login_setpw($email);
                     return;
                 }
             }
@@ -101,33 +101,30 @@ function n3s_web_login_register()
 
 function n3s_web_login_setpw_sendmail($user_id, $email, $action)
 {
-    $hashOrigin = $email . '#' . time() . '#' . rand();
-    $passtoken = "{$user_id}-" . hash('sha256', $hashOrigin);
+    $passtoken1 = n3s_randomIntStr(3);
+    $passtoken2 = n3s_randomIntStr(4);
+    $passtoken = "{$passtoken1}-{$passtoken2}";
     db_exec(
-        "UPDATE users SET pass_token=? WHERE user_id=?",
-        [$passtoken, $user_id],
+        "UPDATE users SET pass_token=?, mtime=? WHERE user_id=?",
+        [$passtoken, time(), $user_id],
         'users'
     );
     // メールの送信
-    $passtoken_enc = urlencode($passtoken);
-    $http = empty($_SERVER['REQUEST_SCHEME']) ? 'http' : $_SERVER['REQUEST_SCHEME'];
     $host = $_SERVER['HTTP_HOST'];
-    $script_name = $_SERVER['SCRIPT_NAME'];
-    $baseurl = "{$http}://{$host}{$script_name}";
+    // $passtoken_enc = urlencode($passtoken);
+    // $http = empty($_SERVER['REQUEST_SCHEME']) ? 'http' : $_SERVER['REQUEST_SCHEME'];
+    // $script_name = $_SERVER['SCRIPT_NAME'];
+    // $baseurl = "{$http}://{$host}{$script_name}";
     $sendto = $email;
     $subject = ($action == 'register') ? '[なでしこ3貯蔵庫] ユーザー登録について' : '[なでしこ3貯蔵庫]パスワード再設定について';
     $actionName = ($action == 'register') ? 'ユーザー登録' : 'パスワードの再設定';
-    $body = "親愛なるなでしこ貯蔵庫ユーザーの皆様:\r\n\r\n" . "「なでしこ3貯蔵庫」の事務局です。\r\n";
-    $body .= "貯蔵庫からの操作よりメールにて{$actionName}の旨を承っております。\r\n\r\n";
-    $body .= "もしも、{$actionName}する場合は、以下のURLをクリックしてください。\r\n";
-    $body .= "{$baseurl}?action=login&page=setpw&p={$passtoken_enc}\r\n";
+    $body = "「なでしこ3貯蔵庫」の事務局です。\r\n";
+    $body .= "{$actionName}の旨を承っております。登録ページで下記の番号を入力してください。\r\n";
+    $body .= "{$passtoken}\r\n";
     $body .= "\r\n";
-    $body .= "※ただし、{$actionName}に覚えがない場合、本メールはそのまま削除してください。\r\n";
+    $body .= "※もし、{$actionName}に覚えがない場合、本メールはそのまま削除してください。\r\n";
     $body .= "ご迷惑をおかけして申し訳ありません。\r\n";
     $body .= "\r\n";
-    $body .= "------------------\r\n";
-    $body .= "なでしこ3貯蔵庫「事務局」より\r\n";
-    $body .= "https://n3s.nadesi.com/\r\n\r\n";
     @mb_send_mail($sendto, $subject, $body);
     if (explode(':', $host . ':')[0] === 'localhost') {
         echo "<pre>" . $body . "</pre>";
@@ -157,8 +154,7 @@ function n3s_web_login_forgot()
             }
             // log
             n3s_log("sendto={$email}", "forgot");
-            // info
-            n3s_info('承りました', 'パスワード再設定のURLを記述したメールを送信しました。');
+            n3s_web_login_setpw($email);
             return;
         }
     }
@@ -170,41 +166,59 @@ function n3s_web_login_forgot()
     ]);
 }
 
-function n3s_web_login_setpw()
+function n3s_web_login_setpw($email = '')
 {
-    // check token
-    $email = '';
-    $passtoken_get = empty($_GET['p']) ? '' : $_GET['p'];
-    if ($passtoken_get == '') {
-        $passtoken_get = empty($_POST['pass_token']) ? '' : $_POST['pass_token'];
+    $url = n3s_getURL('setpw', 'login', []);
+    if ($email == '') {
+        $email = empty($_REQUEST['email']) ? '' : $_REQUEST['email'];
     }
-    if ($passtoken_get == '') {
-        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+    $pass1 = empty($_POST['pass1']) ? '' : $_POST['pass1'];
+    $pass2 = empty($_POST['pass2']) ? '' : $_POST['pass2'];
+    $passtoken_get = trim($pass1) . '-' . trim($pass2);
+    $post_token = empty($_POST['token']) ? '' : $_POST['token'];
+    $token = n3s_getEditToken('setpw', FALSE);
+    if ($email == '') {
+        $retry = n3s_getURL('forgot', 'login');
+        n3s_error('パスワードの設定失敗', "メール情報が失われました。<a href='$retry'>手順をやり直してください</a>。", TRUE);
         exit;
     }
-    // get user_id
-    if (strpos($passtoken_get, '-') !== FALSE) {
-        list($user_id, $_passtoken_hash) = explode('-', $passtoken_get);
-    } else {
-        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+    if ($pass1 == '' || $pass2 == '' || $post_token == '') {
+        $email_ = htmlspecialchars($email, ENT_QUOTES);
+        $body = <<< __EOS__
+<div class="showblock">
+<p>メールに記載された7桁の番号を入力しくてださい。認証番号は5分間のみ有効です。</p>
+<form method="post" action="{$url}">
+<input type="text" name="pass1" value="" placeholder="最初の3桁" style="width:40%;max-width:100px;"> - 
+<input type="text" name="pass2" value="" placeholder="後半の4桁" style="width:40%;max-width:130px;"><br>
+<input type="hidden" name="token" value="{$token}">
+<input type="hidden" name="email" value="{$email_}">
+<input type="submit" value="送信">
+</form>
+</div>
+__EOS__;
+        n3s_info('認証番号の入力', $body, TRUE);
         exit;
     }
-    // get email
+    if ($token != $post_token) {
+        n3s_error('セッションが切れました', "<a href='$url'>もう一度試行してください。</a>");
+        exit;
+    }
+    // check pass token
+    // get user info
     $row = db_get1(
-        'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1',
-        [$passtoken_get, $user_id],
+        'SELECT * FROM users WHERE pass_token=? AND email=? AND mtime > ? LIMIT 1',
+        [$passtoken_get, $email, time() - 60 * 5],
         'users'
     );
-    if ($row) {
-        $email = $row['email'];
-    } else {
-        n3s_log("[forgot] email={$email},error=パスワードの設定失敗/トークンの入力ミス", "info");
-        n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
+    if (!$row) {
+        $retry = n3s_getURL('setpw', 'login', ['email' => $email]);
+        n3s_log("[forgot] email={$email},error=パスワードの設定失敗/認証番号の入力ミス", "info");
+        n3s_error('登録失敗', "改めてメールに書かれている登録番号を確認して入力してください。<a href='$retry'>やり直す</a>", true);
         exit;
     }
+    $user_id = $row['user_id'];
     // パスワードのチェック
     $error = '';
-    $passtoken_post = empty($_POST['pass_token']) ? '' : $_POST['pass_token'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
     $password2 = empty($_POST['password2']) ? '' : $_POST['password2'];
     if ($password != '') {
@@ -217,21 +231,10 @@ function n3s_web_login_setpw()
             $error = 'パスワードは8文字以上で入力してください。';
         }
         if ($error == '') {
-            // pass_tokenの検証
-            $row = db_get1(
-                'SELECT * FROM users WHERE pass_token=? AND user_id=? LIMIT 1',
-                [$passtoken_post, $user_id],
-                'users'
-            );
-            if (!$row) {
-                n3s_log("[forgot] email={$email},user_id={$user_id},error=パスワードの設定失敗/トークンの入力ミス", "info");
-                n3s_error('パスワードの設定失敗', 'メールに書かれているURLを全部貼り付けてください。');
-                exit;
-            }
             $hash = n3s_login_password_to_hash($password);
             db_exec(
-                'UPDATE users SET password=?, pass_token="", mtime=? WHERE (pass_token=?) AND (user_id=?)',
-                [$hash, time(), $passtoken_post, $user_id],
+                'UPDATE users SET password=?, pass_token="", mtime=? WHERE user_id=?',
+                [$hash, time(), $user_id],
                 'users'
             );
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
@@ -241,14 +244,16 @@ function n3s_web_login_setpw()
     }
     n3s_template_fw('login_setpw.html', [
         'email' => $email,
-        'pass_token' => $passtoken_get,
+        'pass1' => $pass1,
+        'pass2' => $pass2,
         'error' => $error,
+        'token' => $token,
     ]);
 }
 
 function n3s_web_login_trylogin()
 {
-    $error = 'ログイン情報を入力してください';
+    $error = 'なでしこ３貯蔵庫のアカウント情報を入力してください';
     $email = empty($_POST['email']) ? '' : $_POST['email'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';

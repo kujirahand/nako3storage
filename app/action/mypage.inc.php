@@ -199,13 +199,12 @@ function n3s_mypage_mode_del_account($user_id)
         foreach ($files_full as $file) {
             $image_id = $file['image_id'];
             $filename = $file['filename'];
-            $file_title = $file['title'];
             if (file_exists($filename)) {
                 @unlink($filename);
             }
             $title = '(ユーザー退会のため削除されました)';
             db_exec('UPDATE images SET title=?, filename="53.png" WHERE image_id=?', [$title, $image_id]);
-            n3s_log("- 素材($image_id)『{$file_title}』($filename)を削除", '退会');
+            n3s_log("- 素材($image_id) $filename を削除", '退会');
         }
         // 作品情報の削除
         foreach ($apps_full as $app) {

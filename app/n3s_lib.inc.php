@@ -784,3 +784,12 @@ function n3s_logout()
         n3s_log("user_id=$user_id,name={$name},ip={$ip}", "logout", 0);
     }
 }
+
+function n3s_randomIntStr($length = 7)
+{
+    $r = '';
+    for ($i = 0; $i < $length; $i++) {
+        $r .= '' . rand(0, 9);
+    }
+    return $r;
+}
