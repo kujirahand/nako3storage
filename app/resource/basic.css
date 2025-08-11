@@ -38,7 +38,7 @@
 .header-right {
   text-align: right;
   padding: 0.5em;
-  line-height: 3em;
+  line-height: 3;
 }
 
 h1 {
@@ -131,10 +131,10 @@ h2 {
 }
 
 .showblock ul li {
-  line-height: 1.8em;
+  line-height: 1.8;
 }
 .showblock table td {
-  line-height: 1.5em;
+  line-height: 1.5;
   font-size: 1em;
   padding: 4px;
   border-bottom: 1px solid silver;
@@ -155,7 +155,7 @@ h2 {
   background-color: #fff0f0;
   font-size: 0.8em;
   padding: 1em;
-  line-height: 1.4em;
+  line-height: 1.4;
 }
 
 .ctrl_block {
@@ -218,7 +218,7 @@ h2 {
 
 .nako3_div {
   font-size: 1em;
-  line-height: 1.1em;
+  line-height: 1.1;
 }
 .nako3_div > button {
   margin: 4px;
@@ -265,7 +265,7 @@ h2 {
 .addon_block {
   padding: 1em;
   font-size: 0.8em;
-  line-height: 1.8em;
+  line-height: 1.8;
 }
 
 .devblock {
@@ -290,7 +290,7 @@ textarea#nako3code {
   margin: 0;
   padding: 0.5em;
   font-size: 1.2em;
-  line-height: 1.4em;
+  line-height: 1.4;
   width: 99%;
   height: 150px;
   background-color: #f0f0f0;
@@ -310,7 +310,7 @@ textarea#nako3code {
   font-size: 0.8em;
   color: black;
   background-color: #ffe0e0;
-  line-height: 1.7em;
+  line-height: 1.7;
 }
 
 .crown {
@@ -318,7 +318,7 @@ textarea#nako3code {
 }
 
 .blogparts {
-  line-height: 1.5em;
+  line-height: 1.5;
   margin: 1em;
   border: 1px dotted #e0e0e0;
   padding: 1em;
@@ -369,7 +369,7 @@ textarea#nako3code {
   margin: 0;
 }
 .search_list ul > li {
-  line-height: 1.8em;
+  line-height: 1.8;
   padding-bottom: 1em;
 }
 .search_title a {
@@ -391,7 +391,7 @@ textarea#nako3code {
   background-color: #fff0f0;
 }
 #controll_buttons {
-  line-height: 2em;
+  line-height: 2.0;
   border-top: 1px dotted silver;
   padding-top: 8px;
 }
