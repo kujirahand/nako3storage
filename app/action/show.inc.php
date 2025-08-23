@@ -221,9 +221,11 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     } elseif (30109 > $ver) {
         $pname_list = array_slice($pname_list, 0, 4);
     }
-    if (30220 <= $ver) {
+    // 2024年3月に廃止された「逐次実行」「非同期モード」が必要か
+    if (30220 <= $ver && $ver < 30244) {
         $pname_list[] = 'nako_gen_async';
     }
+    //
     foreach ($pname_list as $p) {
         $src = "{$baseurl}release/{$p}.js";
         $js_a[] = "<script defer src=\"$src\"></script>";
@@ -274,12 +276,15 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // widget コード
     $w = isset($a['canvas_w']) ? $a['canvas_w'] : 400;
     $h = isset($a['canvas_h']) ? $a['canvas_h'] : 400;
-    if ($w < 50) {
-        $w = 400;
+    if ($w < 50) { $w = 400; }
+    if ($h < 50) { $h = 400; }
+    // nakotypeをチェック
+    if (empty($a['nakotype'])) {
+        $a['nakotype'] = 'wnako';
     }
-    if ($h < 50) {
-        $h = 400;
-    }
+    $a['nakotype'] = preg_replace("/[^0-9a-zA-Z_\-]/", "", $a['nakotype']);
+    $nakotype = $a['nakotype'] ?? 'wnako';
+    
     // for widget
     $w += 32;
     $h += 120; // margin
@@ -289,7 +294,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     if (substr($sandbox_url, -1) !== "/") {
         $sandbox_url .= "/";
     }
-    $wurl_run_allow = $sandbox_url."widget.php?$app_id&run=1&allow=1";
+    $wurl_run_allow = $sandbox_url."widget.php?$app_id&run=1&allow=1&nakotype=$nakotype";
     $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";

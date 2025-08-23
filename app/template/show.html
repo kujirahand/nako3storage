@@ -25,7 +25,7 @@
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
     <textarea id="nako3code" readonly>{{ $body }}</textarea>
     </label><br />
-    {{ if $nakotype eq 'wnako' }}
+    {{ if $nakotype eq 'wnako' || $nakotype eq 'html' }}
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
       <!-- widget -->
@@ -34,7 +34,8 @@
       {{ else }}
         {{ if $widget_url_run }}
         <div style="text-align: center;">
-          <a class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">プログラムを実行</a>
+          <a id="a_run_button" class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">
+            プログラムを実行</a>
         </div>
         {{ endif }}
       {{ endif }}

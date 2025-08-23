@@ -76,8 +76,25 @@
         &nbsp;&nbsp;<span class="info">(↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載し実行画面のタイトルも隠します。</span>
       </label>
     </p>
-  <p>
-    <label>ライセンスの指定:</label><br />
+    <p>
+      <label>データの形式:
+        <div style="padding-left:12px;">
+          <select id="nakotype" name="nakotype">
+            <option value="wnako"{{ $nakotype == 'wnako' ? ' selected' : '' }}>なでしこ(Web版)</option>
+            <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>なでしこ(cnako:コマンドライン版)</option>
+            <option value="js"{{ $nakotype == 'js' ? ' selected' : '' }}>JavaScript</option>
+            <option value="json"{{ $nakotype == 'json' ? ' selected' : '' }}>JSON形式(データ)</option>
+            <option value="csv"{{ $nakotype == 'csv' ? ' selected' : '' }}>CSV形式(データ)</option>
+            <option value="text"{{ $nakotype == 'text' ? ' selected' : '' }}>テキスト形式(text)</option>
+            <option value="sh"{{ $nakotype == 'sh' ? ' selected' : '' }}>シェル(sh)</option>
+            <option value="bat"{{ $nakotype == 'bat' ? ' selected' : '' }}>バッチファイル(bat)</option>
+            <option value="html"{{ $nakotype == 'html' ? ' selected' : '' }}>HTML形式</option>
+          </select>
+        </div>
+      </label>
+    </p>
+    <p>
+      <label>ライセンスの指定:</label><br />
       <blockquote style="background-color: #f0f0f0;">
       {{ for $copyright_list as $key => $val }}
       {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
@@ -139,12 +156,6 @@
           <span class="info">通常は変更の必要はありません。</span>
           <br />
           <input id="version" name="version" type="text" value="{{$version}}" />
-        </label>
-      </p>
-      <p>
-        <label>データの形式:
-          <span class="info">普通はwnakoを指定。必要ならcnako/js/json/csv/text/sh/batを指定。</span><br />
-          <input id="nakotype" name="nakotype" type="text" value="{{ $nakotype }}" />
         </label>
       </p>
       <p>
@@ -219,6 +230,7 @@
 </div>
 
 <script>
+
 // load_src yes か no か session のみ
 const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
 switch ('{{$load_src}}') {
@@ -226,8 +238,6 @@ switch ('{{$load_src}}') {
   case 'yes': loadFromLocalStorage(); break;
   case 'session': saveToLocalStorage(); break;
 }
-
-
 
 function loadFromLocalStorage() {
   console.log('load from storage')
@@ -363,15 +373,25 @@ setTimeout(()=>{
     tag.value = a.join(',')
   }
 
+  // HTML ?
+  const isHTML = (body.indexOf('<!DOCTYPE html>') == 0)
+  if (isHTML) {
+    const fmt = document.getElementById('nakotype')
+    fmt.value = 'html'
+    document.getElementById('canvas_w').value = '0'
+    document.getElementById('canvas_h').value = '0'
+  }
+
   // タイトルを自動的に埋める
   const title = document.getElementById('title')
-  if (title.value == '') {
+  if (title.value == '' && isHTML === false) {
     const new_title = body
       .replace(/(\r\n|\r|\n)/g, '')
       .replace(/[\#\$\.\!\"\%\'\\\-\=\s\|「」【】『』、]+/g, '')
       .replace(/(インデントモード|DNCLモード)/g, '')
     title.value = new_title.substring(0, 16)
   }
+
 }, 1000);
 
 

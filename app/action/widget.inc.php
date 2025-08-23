@@ -19,9 +19,11 @@ function n3s_web_widget()
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
     $api_token = n3s_getAPIToken();
     $_SESSION["api_token::$api_token"] = $page;
+    $nakotype = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';
+    $nakotype = preg_replace("/[^0-9a-zA-Z_\-]/", "", $nakotype);
     // sandbox
     $sandbox_url = n3s_get_config('sandbox_url', '');
-    $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&mute_title={$mute_title}&editkey={$editkey}&allow={$allow}&api_token={$api_token}";
+    $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&mute_title={$mute_title}&editkey={$editkey}&allow={$allow}&api_token={$api_token}&nakotype={$nakotype}";
     // -------------------------------------------------------
     // (互換性のために) 特別扱いする投稿 --- https://bit.ly/3Vpk1RI
     if ($page == 991) {
