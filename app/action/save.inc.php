@@ -221,6 +221,9 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     if (strlen($a['author']) > 200) {
         throw new Exception('作者名が200文字以下にしてください。');
     }
+    if (intval($a['user_id']) == 0 && $a['nakotype'] != 'wnako') {
+        throw new Exception("ログインしていない場合、なでしこ以外の言語は選べません。");
+    }   
 }
 
 // save
@@ -233,6 +236,7 @@ function n3s_action_save_data($data, $agent = 'web')
         return;
     }
     try {
+        $data['user_id'] = n3s_get_user_id();
         $app_id = n3s_action_save_data_raw($data, $agent);
         n3s_jump($app_id, 'show');
     } catch (Exception $e) {
@@ -256,7 +260,13 @@ function n3s_action_save_data_raw($data, $agent)
     $a = $data;
     $b = array();
     $a['app_id'] = $app_id;
-    n3s_action_save_check_param($a, true);
+    try {
+        n3s_action_save_check_param($a, true);
+    } catch (Exception $e) {
+        $msg = $e->getMessage();
+        n3s_error('投稿エラー', "[投稿エラー] {$msg}");
+        exit;
+    }
     $a['ip'] = $_SERVER['REMOTE_ADDR'];
 
     // CSRF対策
