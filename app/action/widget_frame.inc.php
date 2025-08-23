@@ -19,7 +19,33 @@ function n3s_web_widget_frame()
     for ($i = 0; $i < count($tags); $i++) { $tags[$i] = trim($tags[$i]); }
     $a['w_noname'] = in_array('w_noname', $tags);
     $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
+    
+    // nakotypeの例外(html/text/javascript)のときの処理
+    $nakotype = isset($_GET['nakotype']) ? $_GET['nakotype'] : 'wnako';
+    if ($nakotype == 'html' || $nakotype == 'text' || $nakotype == 'js' || $nakotype == 'csv' || $nakotype == 'json') {
+        $mime = get_mime_easy($nakotype);
+        header("Content-type: $mime; charset=utf-8");
+        echo $a['body'];
+        exit;
+    }
+
     n3s_template_fw('widget.html', $a);
+}
+
+function get_mime_easy($nakotype)
+{
+    $mime_types = [
+        'jpg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'text' => 'text/plain',
+        'txt' => 'text/plain',
+        'csv' => 'text/csv',
+        'json' => 'application/json',
+        'js' => 'application/javascript',
+        'html' => 'text/html',
+    ];
+    return isset($mime_types[$nakotype]) ? $mime_types[$nakotype] : 'text/plain';
 }
 
 function n3s_api_widget()

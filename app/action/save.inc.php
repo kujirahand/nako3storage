@@ -283,6 +283,11 @@ function n3s_action_save_data_raw($data, $agent)
             throw new Exception("申し訳ありません。NGワード「{$ng}」が含まれており、保存できません。");
         }
     }
+    // nakotypeは、アルファベットのみに制限
+    $a['nakotype'] = preg_replace("/[^0-9a-zA-Z_\-]/", "", $a['nakotype']);
+    if ($a['nakotype'] == '') {
+        $a['nakotype'] = 'wnako';
+    }
 
     // 上書き保存か？
     if ($app_id > 0) {

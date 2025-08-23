@@ -287,7 +287,9 @@ if (no_need_canvas) {
 //--------------------------
 // save button
 function saveClick(checkLength) {
-  if (runCount == 0 && checkLength) {
+  const body = getValue()    
+  const flagHTML = (body.indexOf('<!DOCTYPE html>') >= 0)
+  if ((runCount == 0 && checkLength) && !flagHTML) {
     var b = confirm(
       "エラーがないか確認してから保存することを推奨しています。\n" +
       "強制的に保存しますか？")
