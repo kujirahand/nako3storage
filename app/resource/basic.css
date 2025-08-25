@@ -361,8 +361,6 @@ textarea#nako3code {
   border-bottom: 1px dotted silver;
 }
 
-.search_list {
-}
 .search_list ul {
   list-style: none;
   padding: 1em;
@@ -376,7 +374,7 @@ textarea#nako3code {
   font-size: 1.1em;
   color: blue;
   text-decoration: none;
-  text-weight: bolder;
+  font-weight: bolder;
 }
 .search_info {
   padding-left: 1em;
@@ -385,7 +383,7 @@ textarea#nako3code {
   font-size: 0.9em;
   color: blue;
   text-decoration: none;
-  text-weight: bolder;
+  font-weight: bolder;
 }
 .search_code {
   background-color: #fff0f0;
