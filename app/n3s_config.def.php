@@ -2,7 +2,7 @@
 // include version
 include_once dirname(__DIR__).'/nako3storage_version.inc.php';
 include_once dirname(__DIR__).'/nako_version.inc.php';
-define('N3S_APP_TITLE', '🍯 なでしこ3貯蔵庫');
+define('N3S_APP_TITLE', '🍯 プログラム貯蔵庫');
 
 // default config
 global $n3s_config;
