@@ -325,6 +325,20 @@ function n3s_action_save_data_raw($data, $agent)
     // 連続投稿を防ぐ
     $a['body'] = trim($a['body']);
     $hash = $a['prog_hash'] = hash('sha256', $a['body']);
+    // 連続で同じ内容の投稿を防ぐ(投稿ミスを防ぐ)
+    $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND user_id=?', [$hash, $a['user_id']]);
+    if ($r && $r['app_id'] != $a['app_id']) {
+        n3s_error(
+            '連続投稿のエラー',
+            "あなたは既に同じ内容のプログラム(<a href='id.php?{$r['app_id']}'>app_id:{$r['app_id']}</a>)を".
+            "投稿しています。そのため今回は保存しません。ご了承ください。", TRUE);
+        exit;
+    }
+    /*
+    // ------------------------------------------------------------------
+    // 以前は、他人の投稿と同じ内容は投稿できなかったが
+    // 練習のため同じプログラムを投稿したいときがあるため、制限を緩和した。
+    // ------------------------------------------------------------------
     if (0 == $a['is_private']) { // 公開
         // 公開されている内容のプログラムと同じ内容の投稿は不可
         $r = db_get1('SELECT * FROM apps WHERE prog_hash=? AND is_private=0', [$hash]);
@@ -340,6 +354,8 @@ function n3s_action_save_data_raw($data, $agent)
             exit;
         }
     }
+    // ------------------------------------------------------------------
+    */
     // 新規投稿の場合
     if ($app_id == 0) {
         return n3s_saveNewProgram($a);
