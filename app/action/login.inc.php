@@ -89,7 +89,7 @@ function n3s_web_login_register()
         }
     }
     // log
-    n3s_log("{$email},name={$name},error={$error}", "try_register", 1);
+    n3s_log("{$email},name={$name},error={$error}(email:{$email})", "try_register", 1);
     // show template
     n3s_template_fw('login_register.html', [
         'email' => $email,
