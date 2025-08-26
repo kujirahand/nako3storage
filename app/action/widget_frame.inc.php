@@ -26,7 +26,7 @@ function n3s_web_widget_frame()
         $mime = get_mime_easy($nakotype);
         // ヘッダを追加
         header("Cross-Origin-Opener-Policy: same-origin");
-        header("Cross-Origin-Opener-Policy: require-corp");
+        header("Cross-Origin-Embedder-Policy: require-corp");
         header("Content-type: $mime; charset=utf-8");
         // 本体を出力
         echo $a['body'];
@@ -34,7 +34,7 @@ function n3s_web_widget_frame()
     }
     // ヘッダを追加
     header("Cross-Origin-Opener-Policy: same-origin");
-    header("Cross-Origin-Opener-Policy: require-corp");
+    header("Cross-Origin-Embedder-Policy: require-corp");
     n3s_template_fw('widget.html', $a);
 }
 
