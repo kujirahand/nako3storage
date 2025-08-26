@@ -27,6 +27,7 @@ function n3s_api_image()
     header('Access-Control-Allow-Origin: *');
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+    // header("Cross-Origin-Resource-Policy: cross-origin");
     if ($ext === 'mp3' || $ext === 'ogg' || $ext === 'oga') {
         // 音声ファイルはHTTP_RANGEに対応させるため、サーバーに任せる
         $dir_images = n3s_get_config('dir_images', '');

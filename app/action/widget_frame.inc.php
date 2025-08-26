@@ -24,11 +24,17 @@ function n3s_web_widget_frame()
     $nakotype = isset($_GET['nakotype']) ? $_GET['nakotype'] : 'wnako';
     if ($nakotype == 'html' || $nakotype == 'text' || $nakotype == 'js' || $nakotype == 'csv' || $nakotype == 'json') {
         $mime = get_mime_easy($nakotype);
+        // ヘッダを追加
+        header("Cross-Origin-Opener-Policy: same-origin");
+        header("Cross-Origin-Opener-Policy: require-corp");
         header("Content-type: $mime; charset=utf-8");
+        // 本体を出力
         echo $a['body'];
         exit;
     }
-
+    // ヘッダを追加
+    header("Cross-Origin-Opener-Policy: same-origin");
+    header("Cross-Origin-Opener-Policy: require-corp");
     n3s_template_fw('widget.html', $a);
 }
 
