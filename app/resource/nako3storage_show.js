@@ -175,7 +175,15 @@ function runButtonOnClick() { // 実行ボタンを押した時
     }
   }
   // コードを取得する
-  var code = getValue()
+  const code = getValue()
+  const codeTrim = code.trim()
+  if (codeTrim.startsWith('<!DOCTYPE html>')) { // HTMLコードなら実行しない
+    const editTitle = document.getElementById('edit_title')
+    if (editTitle) {
+      alert('HTMLコードは一度保存してください。')
+    }
+    return
+  }
   // 空なら実行しない
   if (code == '') {return}
   // 万が一のためにコードをlocalStorageに保存
