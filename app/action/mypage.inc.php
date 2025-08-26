@@ -115,6 +115,7 @@ function n3s_web_mypage()
         'link_del_account' => $link_del_account,
         'page' => $page,
         'link_material' => $link_materil,
+        'link_logout' => $logout_url,
     ]);
 }
 
