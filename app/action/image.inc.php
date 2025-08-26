@@ -24,6 +24,7 @@ function n3s_api_image()
     }
     
     // アクセスコントロール
+    header('Cross-Origin-Resource-Policy: cross-origin');
     header('Access-Control-Allow-Origin: *');
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
