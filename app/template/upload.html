@@ -58,7 +58,7 @@
 
 <script>
   function checkForm() {
-    const MAX_FILE_SIZE = 1024 * 1024 * 5 
+    const MAX_FILE_SIZE = {{ $max_file_size }};
     const userfile = document.getElementById('userfile')
     if (!userfile.files || userfile.files.length == 0) {
       alert('ファイルを指定してください')
@@ -67,8 +67,8 @@
     const file = userfile.files[0]
     // 拡張子のチェック
     const fname = file.name.toLowerCase()
-    if (!fname.match(/\.(jpg|jpeg|png|gif|svg|mml|mp3|ogg|csv|tsv|json|txt|mid|xlsx|sf2|sf3)$/)) {
-      alert('アップロードできるのは、JPEG/PNG/GIF/MP3/OGG/CSV/TSV/JSON/TXT/MID/XLSX/SF2/SF3のみです。')
+    if (!fname.match(/\.({{ $supported_type }})$/)) {
+      alert('アップロードできるのは、{{ $supported_type }}のみです。')
       return false
     }
     // ファイルサイズのチェック
