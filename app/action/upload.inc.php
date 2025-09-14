@@ -55,6 +55,7 @@ function n3s_web_upload()
 
 function go_upload()
 {
+    global $supported_type;
     // システムをチェック
     $dir_images = n3s_get_config('dir_images', '');
     if (!$dir_images) {
@@ -107,7 +108,6 @@ function go_upload()
     }
     $fname = strtolower($fname);
     $ext = '.jpg';
-    global $supported_type;
     $re = "/\.({$supported_type})$/";
     if (preg_match($re, strtolower($fname), $m)) {
         $ext = strtolower($m[0]);
@@ -131,7 +131,8 @@ function go_upload()
     db_exec("UPDATE images SET filename=? WHERE image_id=?", [$filename, $image_id]);
     if (!move_uploaded_file($tmp_name, $path)) {
         db_exec('rollback');
-        n3s_error('アップロード失敗', "サーバーにファイル保存に失敗しました。やり直してください。");
+        $error = $_FILES['userfile']['error'];
+        n3s_error('アップロード失敗', "サーバー側でファイルの保存に失敗しました。やり直してください。($error)");
         return;
     }
     db_exec('commit');
