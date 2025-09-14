@@ -19,6 +19,7 @@ function n3s_api_upload()
 
 function n3s_web_upload()
 {
+    global $supported_type;
     $mode = isset($_GET['mode']) ? $_GET['mode'] : '';
     if ($mode == 'go') {
         go_upload();
@@ -47,6 +48,8 @@ function n3s_web_upload()
     // アップロードフォームを表示
     n3s_template_fw('upload.html', [
         "edit_token" => n3s_getEditToken(),
+        "max_file_size" => n3s_get_config('size_upload_max', MAX_FILE_SIZE_DEFAULT),
+        "supported_type" => $supported_type,
     ]);
 }
 
