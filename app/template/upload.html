@@ -67,8 +67,8 @@
     const file = userfile.files[0]
     // 拡張子のチェック
     const fname = file.name.toLowerCase()
-    if (!fname.match(/\.(jpg|jpeg|png|gif|svg|mml|mp3|ogg|csv|tsv|json|txt|mid|xlsx)$/)) {
-      alert('アップロードできるのは、JPEG/PNG/GIF/MP3/OGG/CSV/TSV/JSON/TXT/MID/XLSXのみです。')
+    if (!fname.match(/\.(jpg|jpeg|png|gif|svg|mml|mp3|ogg|csv|tsv|json|txt|mid|xlsx|sf2|sf3)$/)) {
+      alert('アップロードできるのは、JPEG/PNG/GIF/MP3/OGG/CSV/TSV/JSON/TXT/MID/XLSX/SF2/SF3のみです。')
       return false
     }
     // ファイルサイズのチェック
