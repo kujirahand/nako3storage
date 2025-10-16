@@ -126,7 +126,7 @@ function go_upload()
     // 予約語のチェック - nako_ から始まる名前は使えない
     if (preg_match('/^nako_/', $image_name)) {
         // 管理ユーザーは例外
-        if (!n3s_is_admin()) {
+        if (n3s_is_admin()) {
             // ok
         } else {
             n3s_error('アップロード失敗', "ファイル名は、nako_ から始まる名前は使えません。");
