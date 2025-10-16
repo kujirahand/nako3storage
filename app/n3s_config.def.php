@@ -39,6 +39,7 @@ $n3s_config = [
     "nako3storage_version" => N3S_APP_VERSION,
     "nako_default_version" => NAKO_DEFAULT_VERSION,
     "session_lifetime" => 60 * 60 * 24, // 24時間セッションを保持
+    "use_image_name_shortcut" => TRUE, // "/images/app_id/image_name"のショートカットを有効にする
     // for analytics
     "analytics" => "",
     // sandbox

@@ -116,14 +116,44 @@ function go_upload()
             "アップロードできます。 (" . $supported_type . ")");
         return;
     }
+    // app_idとファイル名のチェック
+    $app_id = empty($_POST['app_id']) ? 0 : intval($_POST['app_id']);
+    $image_name = empty($_POST['image_name']) ? '' : $_POST['image_name'];
+    if (strlen($image_name) > 128) {
+        n3s_error('アップロード失敗', "ファイル名が長すぎます。128文字以内にしてください。");
+        return;
+    }
+    // 予約語のチェック - nako_ から始まる名前は使えない
+    if (preg_match('/^nako_/', $image_name)) {
+        // 管理ユーザーは例外
+        if (!n3s_is_admin()) {
+            // ok
+        } else {
+            n3s_error('アップロード失敗', "ファイル名は、nako_ から始まる名前は使えません。");
+            return;
+        }
+    }
+    // 既に、app_idとimage_nameの組み合わせがある場合はエラー
+    if ($app_id != 0 && $image_name != '') {
+        $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
+        if ($exists) {
+            n3s_error('アップロード失敗', "そのアプリ内でのファイル名は既に使われています。別の名前を指定してください。");
+            return;
+        }
+        // ファイル名の形式チェック
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $image_name)) {
+            n3s_error('アップロード失敗', "ファイル名は、英数字と _ - . のみで指定してください。");
+            return;
+        }
+    }
     $user_id = n3s_get_user_id();
     // todo: MINE check
     // $mime = @mime_content_type($path);
     $db = n3s_get_db('main');
     db_exec('begin');
     $image_id = db_insert(
-        'INSERT INTO images (title,user_id,copyright,ctime,mtime)VALUES(?,?,?,?,?)',
-        [$title, $user_id, $copyright_type, time(), time()]
+        'INSERT INTO images (title,user_id,copyright,app_id,image_name,ctime,mtime)VALUES(?,?,?,?,?,?,?)',
+        [$title, $user_id, $copyright_type, $app_id, $image_name, time(), time()]
     );
     // detect filename
     $filename = "{$image_id}{$ext}";
@@ -147,7 +177,6 @@ function show_image()
 {
     // check
     $image_id = isset($_GET['image_id']) ? $_GET['image_id'] : '';
-    $db = database_get();
     $im = db_get1('SELECT * FROM images WHERE image_id=? LIMIT 1', [$image_id]);
     if (!$im) {
         n3s_error('ファイルがありません', '指定のファイルはありません。');
@@ -168,12 +197,34 @@ function show_image()
             $can_edit = true;
         }
     }
+    $use_image_name_shortcut = n3s_getInfo('use_image_name_shortcut', TRUE);
+    $app_id = intval($im['app_id']);
+    $image_name = $im['image_name'];
+    $image_name_url = '';
+    if ($image_name !== '') {
+        if ($use_image_name_shortcut) {
+            // ショートカットURLを有効にする
+            if ($app_id > 0) {
+                // app_idが1以上の場合は、/images/xxx の形にする
+                $image_name_url = n3s_get_config('baseurl', '.') . "/images/{$app_id}-{$image_name}";
+            } else {
+                // app_idが0の場合は、/image/xxx の形にする
+                $image_name_url = n3s_get_config('baseurl', '.') . "/image/{$image_name}";
+            }
+        } else {
+            $image_name_url = n3s_get_config('baseurl', '.') . "/image.php?app_id={$app_id}&image_name={$image_name}"; // 旧式のURL
+        }
+    }
     // set token to session
     $n3s_acc_token = $_SESSION['n3s_acc_token_upload'] = n3s_getEditToken();
     // template
     n3s_template_fw('upload-ok.html', [
+        'image_name_url' => $image_name_url,
+        'im' => $image_name_url,
         'image_id' => $im['image_id'],
         'title' => $im['title'],
+        'image_name' => $im['image_name'],
+        'app_id' => $im['app_id'],
         'copyright' => getCopyrightName($im['copyright']),
         'image_url' => $image_url,
         'msg' => 'ファイルの情報',

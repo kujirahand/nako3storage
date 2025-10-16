@@ -53,10 +53,12 @@ CREATE TABLE comments (
 CREATE TABLE images (
   image_id      INTEGER PRIMARY KEY,
   title         TEXT DEFAULT '',
-  filename      TEXT DEFAULT '',
+  filename      TEXT DEFAULT '', /* UPLOAD時のファイル名 */
   user_id       INTEGER DEFAULT 0,
-  fav           INTEGER DEFAULT 0,
-  fav_id        TEXT DEFAULT '',
+  fav           INTEGER DEFAULT 0, /*　現在未使用 */
+  fav_id        TEXT DEFAULT '', /* 現在未使用 */
+  app_id        INTEGER DEFAULT 0, /* どのアプリから利用されているか */
+  image_name    TEXT DEFAULT '', /* 画像の名前 */
   copyright     TEXT DEFAULT 'CC0',
   bad           INTEGER DEFAULT 0,
   ctime         INTEGER DEFAULT 0,
@@ -72,6 +74,10 @@ CREATE TABLE bookmarks (
 );
 
 /*
+2025/10/16 images テーブルに app_idとimage_name カラムを追加
+ALTER TABLE images ADD COLUMN app_id INTEGER DEFAULT 0;
+ALTER TABLE images ADD COLUMN image_name TEXT DEFAULT '';
+
 2024/01/28 ユーザー情報を分離
 
 2023/05/07
