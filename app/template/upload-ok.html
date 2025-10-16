@@ -28,7 +28,17 @@
     <table>
       <tr>
         <th>絶対URL</th>
-        <td><input type="text" onclick="this.select()" value="{{$image_url}}"></td>
+        <td>
+          <input type="text" onclick="this.select()" value="{{$image_url}}">
+        </td>
+      </td>
+      {{ if $image_name_url !== '' }}
+      <tr>
+        <th>ファイル名のURL</th>
+        <td>
+          <input type="text" onclick="this.select()" value="{{ $image_name_url }}">
+        </td>
+        {{ endif }}
       </td>
       <tr>
         <th>提供者</th>
@@ -43,6 +53,16 @@
         <th>タイトル</th>
         <td>{{ $title }}</td>
       </td>
+      {{ if $image_name !== '' }}
+      <tr>
+        <th>ファイル名</th>
+        <td>{{ $image_name }}</td>
+      </td>
+      <tr>
+        <th>アプリ</th>
+        <td><a href="id.php?{{ $app_id }}">app_id: {{ $app_id }}</a></td>
+      </td>
+      {{ endif }}
     </table>
   </div>
   <div class="upload-item-image">

@@ -7,6 +7,19 @@ function n3s_web_image()
 function n3s_api_image()
 {
     $fname = empty($_GET['f']) ? '' : $_GET['f'];
+    $image_name = empty($_GET['image_name']) ? '' : $_GET['image_name'];
+    $app_id = empty($_GET['app_id']) ? 0 : intval($_GET['app_id']);
+    if ($image_name != '') {
+        // app_idとimage_nameから探す
+        $im = db_get1('SELECT * FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
+        if (! $im) {
+            header("HTTP/1.0 404 Not Found");
+            echo '404 not found ... invalid image_name.';
+            exit;
+        }
+        $image_id = $im['image_id'];
+        $fname = $image_id . '.' . pathinfo($im['image_name'], PATHINFO_EXTENSION);
+    }
     // match
     if (! preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {
         header("HTTP/1.0 404 Not Found");
