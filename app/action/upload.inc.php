@@ -133,6 +133,11 @@ function go_upload()
             return;
         }
     }
+    // ファイル名は空文字でない時、英数と _ - . のみであること
+    if ($image_name != '' && !preg_match('/^[a-zA-Z0-9_\-\.]+$/', $image_name)) {
+        n3s_error('アップロード失敗', "ファイル名は、英数字と _ - . のみで指定してください。");
+        return;
+    }
     // 既に、app_idとimage_nameの組み合わせがある場合はエラー
     if ($app_id != 0 && $image_name != '') {
         $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
