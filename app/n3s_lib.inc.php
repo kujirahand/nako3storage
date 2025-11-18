@@ -719,7 +719,7 @@ function n3s_list_setIcon(&$list)
         if ($icon != 'wnako' && $icon != 'dncl') {
             $icon = 'other';
         }
-        $i['icon'] = "images/0-$icon.png";
+        $i['icon'] = "img/0-$icon.png";
     }
 }
 function n3s_list_setTagLink(&$list)
