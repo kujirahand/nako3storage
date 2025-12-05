@@ -345,13 +345,13 @@ function delete_image()
         return;
     }
     $filename = $im['filename'];
-    $dir = n3s_getImageDir($image_id);
+    $ext = '.' . pathinfo($filename, PATHINFO_EXTENSION);
+    $targetFile = n3s_getImageFile($image_id, $ext, FALSE, $im['token']);
     // delete from db
     db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
     // delete file
-    $image_file = "{$dir}/{$filename}";
-    if (file_exists($image_file)) {
-        @unlink($image_file);
+    if (file_exists($targetFile)) {
+        @unlink($targetFile);
     }
     $back = n3s_getURL('my', 'mypage');
     n3s_info("ファイルを削除しました。", "ファイルを削除しました。<a href='$back'>戻る</a>", true);

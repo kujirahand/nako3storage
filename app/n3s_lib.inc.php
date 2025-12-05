@@ -364,6 +364,7 @@ function n3s_getBackURL()
     return $url;
 }
 
+/// 画像ファイルのフォルダを返す
 function n3s_getImageDir($id)
 {
     $dir_images = n3s_get_config('dir_images', '');
@@ -372,6 +373,7 @@ function n3s_getImageDir($id)
     return $dir;
 }
 
+/// 画像ファイルのパスを取得する
 function n3s_getImageFile($id, $ext, $create = false, $token = '')
 {
     $dir = n3s_getImageDir($id);
@@ -383,10 +385,14 @@ function n3s_getImageFile($id, $ext, $create = false, $token = '')
     if (substr($ext, 0, 1) !== '.') {
         $ext = '.' . $ext;
     }
-    $file = $dir . "/{$id}{$token}{$ext}";
+    if ($token) {
+        // トークン付きの場合
+        $file = $dir . "/{$id}-{$token}{$ext}";
+    } else {
+        $file = $dir . "/{$id}{$ext}";
+    }
     return $file;
 }
-
 
 // 保存先のDBを調べる
 function n3s_getMaterialDB($material_id)
