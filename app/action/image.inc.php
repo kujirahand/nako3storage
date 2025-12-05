@@ -1,14 +1,18 @@
 <?php
+/// API for image access
+
 function n3s_web_image()
 {
     echo 'api only';
     exit;
 }
+
 function n3s_api_image()
 {
     $fname = empty($_GET['f']) ? '' : $_GET['f'];
     $image_name = empty($_GET['image_name']) ? '' : $_GET['image_name'];
     $app_id = empty($_GET['app_id']) ? 0 : intval($_GET['app_id']);
+    $token = empty($_GET['t']) ? '' : $_GET['t'];
     if ($image_name != '') {
         // app_idとimage_nameから探す
         $im = db_get1('SELECT * FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
@@ -28,7 +32,7 @@ function n3s_api_image()
     }
     $id = (int) ($m[1]);
     $ext = $m[2];
-    $path = n3s_getImageFile($id, $ext);
+    $path = n3s_getImageFile($id, $ext, FALSE, $token);
     // check path
     if (! file_exists($path)) {
         header("HTTP/1.0 404 Not Found");
