@@ -139,7 +139,7 @@ function go_upload()
         return;
     }
     // 既に、app_idとimage_nameの組み合わせがある場合はエラー
-    if ($app_id != 0 && $image_name != '') {
+    if ($image_name != '') {
         $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
         if ($exists) {
             n3s_error('アップロード失敗', "そのアプリ内でのファイル名は既に使われています。別の名前を指定してください。");
@@ -154,20 +154,40 @@ function go_upload()
     $user_id = n3s_get_user_id();
     // todo: MINE check
     // $mime = @mime_content_type($path);
-    $db = n3s_get_db('main');
     db_exec('begin');
+    $token = ''; // 通常は空文字
+    if ($copyright_type == 'SELF') {
+        $token = bin2hex(random_bytes(8)); // 自分専用はよりトークンを生成
+    }
     $image_id = db_insert(
-        'INSERT INTO images (title,user_id,copyright,app_id,image_name,ctime,mtime)VALUES(?,?,?,?,?,?,?)',
-        [$title, $user_id, $copyright_type, $app_id, $image_name, time(), time()]
+        'INSERT INTO images (title,user_id,copyright,app_id,image_name,token,ctime,mtime)VALUES(?,?,?,?,?,?,?,?)',
+        [$title, $user_id, $copyright_type, $app_id, $image_name, $token, time(), time()]
     );
     // detect filename
     $filename = "{$image_id}{$ext}";
-    $path = n3s_getImageFile($image_id, $ext, true);
+    $path = n3s_getImageFile($image_id, $ext, true, $token);
     db_exec("UPDATE images SET filename=? WHERE image_id=?", [$filename, $image_id]);
     if (!move_uploaded_file($tmp_name, $path)) {
         db_exec('rollback');
         $error = $_FILES['userfile']['error'];
-        n3s_error('アップロード失敗', "サーバー側でファイルの保存に失敗しました。やり直してください。($error)");
+        $msg = "";
+        if ($error == UPLOAD_ERR_INI_SIZE || $error == UPLOAD_ERR_FORM_SIZE) {
+            $mb = floor($size_upload_max / (1024 * 1024));
+            $msg = "ファイルサイズが最大の{$mb}MBを超えています。";
+        } elseif ($error == UPLOAD_ERR_PARTIAL) {
+            $msg = "ファイルが一部しかアップロードされませんでした。";
+        } elseif ($error == UPLOAD_ERR_NO_FILE) {
+            $msg = "ファイルが選択されていません。";
+        } elseif ($error == UPLOAD_ERR_NO_TMP_DIR) {
+            $msg = "システムエラー:サーバー側の一時フォルダがありません。";
+        } elseif ($error == UPLOAD_ERR_CANT_WRITE) {
+            $msg = "システムエラー:サーバー側でファイルの書き込みに失敗しました。";
+        } elseif ($error == UPLOAD_ERR_EXTENSION) {
+            $msg = "拡張モジュールによってアップロードが中止されました。";
+        } else {
+            $msg = "不明なエラーコード($error)です。";
+        }
+        n3s_error('アップロード失敗', "サーバー側でファイルの保存に失敗しました。やり直してください。理由:($error) $msg");
         return;
     }
     db_exec('commit');
@@ -187,11 +207,24 @@ function show_image()
         n3s_error('ファイルがありません', '指定のファイルはありません。');
         return;
     }
+    if ($im['copyright'] == 'SELF') {
+        // 自分専用ファイルの場合、ユーザーIDとトークンをチェック
+        $user_id = n3s_get_user_id();
+        if ($user_id != $im['user_id']) {
+            n3s_error('ファイルがありません', '指定のファイルはありません。');
+            return;
+        }
+    }
     // url
     $filename = $im['filename'];
     $user_id = $im['user_id'];
+    $token = $im['token'];
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], "users");
     $image_url = n3s_get_config('baseurl', '.') . "/image.php?f={$filename}";
+    if ($token != '') {
+        // 自分専用ファイルの場合、トークンを付与
+        $image_url = n3s_get_config('baseurl', '.') . "/image.php?t={$token}&f={$filename}";
+    }
     // can_edit
     $can_edit = false;
     if (n3s_is_admin()) {
@@ -218,6 +251,9 @@ function show_image()
             }
         } else {
             $image_name_url = n3s_get_config('baseurl', '.') . "/image.php?app_id={$app_id}&image_name={$image_name}"; // 旧式のURL
+        }
+        if ($token != '') {
+            $image_name_url .= "?t={$token}";
         }
     }
     // set token to session

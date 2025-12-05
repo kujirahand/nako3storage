@@ -41,7 +41,7 @@
         <label>
           <input type="radio" name="copyright_type" value="SELF">
           自分専用 (他人の使用を認めません)
-          <span class="info">(※ただし素材はWebに公開されます。)</span>
+          <span class="info">(※素材自体はWebに公開されますが、<a href="index.php?action=upload&mode=list" target="_blank">素材一覧</a>には表示されません。)</span>
         </label><br><br>
         <div style="padding: 1em; border: 1px solid silver;">
           <div style="font-weight: bold;">任意項目:</div><br>
@@ -50,7 +50,7 @@
             <input type="number" name="app_id" value="0">
           </label><br><br>
           <label>
-            ファイル名 (英数と_-のみ/app_idごとにユニークである必要があります):<br>
+            ファイル名 (英数と_-.のみ / 拡張子まで指定 / app_idごとに重複不可):<br>
             <input type="text" name="image_name" value="">
           </label>
         </div>

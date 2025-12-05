@@ -60,6 +60,7 @@ CREATE TABLE images (
   app_id        INTEGER DEFAULT 0, /* どのアプリから利用されているか */
   image_name    TEXT DEFAULT '', /* 画像の名前 */
   copyright     TEXT DEFAULT 'CC0',
+  token         TEXT DEFAULT '', /* アクセスに必要なトークン */
   bad           INTEGER DEFAULT 0,
   ctime         INTEGER DEFAULT 0,
   mtime         INTEGER DEFAULT 0

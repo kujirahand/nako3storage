@@ -372,7 +372,7 @@ function n3s_getImageDir($id)
     return $dir;
 }
 
-function n3s_getImageFile($id, $ext, $create = false)
+function n3s_getImageFile($id, $ext, $create = false, $token = '')
 {
     $dir = n3s_getImageDir($id);
     if ($create) {
@@ -383,7 +383,7 @@ function n3s_getImageFile($id, $ext, $create = false)
     if (substr($ext, 0, 1) !== '.') {
         $ext = '.' . $ext;
     }
-    $file = $dir . "/{$id}{$ext}";
+    $file = $dir . "/{$id}{$token}{$ext}";
     return $file;
 }
 

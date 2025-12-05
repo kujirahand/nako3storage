@@ -29,7 +29,7 @@
       <tr>
         <th>絶対URL</th>
         <td>
-          <input type="text" onclick="this.select()" value="{{$image_url}}">
+          <input type="text" onclick="this.select()" value="{{ $image_url }}">
         </td>
       </td>
       {{ if $image_name_url !== '' }}
@@ -66,11 +66,11 @@
     </table>
   </div>
   <div class="upload-item-image">
-    <a href="{{$image_url}}">
+    <a href="{{ $image_url }}">
       {{ if (preg_match('/\.(jpg|jpeg|png|gif)$/', $image_url)) }}
-        <img src="{{$image_url}}" width="400">
+        <img src="{{ $image_url }}" width="400">
       {{ else }}
-        {{$image_url}}
+        {{ $image_url }}
       {{ endif }}
     </a>
   </div>
