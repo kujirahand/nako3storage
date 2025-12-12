@@ -9,7 +9,7 @@ include_once dirname(__FILE__) . '/show.inc.php';
 
 // アップロード可能タイプ
 global $supported_type;
-$supported_type = 'jpg|jpeg|gif|png|svg|mml|mp3|ogg|oga|xml|txt|csv|tsv|json|mid|xlsx|sf2|sf3';
+$supported_type = 'jpg|jpeg|gif|png|svg|mml|mp3|ogg|oga|xml|txt|csv|tsv|json|mid|xlsx|sf2|sf3|py|html|md';
 
 
 function n3s_api_upload()
