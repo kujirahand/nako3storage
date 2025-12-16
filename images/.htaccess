@@ -2,3 +2,8 @@ RemoveHandler .py
 RemoveType .py
 AddType text/plain .py
 
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Cross-Origin-Resource-Policy "cross-origin"
+</IfModule>
+
