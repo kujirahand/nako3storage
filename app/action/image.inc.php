@@ -1,6 +1,5 @@
 <?php
 /// API for image access
-
 function n3s_web_image()
 {
     echo 'api only';
@@ -54,6 +53,7 @@ function n3s_api_image()
         $proto = empty($_SERVER['HTTPS']) ? 'http' : 'https';
         $self = empty($_SERVER['PHP_SELF']) ? './error' : $_SERVER['PHP_SELF'];
         $self_dir = dirname($self);
+        $self_dir = rtrim($self_dir, '/');
         $url = "{$proto}://{$host}{$self_dir}/images{$path2}";
         header("Location: $url");
         exit;
