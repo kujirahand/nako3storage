@@ -13,11 +13,25 @@
   {{ if !n3s_is_login() }}
     <div class="info_box" style="margin:1em;">
       <p><b>現在ログインしていません。</b></p>
-      <p>ログインすると自分の投稿をまとめて管理できます。
-        公開せず自分だけのために保存もできます。</p>
+      <p>ログインすると次の特典があるのでオススメです。
+        <ul>
+          <li>自分の投稿をまとめて管理できる</li>
+          <li>画像など素材のアップロードが可能</li>
+          <li>なでしこのプログラム以外も保存できる/li>
+          <li>ライブラリとして投稿できる</li>
+          <li>限定公開や非公開の投稿ができる</li>
+          <li>編集キーを覚えておく必要がない</li>
+        </ul>
+      </p>
       <p id="login_link" style="display:none">
         <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">
-          ログインする</a>
+          ログインする</a>&nbsp;&nbsp;&nbsp;
+        <a href="{{e:echo n3s_getURL('register','login')}}">
+          新規登録</a>
+      </p>
+      <p>
+        ↑からログインすると、既にユーザー登録している方は、このページに戻ってきます。<br />
+        なお、ユーザー登録に必要なのは、<b>メールアドレスだけ</b>です。
       </p>
     </div>
   {{ endif }}
@@ -62,9 +76,6 @@
       <!-- 制作者 -->
       {{if n3s_is_login() }}
       <input id="author" name="author" type="hidden" value='{{$author}}' />
-      <p style="background-color: #f0f0f0; padding: 8px;">
-        <label>制作者: {{ $author }}</label>
-      </p>
       {{else}}
       <p>
         <label>制作者名(必須):<br />
@@ -74,40 +85,30 @@
       {{endif}}
       <!-- タイトルの入力 -->
       <p>
-        <label>タイトル(5文字以上):<br />
+        <label>タイトル (5文字以上):<br />
           <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
         </label>
       </p>
       <p>
-        <label>プログラムの説明(10文字以上):<br />
+        <label>プログラムの説明 (10文字以上):<br />
           <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
         </label>
       </p>
       <p>
-        <label>関連URL(任意):<br />
+        <label>関連URL (任意):<br />
           <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
         </label>
       </p>
       <!-- ライセンスの指定 -->
       <p>
-        <label>ライセンスの指定:</label><br />
-        <blockquote style="background-color: #f0f0f0; padding: 8px;">
+        <label>ライセンスの指定 (<a href="https://nadesi.com/v3/doc/go.php?4802" target="_blank">詳しい説明→</a>):</label><br />
+        <select id="copyright" name="copyright">
           {{ for $copyright_list as $key => $val }}
-          {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
-          <label for='{{$key}}'>
-            <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
-            - <span style="font-size:0.8em;">{{e: echo $copyright_desc[$key] }}</span>
-          </label>&nbsp;<br>
+          {{e: $sel = ($key == $copyright) ? 'selected' : ''; }}
+          <option value="{{$key}}" {{$sel}}>{{ $key }} - {{e: echo $copyright_desc[$key] }}</option>
           {{ endfor }}
-          <p style="font-size:0.8em; color:#333; padding: 8px; border-top: 1px dotted #CCC;">
-            ※おすすめは「MIT」で「<a href="https://nadesi.com" target="_blank">なでしこ</a>」と同じライセンスです。また、上記の「未指定」「自分用」以外を選択すると、定期的にプログラムが「<a target="_blank" href="https://github.com/kujirahand/nadesiko3hub">なでしこハブ</a>」にバックアップが行われます。
-            すると、プログラムの部分検索ができるようになり、オープンソースの発展に貢献できます。
-          </p>
-        </blockquote>
+        </select>
       </p>
-    </div><!-- end of #main_options -->
-        
-    <div id="private_options" class="option_box">
       <p>
         <label>公開設定:<br />
           {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
@@ -124,7 +125,7 @@
       </p>
       {{ if !n3s_is_login() }}
       <p id="editkey_options" style="display: none;">
-        <label>編集キー(任意):
+        <label>編集キー (任意):
           <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
           <br />
           <input id="editkey" name="editkey" type="password" value="" />
@@ -132,14 +133,14 @@
       </p><!-- end of #editkey_options -->
       {{ else }}
       <p id="editkey_options" style="display: none;">
-        <label>限定公開キー(任意):
+        <label>限定公開キー (任意):
           <span class="info">限定公開キーを指定すると、投稿を保護できます。</span>
           <br />
-          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
+          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" placeholder="限定公開キー" />
         </label>
       </p><!-- end of #editkey_options -->
       {{ endif }}
-    </div><!-- end of #private_options -->
+    </div><!-- end of #main_options -->
 
     <div class="option_box">
       <div id="save_options_button">
@@ -200,9 +201,10 @@
       <input class="pure-button pure-button-primary" type="submit" value="保存" />
     </p>
   </form>
-
+  <br>
   {{if $user_id gt 0 || n3s_is_admin() }}
-  <div class="ctrl_block">
+  <br><br><br><br><br><br>
+  <div class="ctrl_block option_box">
     <h2>プログラムの削除</h2>
     <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=delete">
       <div>チェックをつけて削除ボタンを押してください。</div>
@@ -222,7 +224,7 @@
   {{endif}}
 
   {{if n3s_is_admin() }}
-  <div class="ctrl_block">
+  <div class="ctrl_block option_box">
     <h2>管理者</h2>
     <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=reset_bad">
       <div style="color:red;">【管理用】通報を解除したい場合：</div>
@@ -384,19 +386,9 @@ setTimeout(()=>{
     tag.value = a.join(',')
   }
 
-  // HTML ?
-  const isHTML = (body.indexOf('<!DOCTYPE html>') == 0)
-  if (isHTML) {
-    document.getElementById('canvas_options').style.display = 'none'
-    document.getElementById('format_options').style.display = 'none'
-    const fmt = document.getElementById('nakotype')
-    fmt.value = 'html'
-    document.getElementById('canvas_w').value = '0'
-    document.getElementById('canvas_h').value = '0'
-  }
-
   // タイトルを自動的に埋める
   const title = document.getElementById('title')
+  const isHTML = (body.indexOf('<!DOCTYPE html>') == 0)
   if (title.value == '' && isHTML === false) {
     const new_title = body
       .replace(/(\r\n|\r|\n)/g, '')
@@ -404,8 +396,29 @@ setTimeout(()=>{
       .replace(/(インデントモード|DNCLモード)/g, '')
     title.value = new_title.substring(0, 16)
   }
+  // HTML ?
+  if (isHTML) {
+    document.getElementById('canvas_options').style.display = 'none'
+    document.getElementById('format_options').style.display = 'none'
+    const fmt = document.getElementById('nakotype')
+    fmt.value = 'html'
+    document.getElementById('canvas_w').value = '0'
+    document.getElementById('canvas_h').value = '0'
+    // bodyのHTMLのコードから<tile>を抜き出す
+    const reTitle = /<title>(.*?)<\/title>/i
+    const m = body.match(reTitle)
+    if (m && m.length >= 2) {
+      const title = document.getElementById('title')
+      if (title.value == '') {
+        let t = m[1].substring(0, 16)
+        t = t.replace(/[\#\$\.\!\"\%\'\\\-\=\s\|「」【】『』、]+/g, '')
+        title.value = t
 
-}, 1000);
+      }
+    }
+  }
+
+}, 300);
 
 const is_private = document.getElementById('is_private');
 is_private.addEventListener('change', (e) => {
