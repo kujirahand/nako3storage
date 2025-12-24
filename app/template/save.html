@@ -29,56 +29,21 @@
   <form method="POST"
     onsubmit="return checkSubmit()"
     action="index.php?action=save&page={{$app_id}}&mode=edit">
-    <p>
-      <label>プログラム本体(30文字以上):<br />
-      <textarea id="body" name="body" readonly>{{ $body }}</textarea>
-      </label>
-    </p>
-    <p>
-      <a name="canvas_config"><label>Canvasの設定:</a><br />
-        &nbsp;&nbsp;幅:<input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" style="width:4em;"> x
-        高:<input id="canvas_h" name="canvas_h" value="{{ $canvas_h }}" style="width:4em;">
-        <a href="#canvas_config" onclick='setCanvas0x0()' class="pure-button">←使わない</a>
-      </label>
-    </p>
-    <p>
-      <label>タイトル(5文字以上):<br />
-      <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
-      </label>
-    </p>
-    <p>
-      <label>プログラムの説明(10文字以上):<br />
-      <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
-      </label>
-    </p>
-    {{if n3s_is_login() }}
-      <!-- 自動で設定されるので -->
-      <input id="author" name="author" type="hidden" value='{{$author}}' />
+    <div id="program_options" class="option_box">
       <p>
-        <label>制作者: {{ $author }}</label>
+        <label>プログラム本体(30文字以上):<br />
+        <textarea id="body" name="body" style="background-color: #f0f0f0;">{{ $body }}</textarea>
+        </label>
       </p>
-    {{else}}
-    <p>
-      <label>制作者名(必須):<br />
-      <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前" />
-      </label>
-    </p>
-    {{endif}}
-    <p>
-      <label>URL(任意):<br />
-      <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
-      </label>
-    </p>
-    <p>
-      <label>タグ(省略可):
-        <span class="info">タグ(DNCL,DNCL2,ゲーム,ツールなど)をカンマで区切って指定。</span><br />
-        <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
-        &nbsp;&nbsp;<span class="info">(↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載し実行画面のタイトルも隠します。</span>
-      </label>
-    </p>
-    <p>
-      <label>データの形式:
-        <div style="padding-left:12px;">
+      <p id="canvas_options">
+        <a name="canvas_config"><label>Canvasの設定:</a><br />
+          &nbsp;&nbsp;幅:<input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" style="width:4em;"> x
+          高:<input id="canvas_h" name="canvas_h" value="{{ $canvas_h }}" style="width:4em;">
+          <a href="#canvas_config" onclick='setCanvas0x0()' class="pure-button">←使わない</a>
+        </label>
+      </p>
+      <p id="format_options">
+        <label>プログラムの形式:<br />
           <select id="nakotype" name="nakotype">
             <option value="wnako"{{ $nakotype == 'wnako' ? ' selected' : '' }}>なでしこ(Web版)</option>
             <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>なでしこ(cnako:コマンドライン版)</option>
@@ -90,97 +55,143 @@
             <option value="bat"{{ $nakotype == 'bat' ? ' selected' : '' }}>バッチファイル(bat)</option>
             <option value="html"{{ $nakotype == 'html' ? ' selected' : '' }}>HTML形式</option>
           </select>
-        </div>
-      </label>
-    </p>
-    <p>
-      <label>ライセンスの指定:</label><br />
-      <blockquote style="background-color: #f0f0f0;">
-      {{ for $copyright_list as $key => $val }}
-      {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
-      <label for='{{$key}}'>
-        <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
-        - <span style="font-size:0.8em;">{{e: echo $copyright_desc[$key] }}</span>
-      </label>&nbsp;<br>
-      {{ endfor }}
-      <p style="font-size:0.8em;color:#333;padding:6px;">
-        ※おすすめは「MIT」で「なでしこ」と同じライセンスです。また、上記の「未指定」「自分用」以外を選択すると、定期的にプログラムが「<a target="_blank" href="https://github.com/kujirahand/nadesiko3hub">なでしこハブ</a>」にバックアップが行われます。
-        すると、プログラムの部分検索ができるようになり、オープンソースや「なでしこ」の発展に貢献できます。
-      </p>
-      </blockquote>
-    </p>
-        
-    <div id="save_options_button">
-      <a class="pure-button" onclick='show_save_options(true)'>保存オプションを表示 ≫</a>
+        </label>
+      </p><!-- end of #format_options -->
     </div>
-    <div id="save_options" style="display:none; border-left:4px solid silver; padding-left:1em;">
-      <p>
-        <a class="pure-button" onclick='show_save_options(false)'>≪ 保存オプションを隠す</a>
+    <div id="main_options" class="option_box">
+      <!-- 制作者 -->
+      {{if n3s_is_login() }}
+      <input id="author" name="author" type="hidden" value='{{$author}}' />
+      <p style="background-color: #f0f0f0; padding: 8px;">
+        <label>制作者: {{ $author }}</label>
       </p>
-
-      <div id="private_options" style="border:1px dotted silver; padding: 8px; margin: 8px;">
-        <p>
-          <label>公開設定:<br />
-            {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
-            {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
-            {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
-            <select id="is_private" name="is_private">
-              <option value="0" {{$is_private0}}>作品を公開</option>
-              {{if ($is_private == 1) || ($user_id > 0) }}
-              <option value="1" {{$is_private1}}>非公開</option>
-              {{endif}}
-              <option value="2" {{$is_private2}}>限定的に公開</option>
-            </select>
-          </label>
-        </p>
-        {{ if !n3s_is_login() }}
-        <p>
-          <label>編集キー:
-            <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
-            <br />
-            <input id="editkey" name="editkey" type="password" value="" />
-          </label>
-        </p>
-        {{ else }}
-        <p>
-          <label>限定公開キー:
-            <span class="info">作品を限定公開する場合、以下の公開キーを入力してください。</span>
-            <br />
-            <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
-          </label>
-        </p>
-        {{ endif }}
-      </div><!-- end of #private_options -->
+      {{else}}
       <p>
-        <label>利用なでしこバージョン:
-          <span class="info">通常は変更の必要はありません。</span>
+        <label>制作者名(必須):<br />
+        <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前" />
+        </label>
+      </p>
+      {{endif}}
+      <!-- タイトルの入力 -->
+      <p>
+        <label>タイトル(5文字以上):<br />
+          <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
+        </label>
+      </p>
+      <p>
+        <label>プログラムの説明(10文字以上):<br />
+          <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
+        </label>
+      </p>
+      <p>
+        <label>関連URL(任意):<br />
+          <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
+        </label>
+      </p>
+      <!-- ライセンスの指定 -->
+      <p>
+        <label>ライセンスの指定:</label><br />
+        <blockquote style="background-color: #f0f0f0; padding: 8px;">
+          {{ for $copyright_list as $key => $val }}
+          {{e: $chk = ($key == $copyright) ? 'checked' : ''; }}
+          <label for='{{$key}}'>
+            <input id='{{$key}}' name="copyright" type="radio" value="{{$key}}" {{$chk}} style='width:1em;'>{{$key}}
+            - <span style="font-size:0.8em;">{{e: echo $copyright_desc[$key] }}</span>
+          </label>&nbsp;<br>
+          {{ endfor }}
+          <p style="font-size:0.8em; color:#333; padding: 8px; border-top: 1px dotted #CCC;">
+            ※おすすめは「MIT」で「<a href="https://nadesi.com" target="_blank">なでしこ</a>」と同じライセンスです。また、上記の「未指定」「自分用」以外を選択すると、定期的にプログラムが「<a target="_blank" href="https://github.com/kujirahand/nadesiko3hub">なでしこハブ</a>」にバックアップが行われます。
+            すると、プログラムの部分検索ができるようになり、オープンソースの発展に貢献できます。
+          </p>
+        </blockquote>
+      </p>
+    </div><!-- end of #main_options -->
+        
+    <div id="private_options" class="option_box">
+      <p>
+        <label>公開設定:<br />
+          {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
+          {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
+          {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
+          <select id="is_private" name="is_private">
+            <option value="0" {{$is_private0}}>作品を公開</option>
+            {{if ($is_private == 1) || ($user_id > 0) }}
+            <option value="1" {{$is_private1}}>非公開</option>
+            {{endif}}
+            <option value="2" {{$is_private2}}>限定的に公開</option>
+          </select>
+        </label>
+      </p>
+      {{ if !n3s_is_login() }}
+      <p id="editkey_options" style="display: none;">
+        <label>編集キー(任意):
+          <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
           <br />
-          <input id="version" name="version" type="text" value="{{$version}}" />
+          <input id="editkey" name="editkey" type="password" value="" />
         </label>
-      </p>
+      </p><!-- end of #editkey_options -->
+      {{ else }}
+      <p id="editkey_options" style="display: none;">
+        <label>限定公開キー(任意):
+          <span class="info">限定公開キーを指定すると、投稿を保護できます。</span>
+          <br />
+          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" />
+        </label>
+      </p><!-- end of #editkey_options -->
+      {{ endif }}
+    </div><!-- end of #private_options -->
+
+    <div class="option_box">
+      <div id="save_options_button">
+        <a class="pure-button" onclick='show_save_options(true)'>保存オプションを表示 ≫</a>
+      </div>
+      <div id="save_options" style="display:none; border-left:4px solid silver; padding-left:1em;">
+        <p>
+          <a class="pure-button" onclick='show_save_options(false)'>≪ 保存オプションを隠す</a>
+        </p>
+        <p>
+          <label>タグ(省略可):
+            <span class="info">タグ(ゲーム,ツールなど)をカンマで区切って指定。</span><br />
+            <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
+            <!--
+            (↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載し実行画面のタイトルも隠します。
+            -->
+          </label>
+        </p>
+        <p>
+          <label>利用なでしこバージョン:
+            <span class="info">通常は変更の必要はありません。</span>
+            <br />
+            <input id="version" name="version" type="text" value="{{$version}}" />
+          </label>
+        </p>
+        <p>
+          {{if $user_id gt 0}}
+          <label>ライブラリ名<span style="color:red;">(普通の投稿は空にしてください。)</span>:
+            <span class="info">
+              他の人に使ってもらいたい<b>ライブラリの場合のみ</b>入力してください。
+              ここに名前を設定すると外部プログラムから取り込む時に分かりやすくなります。
+              名前には、英数字・アンダーバー・ハイフンが使えます。大文字と小文字を区別します。
+              (※なおライブラリでない場合には管理者が設定を変更する場合もあります。)
+            </span><br />
+            <input id="app_name" name="app_name" type="text" value="{{ $app_name }}" />
+          </label>
+          {{else}}
+          <input id="app_name" name="app_name" type="hidden" value="{{ $app_name }}" />
+          ※ログインするとライブラリとして投稿できます。
+          {{endif}}
+        </p>
+      </div><!-- #save_options -->
+
+    </div>
+    <div class="option_box">
       <p>
-        {{if $user_id gt 0}}
-        <label>ライブラリ名<span style="color:red;">(普通の投稿は空にしてください。)</span>:
-          <span class="info">
-            他の人に使ってもらいたい<b>ライブラリの場合のみ</b>入力してください。
-            ここに名前を設定すると外部プログラムから取り込む時に分かりやすくなります。
-            名前には、英数字・アンダーバー・ハイフンが使えます。大文字と小文字を区別します。
-            (※なおライブラリでない場合には管理者が設定を変更する場合もあります。)
-          </span><br />
-          <input id="app_name" name="app_name" type="text" value="{{ $app_name }}" />
+        <label>利用規約:<br />
+          <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}/>同意する
+          <span class="info">必ず<a target="new" href="index.php?action=kiyaku">利用規約[→]</a>に同意してください。</span>
         </label>
-        {{else}}
-        <input id="app_name" name="app_name" type="hidden" value="{{ $app_name }}" />
-        ※ログインするとライブラリとして投稿できます。
-        {{endif}}
       </p>
-    </div><!-- #save_options -->
-    <p>
-      <label>利用規約:<br />
-        <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}/>同意する
-        <span class="info">必ず<a target="new" href="index.php?action=kiyaku">利用規約[→]</a>に同意してください。</span>
-      </label>
-    </p>
+    </div>
     <p>
       <!-- ■■■ 保存ボタン ■■■ -->
       <input name="mode" type="hidden" value="edit" />
@@ -376,6 +387,8 @@ setTimeout(()=>{
   // HTML ?
   const isHTML = (body.indexOf('<!DOCTYPE html>') == 0)
   if (isHTML) {
+    document.getElementById('canvas_options').style.display = 'none'
+    document.getElementById('format_options').style.display = 'none'
     const fmt = document.getElementById('nakotype')
     fmt.value = 'html'
     document.getElementById('canvas_w').value = '0'
@@ -394,6 +407,16 @@ setTimeout(()=>{
 
 }, 1000);
 
+const is_private = document.getElementById('is_private');
+is_private.addEventListener('change', (e) => {
+  const val = e.target.value
+  const editkey_options = document.getElementById('editkey_options')
+  if (val == '2') {
+    editkey_options.style.display = 'block'
+  } else {
+    editkey_options.style.display = 'none'
+  }
+});
 
 </script>
 

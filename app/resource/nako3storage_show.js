@@ -180,7 +180,7 @@ function runButtonOnClick() { // 実行ボタンを押した時
   if (codeTrim.startsWith('<!DOCTYPE html>')) { // HTMLコードなら実行しない
     const editTitle = document.getElementById('edit_title')
     if (editTitle) {
-      alert('HTMLコードは一度保存してください。')
+      alert('HTML/JavaScriptを実行するには…\n「新規保存」ボタンを押して、一度保存してください。')
     }
     return
   }
