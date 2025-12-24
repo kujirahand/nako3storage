@@ -104,6 +104,12 @@ h2 {
 .saveform input[type="checkbox"] {
   width: 2em;
 }
+.saveform select {
+  width: 20em;
+  margin-left: 8px;
+  margin-top: 4px;
+  padding: 6px;
+}
 
 .saveform textarea {
   width: 95%;
@@ -429,4 +435,8 @@ ul.devblock span.lbl {
   border: 1px solid silver;
   padding: 1em;
   margin: 1em;
+}
+
+.option_box {
+  border:1px dotted silver; padding: 8px; margin: 8px;
 }
