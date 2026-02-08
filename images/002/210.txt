@@ -1,0 +1,113 @@
+--CSV & LuaMacros Converter
+--Created by ymm_utt
+
+--lmc_device_set_name...HIDに名前を付ける
+--HIDを入力しなかった場合"UNKNOWN_HID"となるので正しく書き換えてください。
+--lmc_device_set_name("CSVLMConverter","HID")
+
+--各キーのフラグ
+flag_shift = false
+flag_ctrl = false
+flag_alt = false
+
+--各キーの押されている状況を数字で返す
+function SCAcheck()
+--  |-----+-----+-----+-----|
+--  | Num |Shift|Ctrl | Alt |
+--  |-----+-----+-----+-----|
+--  |0    |x    |x    |x    |
+--  |1    |o    |x    |x    |
+--  |2    |x    |o    |x    |
+--  |3    |o    |o    |x    |
+--  |4    |x    |x    |o    |
+--  |5    |o    |x    |o    |
+--  |6    |x    |o    |o    |
+--  |7    |o    |o    |o    |
+--  |-----+-----+-----+-----|
+
+  if (flag_shift == true) then
+    if (flag_ctrl == true) then
+      if (flag_alt == true) then
+        return 7
+      else
+        return 3
+      end
+    elseif (flag_alt == true) then
+      return 5
+    else
+      return 1
+    end
+  elseif (flag_ctrl == true) then
+    if (flag_alt == true) then
+      return 6
+    else
+      return 2
+    end
+  elseif (flag_alt == true) then
+    return 4
+  else
+    return 0
+  end
+end
+
+--フラグの状況をフィールドに表示する
+function SCAprint()
+  clear()
+  print("Shift : " ..  tostring(flag_shift))
+  print("Ctrl   : " .. tostring(flag_ctrl) )
+  print("Alt    : " .. tostring(flag_alt)  )
+end
+
+--フラグを全て押されていない状況にする
+function restore()
+  flag_shift = false
+  flag_ctrl = false
+  flag_alt = false
+  SCAprint()
+  return
+end
+
+--起動時にフラグ状況（全部false）を表示
+SCAprint()
+
+--キーが押された時の動作を設定。第1引数はキーボード名、第2引数は実行関数
+--第2引数関数の第1引数は押されたボタン。第2引数は押した・押しっぱなしのときは1、離したら0。
+lmc_set_handler("CSVLMConverter",function(button,direction)
+  --離したときのみ動作
+  if (direction == 1) then return end
+
+  --Shift(16)を押したとき、フラグがfalseならtrueにし、trueならfalseにする
+  if(button == 16) then
+    if(flag_shift == false) then
+      flag_shift = true
+    else
+      flag_shift = false
+    end
+    SCAprint()
+    return
+  end
+
+  --Ctrl(17)を押したとき、フラグがfalseならtrueにし、trueならfalseにする
+  if(button == 17) then
+    if(flag_ctrl == false) then
+      flag_ctrl = true
+    else
+      flag_ctrl = false
+    end
+    SCAprint()
+    return
+  end
+
+  --Alt(18)を押したとき、フラグがfalseならtrueにし、trueならfalseにする
+  if(button == 18) then
+    if(flag_alt == false) then
+      flag_alt = true
+    else
+      flag_alt = false
+    end
+    SCAprint()
+    return
+  end
+
+  --Key map
+  local scanflag = SCAcheck()

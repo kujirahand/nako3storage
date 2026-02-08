@@ -1,0 +1,6 @@
+﻿シーン名,テキスト,画像,選択肢1,選択肢2,選択肢3,選択肢4
+開始,あなたは冒険の旅にでます。どちらの道を進みますか？,https://n3s.nadesi.com/image.php?f=539.png,森へ進む,村へ戻る,,
+森へ進む,あなたはどちらの道を進みますか？暗い森に入りました。怪物が現れました。どうしますか？,https://n3s.nadesi.com/image.php?f=538.png,戦う,逃げる,,
+村へ戻る,あなたは村に戻りました。冒険はここで終わりです。,https://n3s.nadesi.com/image.php?f=539.png,,,,
+戦う,あなたは怪物と戦いました。勝利しました！,https://n3s.nadesi.com/image.php?f=541.png,,,,
+逃げる,あなたは逃げました。冒険はここで終わりです。,https://n3s.nadesi.com/image.php?f=540.png,,,,
