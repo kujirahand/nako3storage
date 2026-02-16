@@ -104,7 +104,7 @@
 
 {{ if $top_users }}
 <div class="list" id="top_users">
-  <h1>人気ユーザーの一覧 (ユーザー数: {{$user_count}}名)</h1>
+  <h1>人気ユーザーの一覧 (登録ユーザー: {{$user_count}}名)</h1>
   <div class="showblock">
     {{ for $top_users as $u }}
     {{ if $u.user_id == 0}}
