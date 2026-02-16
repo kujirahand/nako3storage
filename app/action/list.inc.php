@@ -59,6 +59,12 @@ function n3s_list_get()
     $list = [];
     $list2 = [];
 
+    // 現在のユーザー数を取得
+    $user_count = db_get1('SELECT count(*) FROM users', [], "users");
+    $user_count = $user_count['count(*)'];
+    // 投稿された作品数を取得
+    $app_count = db_get1('SELECT count(*) FROM apps', []);
+    $app_count = $app_count['count(*)'];
     // --------------------------------------------------------
     // 表示モードごとに処理を分ける
     // --------------------------------------------------------
@@ -115,7 +121,7 @@ function n3s_list_get()
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $ranking = db_get('SELECT * FROM apps '.
-            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 1) AND (is_private = 0) AND (tag != "w_noname")'.
+            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 2) AND (is_private = 0) AND (tag != "w_noname")'.
             'ORDER BY fav DESC LIMIT 40', [$mtime]);
         // ランキング情報を得る
         $ranking_total = $ranking_all + $ranking;
@@ -191,6 +197,8 @@ function n3s_list_get()
         "offset" => $offset,
         "is_admin" => n3s_is_admin(),
         "top_users" => $top_users,
+        "user_count" => $user_count,
+        "app_count" => $app_count,
     ];
 }
 
