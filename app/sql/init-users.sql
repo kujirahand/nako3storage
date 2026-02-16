@@ -9,6 +9,7 @@ CREATE TABLE users (
   description TEXT DEFAULT '',
   twitter_id  INTEGER DEFAULT 0,
   profile_url TEXT DEFAULT '',
+  salt        TEXT DEFAULT '',
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );

@@ -231,10 +231,11 @@ __EOS__;
             $error = 'パスワードは8文字以上で入力してください。';
         }
         if ($error == '') {
-            $hash = n3s_login_password_to_hash($password);
+            $salt = n3s_generate_salt();
+            $hash = n3s_login_password_to_hash($password, $salt);
             db_exec(
-                'UPDATE users SET password=?, pass_token="", mtime=? WHERE user_id=?',
-                [$hash, time(), $user_id],
+                'UPDATE users SET password=?, salt=?, pass_token="", mtime=? WHERE user_id=?',
+                [$hash, $salt, time(), $user_id],
                 'users'
             );
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
@@ -276,6 +277,22 @@ function n3s_web_login_trylogin()
             $password = trim($password);
             $user_id = n3s_get_user_id_by_email($email);
             if ($user_id > 0) {
+                // ユーザーのパスワードが空の場合をチェック
+                $user = db_get1(
+                    'SELECT * FROM users WHERE user_id=?',
+                    [$user_id],
+                    'users'
+                );
+                if ($user && ($user['password'] == '' || $user['password'] == null)) {
+                    $error = 'お手数おかけしますが、セキュリティ強化のため、パスワードの再設定が必要です。より長いパスワードを再設定してください。<br><a href="index.php?action=login&page=forgot">こちらからパスワードを再設定</a>してください。';
+                    $token = n3s_getEditToken();
+                    n3s_template_fw('login_email.html', [
+                        'email' => $email,
+                        'error' => $error,
+                        'token' => $token,
+                    ]);
+                    exit;
+                }
                 $isOK = n3s_web_login_execute($email, $password);
                 if ($isOK) {
                     return;

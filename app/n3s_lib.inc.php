@@ -16,7 +16,7 @@ require_once __DIR__ . '/fw_simple/fw_database.lib.php';
 
 // database version
 define("N3S_DB_VERSION", 3);
-// TODO: 将来的に個別のハッシュを設定できるようにする
+// デフォルトのソルト（既存ユーザーの後方互換用）
 define("LOGIN_HASH_SALT_DEFAULT", "97mwXXq08tku4eN6#YvbS0~cn0U8sb[PChfOjYe_ruJ5]RiVscCS");
 
 function n3s_db_init()
@@ -275,18 +275,30 @@ function n3s_get_user_id_by_email($email)
     return $row['user_id'];
 }
 
-function n3s_login_password_to_hash($password)
+function n3s_generate_salt()
 {
-    $hash = hash('sha256', $password . '::' . LOGIN_HASH_SALT_DEFAULT);
-    return 'def::' . $hash;
+    return bin2hex(random_bytes(32));
+}
+
+function n3s_login_password_to_hash($password, $salt = '')
+{
+    if ($salt === '' || $salt === null) {
+        // 後方互換: saltが未設定の既存ユーザー向け
+        $hash = hash('sha256', $password . '::' . LOGIN_HASH_SALT_DEFAULT);
+        return 'def::' . $hash;
+    }
+    // ユーザー個別のsaltを使用
+    $hash = hash('sha256', $password . '::' . $salt);
+    return 'salt::' . $hash;
 }
 
 function n3s_add_user($email, $password, $name)
 {
-    $hash = n3s_login_password_to_hash($password);
+    $salt = n3s_generate_salt();
+    $hash = n3s_login_password_to_hash($password, $salt);
     $user_id = db_insert(
-        'INSERT INTO users (email, password, name) VALUES (?,?,?)',
-        [$email, $hash, $name],
+        'INSERT INTO users (email, password, name, salt) VALUES (?,?,?,?)',
+        [$email, $hash, $name, $salt],
         'users'
     );
     return $user_id;
@@ -298,13 +310,18 @@ function n3s_login($email, $password)
     if ($user_id <= 0) {
         return false;
     }
-    $hash = n3s_login_password_to_hash($password);
+    // ユーザー情報を取得してsaltを確認
     $user = db_get1(
-        'SELECT * FROM users WHERE user_id=? AND password=?',
-        [$user_id, $hash],
+        'SELECT * FROM users WHERE user_id=?',
+        [$user_id],
         'users'
     );
     if ($user === false || $user === null) {
+        return false;
+    }
+    $salt = isset($user['salt']) ? $user['salt'] : '';
+    $hash = n3s_login_password_to_hash($password, $salt);
+    if ($user['password'] !== $hash) {
         return false;
     }
     $_SESSION['n3s_login'] = true;
