@@ -85,7 +85,7 @@ function echo_fav()
     // q=up
     // check app_id exists?
     $r = db_get1(
-        'SELECT fav FROM apps WHERE app_id=?',
+        'SELECT fav,user_id FROM apps WHERE app_id=?',
         [$app_id]
     );
     if (!isset($r['fav'])) {
@@ -93,6 +93,7 @@ function echo_fav()
         return;
     }
     $fav = $r['fav'];
+    $app_user_id = intval($r['user_id']);
     $user_id = n3s_get_user_id();
     $bookmark = db_get1(
         'SELECT * FROM bookmarks '.
@@ -112,6 +113,11 @@ function echo_fav()
             [$bookmark_id]
         );
     } else {
+        // 自分の作品にはお気に入り登録できない
+        if ($app_user_id === intval($user_id)) {
+            echo $fav;
+            return;
+        }
         // insert
         $fav++;
         db_exec(
