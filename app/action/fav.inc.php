@@ -33,6 +33,7 @@ function fav_who()
         );
         return;
     }
+    // 誰がお気に入りしたか見られないようにする。数だけを報告する。
     $html = "<ul>";
     foreach ($rows as $r) {
         $user_id = $r['user_id'];
@@ -40,17 +41,21 @@ function fav_who()
         if (!isset($u['user_id'])) {
             continue; // 見当たらない
         }
+        $html .= "<li>⭐ ← 😊</li>";
+        /*
+        // もし、ユーザーを特定させたい場合は以下を利用する
         $name= $u['name'];
         $img = $u['profile_url'];
         $html .= "<li>".
       "<a style='text-decoration:none;' href='index.php?user_id=$user_id&action=list'>".
       "<img src='$img' width=32> {$name}</a>".
       "</li>";
+        */
     }
     $html .= "</ul>";
     $html .= "<p><a href='$backURL'>→戻る</a></p>";
     n3s_info(
-        "($app_id)を気に入った人🙋",
+        "($app_id)を気に入っている人が星の数だけいます！",
         $html,
         true
     );
