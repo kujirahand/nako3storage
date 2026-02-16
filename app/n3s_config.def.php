@@ -8,7 +8,7 @@ define('N3S_APP_TITLE', '🍯 プログラム貯蔵庫');
 global $n3s_config;
 $root = dirname(__DIR__);
 $app_dir = __DIR__;
-$url_root = dirname($_SERVER['REQUEST_URI']);
+$url_root = empty($_SERVER['REQUEST_URI']) ? './' : dirname($_SERVER['REQUEST_URI']);
 $n3s_config = [
     "page_title" => N3S_APP_TITLE,
     "top_message" => "",

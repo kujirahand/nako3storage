@@ -1,12 +1,11 @@
 <?php
 // redirect HTTP => HTTPS
-if (empty($_SERVER['HTTPS']) &&
+if (empty($_SERVER['HTTPS']) && isset($_SERVER['HTTP_HOST']) &&
     ($_SERVER['HTTP_HOST'] === 'n3s.nadesi.com')) {
     $url = 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
     header("location: $url");
     exit;
 }
-
 require_once __DIR__.'/n3s_lib.inc.php';
 
 n3s_main();

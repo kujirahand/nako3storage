@@ -120,7 +120,7 @@ function n3s_hash_editkey($key)
 function n3s_parseURI()
 {
     global $n3s_config;
-    $uri = $_SERVER['REQUEST_URI'];
+    $uri = empty($_SERVER['REQUEST_URI']) ? './' :  $_SERVER['REQUEST_URI'];
     $script_path = explode('?', $uri)[0];
     $n3s_config['page'] = 'all';
     $n3s_config['action'] = 'list';
@@ -136,7 +136,7 @@ function n3s_parseURI()
     $n3s_config['baseurl'] = sprintf(
         "%s://%s%s",
         (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http',
-        $_SERVER['HTTP_HOST'],
+        empty($_SERVER['HTTP_HOST']) ? 'localhost' : $_SERVER['HTTP_HOST'],
         $script_dir
     );
 }

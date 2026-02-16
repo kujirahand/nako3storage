@@ -1,6 +1,5 @@
 <?php
 // [nako3storage] index.php
-
 // デフォルトを読む
 require_once __DIR__.'/app/n3s_config.def.php';
 
@@ -15,5 +14,3 @@ $n3s_config['agent'] = 'web';
 // execute main file
 $main_file = $n3s_config['dir_app'].'/index.inc.php';
 include_once($main_file);
-
-
