@@ -95,6 +95,17 @@ exit;
 // --------------------------------------------------
 function useCache($ver, $url, $file, $ext = '') {
   global $cache_dir, $CDN, $cache_url, $cache_config;
+  $can_cache = TRUE;
+  if (! file_exists($cache_dir)) {
+    @mkdir($cache_dir, 0777, TRUE);
+  }
+  if (! is_dir($cache_dir) || ! is_writable($cache_dir)) {
+    $can_cache = FALSE;
+  }
+  $org_file = $file;
+  if ($ext === '' && preg_match('#\.([a-z0-9_]+)$#', $org_file, $m)) {
+    $ext = strtolower($m[1]);
+  }
   // get from cdn
   $file = str_replace('..', '', $file);
   $file = str_replace('/', '___', $file);
@@ -102,24 +113,48 @@ function useCache($ver, $url, $file, $ext = '') {
   $save_dir = $cache_dir."/{$ver}";
   $cache_file = $save_dir."/{$file}";
   $cache_url_file = "$cache_url/{$ver}/{$file}";
+  if ($can_cache && ! file_exists($save_dir)) {
+    @mkdir($save_dir, 0777, TRUE);
+  }
+  if (! is_dir($save_dir) || ! is_writable($save_dir)) {
+    $can_cache = FALSE;
+  }
   
   // キャッシュが存在しないので改めて取得する場合
-  if (! file_exists($cache_file)) {
+  if (! $can_cache || ! file_exists($cache_file)) {
     // WEBからファイルを取得
     $body = @file_get_contents($url);
-    if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2) {
+    if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2 || isBadResponseBody($body, $ext)) {
       // [失敗条件] FALSE or 空
       // https://www.php.net/manual/ja/function.file-get-contents.php
       header("HTTP/1.0 404 Not Found");
-      echo "404 file not found";
+      header('content-type: text/plain; charset=utf-8');
+      $bodyLen = is_string($body) ? strlen($body) : 0;
+      echo "404 file not found from CDN : $url body length: {$bodyLen}";
       exit;
     }
-    if (! file_exists($save_dir)) { mkdir($save_dir); }
     // 取得したファイルを保存
-    @file_put_contents($cache_file, $body);
+    if ($can_cache) {
+      @file_put_contents($cache_file, $body);
+    }
   } else {
     // キャッシュからファイルを取得
     $body = @file_get_contents($cache_file);
+    if (isBadResponseBody($body, $ext)) {
+      if ($can_cache) {
+        @unlink($cache_file);
+      }
+      $body = @file_get_contents($url);
+      if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2 || isBadResponseBody($body, $ext)) {
+        header("HTTP/1.0 404 Not Found");
+        header('content-type: text/plain; charset=utf-8');
+        echo "404 file not found";
+        exit;
+      }
+      if ($can_cache) {
+        @file_put_contents($cache_file, $body);
+      }
+    }
   }
   // output
   header('Access-Control-Allow-Origin: *');
@@ -141,7 +176,11 @@ function useCache($ver, $url, $file, $ext = '') {
     header("x-memo: $url"); 
     echo $body;
   } else {
-    header("location: $cache_url_file", TRUE, 307);
+    if ($can_cache) {
+      header("location: $cache_url_file", TRUE, 307);
+    } else {
+      header("location: $url", TRUE, 307);
+    }
   }
   exit;
 }
@@ -151,5 +190,26 @@ function get($key, $def = '') {
     return $def;
   }
   return $_GET[$key];
+}
+
+function isBadResponseBody($body, $ext) {
+  if ($body === FALSE || $body === NULL) {
+    return TRUE;
+  }
+  $trimmed = ltrim((string)$body);
+  if ($trimmed === '') {
+    return TRUE;
+  }
+  if ($ext === 'js' || $ext === 'mjs' || $ext === 'css' || $ext === 'map') {
+    if (preg_match('#^<#', $trimmed)) {
+      return TRUE;
+    }
+  }
+  if ($ext === 'map') {
+    if (preg_match('#^[\{\[]#', $trimmed) !== 1) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 

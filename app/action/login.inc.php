@@ -284,7 +284,11 @@ function n3s_web_login_trylogin()
                     'users'
                 );
                 if ($user && ($user['password'] == '' || $user['password'] == null)) {
-                    $error = 'お手数おかけしますが、セキュリティ強化のため、パスワードの再設定が必要です。より長いパスワードを再設定してください。<br><a href="index.php?action=login&page=forgot">こちらからパスワードを再設定</a>してください。';
+                    $error = 'お手数おかけしますが、セキュリティ強化のため、パスワードの再設定が必要です。より長いパスワードを再設定してください。<br>'.
+                        '<a style="font-size:1.5" href="index.php?action=login&page=forgot">→こちらのリンクからパスワードを再設定</a>してください。<br>'.
+                        '<br>'.
+                        'なお、パスワードの再設定は、登録されているメールアドレス宛に送られる認証番号を入力するだけで完了します。簡単ですので、よろしくお願いします。'.
+                        '<br><hr>';
                     $token = n3s_getEditToken();
                     n3s_template_fw('login_email.html', [
                         'email' => $email,
