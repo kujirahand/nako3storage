@@ -28,7 +28,7 @@ function n3s_api_image()
         $id = (int) ($m[1]);
         $ext = $m[2];
     } else {
-        if (preg_match('/^([0-9]+)$/', $fname, $m)) {
+        if (preg_match('/^([0-9]+)\.$/', $fname, $m)) {
             $id = (int) ($m[1]);
             $ext = "";
         } else {
