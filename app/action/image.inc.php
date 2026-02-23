@@ -21,7 +21,12 @@ function n3s_api_image()
             exit;
         }
         $image_id = $im['image_id'];
-        $fname = $image_id . '.' . pathinfo($im['image_name'], PATHINFO_EXTENSION);
+        // 拡張子があればimage_nameから拡張子を取得する
+        if (strpos($image_name, '.') !== false) {
+            $fname = $image_id . '.' . pathinfo($image_name, PATHINFO_EXTENSION);
+        } else {
+            $fname = $image_id . '.png';
+        }
     }
     // match
     if (preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {

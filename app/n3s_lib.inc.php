@@ -396,7 +396,10 @@ function n3s_getImageFile($id, $ext, $create = false, $token = '')
     $dir = n3s_getImageDir($id);
     if ($create) {
         if (! file_exists($dir)) {
-            mkdir($dir);
+            $b = mkdir($dir, 0755, true);
+            if (!$b) {
+                throw new Exception("Failed to create directory: $dir");
+            }
         }
     }
     if (substr($ext, 0, 1) !== '.') {
