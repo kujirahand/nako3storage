@@ -20,10 +20,8 @@ RewriteRule ^edit/([0-9]+)$ /index.php?page=$1&action=edit [L,R]
 RewriteRule ^show/([0-9a-zA-Z_\-]+)$ /index.php?page=$1&action=show [L,R]
 
 # image
-RewriteRule ^images/([0-9]+)-([0-9a-zA-Z_\-\.]+)\?t=([a-zA-Z0-9]+)$ /image.php?image_name=$2&app_id=$1&t=$3 [L,R]
-RewriteRule ^image/([0-9a-zA-Z_\-\.]+)\?t=([a-zA-Z0-9]+)$ /image.php?image_name=$1&app_id=0&t=$2 [L,R]
-RewriteRule ^image/([0-9a-zA-Z_\-\.]+)$ /image.php?image_name=$1&app_id=0 [L,R]
-RewriteRule ^images/([0-9]+)-([0-9a-zA-Z_\-\.]+)$ /image.php?image_name=$2&app_id=$1 [L,R]
+RewriteRule ^image/([0-9a-zA-Z_\-\.]+)$ /image.php?image_name=$1&app_id=0 [L,R,QSA]
+RewriteRule ^images/([0-9]+)-([0-9a-zA-Z_\-\.]+)$ /image.php?image_name=$2&app_id=$1 [L,R,QSA]
 
 # sourcemap
 RewriteRule ^([0-9a-z_\-]+)\.js\.map$ /cdn.php?f=release/$1.js.map
