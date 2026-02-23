@@ -138,6 +138,12 @@ function go_upload()
         n3s_error('アップロード失敗', "ファイル名は、英数字と _ - . のみで指定してください。");
         return;
     }
+    // 拡張子が空ならばエラーにする
+    $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+    if ($ext == '' || $ext == ".") {
+        n3s_error('アップロード失敗', "ファイル名を指定するときは、ファイルの拡張子が必要です。");
+        return;
+    }
     // 既に、app_idとimage_nameの組み合わせがある場合はエラー
     if ($image_name != '') {
         $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
