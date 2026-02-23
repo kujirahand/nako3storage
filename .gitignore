@@ -10,6 +10,7 @@ app/vendor/*
 cache/*
 cache-cdn/*
 book/*
+images/*
 
 # mac
 .DS_Store

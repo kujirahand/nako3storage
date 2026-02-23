@@ -35,7 +35,7 @@ function n3s_api_image()
     // check path
     if (! file_exists($path)) {
         header("HTTP/1.0 404 Not Found");
-        echo '404 not found';
+        echo '404 not found (e100)';
         exit;
     }
     
