@@ -24,13 +24,19 @@ function n3s_api_image()
         $fname = $image_id . '.' . pathinfo($im['image_name'], PATHINFO_EXTENSION);
     }
     // match
-    if (! preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {
-        header("HTTP/1.0 404 Not Found");
-        echo '404 not found ... invalid filename.';
-        exit;
+    if (preg_match('/^([0-9]+)\.([a-zA-Z0-9]+)$/', $fname, $m)) {
+        $id = (int) ($m[1]);
+        $ext = $m[2];
+    } else {
+        if (preg_match('/^([0-9]+)$/', $fname, $m)) {
+            $id = (int) ($m[1]);
+            $ext = "";
+        } else {
+            header("HTTP/1.0 404 Not Found");
+            echo '404 not found ... invalid filename.';
+            exit;
+        }
     }
-    $id = (int) ($m[1]);
-    $ext = $m[2];
     $path = n3s_getImageFile($id, $ext, FALSE, $token);
     // check path
     if (! file_exists($path)) {
