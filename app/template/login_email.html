@@ -1,6 +1,11 @@
 {{ include parts_html_header.html }}
 
 <div class="showblock">
+    <div class="box">
+        {{ $news_at_login | raw}}
+    </div>
+</div>
+<div class="showblock">
     <h1>ログイン</h1>
     <div class="info_box">
         <h3>{{ $error | raw }}</h3>
@@ -35,9 +40,6 @@
         <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
     </div>
     <br>
-    <div class="info_box">
-        {{ $news_at_login | raw}}
-    </div>
 </div>
 <script>
     //-------------------------------------------------------------
