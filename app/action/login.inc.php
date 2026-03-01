@@ -328,6 +328,7 @@ function n3s_web_login_trylogin()
         'email' => $email,
         'error' => $error,
         'token' => $token,
+        'news_at_login' => n3s_get_config('news_at_login', ''),
     ]);
 }
 

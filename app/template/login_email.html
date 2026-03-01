@@ -31,11 +31,12 @@
     </div>
     <br>
     <div class="info_box">
-        <a href="index.php?action=login&page=register">ユーザーの新規登録</a>
+        <a href="index.php?action=login&page=register">ユーザーの新規登録</a> / 
+        <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
     </div>
     <br>
     <div class="info_box">
-        <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
+        {{ $news_at_login | raw}}
     </div>
 </div>
 <script>
