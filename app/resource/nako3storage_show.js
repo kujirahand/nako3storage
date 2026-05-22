@@ -262,6 +262,33 @@ function changeBreakpointButtons() {
   }
 }
 
+function syncAceBreakpoints() {
+  if (!navigator.__aceEditor || !navigator.nako3) { return }
+  if (!navigator.nako3.__breakpoints) { return }
+  const session = navigator.__aceEditor.getSession()
+  if (!session) { return }
+  session.clearBreakpoints()
+  navigator.nako3.__breakpoints.forEach((lineNo) => {
+    const row = parseInt(lineNo, 10) - 1
+    if (row >= 0) {
+      session.setBreakpoint(row)
+    }
+  })
+}
+
+function getBreakpointLineNo(data) {
+  if (!data) { return -1 }
+  const row = parseInt(data.row, 10)
+  if (Number.isFinite(row)) {
+    return row + 1
+  }
+  const line = parseInt(data.line, 10)
+  if (Number.isFinite(line)) {
+    return line
+  }
+  return -1
+}
+
 //--------------------------
 // run and clear
 const runButton = document.getElementById("runButton")
@@ -277,12 +304,23 @@ window.addEventListener('message', (e) => {
   if (!e.data || !e.data.action) { return }
   const action = e.data.action
   if (action === 'breakpoint:on') {
-    navigator.nako3.__breakpoints.push(e.data.row+1)
-    document.querySelector('#debugCheck').checked = 'checked'
+    const lineNo = getBreakpointLineNo(e.data)
+    if (lineNo <= 0) { return }
+    if (navigator.nako3.__breakpoints.indexOf(lineNo) < 0) {
+      navigator.nako3.__breakpoints.push(lineNo)
+    }
+    const chk = document.querySelector('#debugCheck')
+    if (chk) { chk.checked = true }
+    syncAceBreakpoints()
   }
   if (action === 'breakpoint:off') {
-    const i = navigator.nako3.__breakpoints.indexOf(e.data.row+1)
-    navigator.nako3.__breakpoints.splice(i, 1)
+    const lineNo = getBreakpointLineNo(e.data)
+    if (lineNo <= 0) { return }
+    const i = navigator.nako3.__breakpoints.indexOf(lineNo)
+    if (i >= 0) {
+      navigator.nako3.__breakpoints.splice(i, 1)
+    }
+    syncAceBreakpoints()
   }
   if (navigator.nako3.__global) {
     navigator.nako3.__global.__setSysVar('__DEBUGブレイクポイント一覧', navigator.nako3.__breakpoints)

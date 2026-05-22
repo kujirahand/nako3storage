@@ -258,6 +258,23 @@ h2 {
   padding: 1em;
 }
 
+/* Ace breakpoint marker (theme-independent fallback) */
+.ace_gutter-cell.ace_breakpoint {
+  position: relative;
+}
+
+.ace_gutter-cell.ace_breakpoint::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #d93025;
+}
+
 .fav_block #fav {
   font-size: 1em;
   color: #ffb0b0;
