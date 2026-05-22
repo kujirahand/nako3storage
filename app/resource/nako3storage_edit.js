@@ -4,7 +4,12 @@
 // =======================================
 // 各種設定オブジェクト
 const config = {
-  'editLayout': 'UD' // UD 上下 / LR 左右
+  'editLayout': 'UD', // UD 上下 / LR 左右
+  'aceEditorOption': {
+    enableBasicAutocompletion: false,
+    enableLiveAutocompletion: false,
+    enableSnippets: false
+  }
 }
 // IE対策
 var isIE = function() {
@@ -54,6 +59,7 @@ function setupAceEditor() {
   div.textContent = nako3code.value
 
   editorObjects = navigator.nako3.setupEditor("nako3code");
+  editorObjects.editor.setOptions(config.aceEditorOption)
   if (nako3code.readOnly) {
     editorObjects.editor.setReadOnly(true)
   }

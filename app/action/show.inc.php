@@ -1,4 +1,7 @@
 <?php
+define('ACE_EDITOR_VERSION', '1.43.3');
+define('ACE_EDITOR_CDN_URL', 'https://cdnjs.cloudflare.com/ajax/libs/ace');
+
 include_once dirname(__FILE__) . '/save.inc.php';
 
 function n3s_web_show()
@@ -195,11 +198,13 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
         if (!isset($a['extra_header_html'])) {
             $a['extra_header_html'] = '';
         }
+        $aceVer = ACE_EDITOR_VERSION;
+        $url = ACE_EDITOR_CDN_URL;
         $a['extra_header_html'] .= "<link rel=\"stylesheet\" href=\"$baseurl/src/wnako3_editor.css\">";
-        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" integrity="sha512-GZ1RIgZaSc8rnco/8CXfRdCpDxRCphenIiZ2ztLy3XQfCbQUSCuk8IudvNHxkRA3oUg6q0qejgN/qqyG1duv5Q==" crossorigin="anonymous"></script>';
-        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.min.js" integrity="sha512-8qx1DL/2Wsrrij2TWX5UzvEaYOFVndR7BogdpOyF4ocMfnfkw28qt8ULkXD9Tef0bLvh3TpnSAljDC7uyniEuQ==" crossorigin="anonymous"></script>';
-        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-options.min.js" integrity="sha512-oHR+WVzBiVZ6njlMVlDDLUIOLRDfUUfRQ55PfkZvgjwuvGqL4ohCTxaahJIxTmtya4jgyk0zmOxDMuLzbfqQDA==" crossorigin="anonymous"></script>';
-        $js_e[] = '<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-code_lens.min.js" integrity="sha512-gsDyyKTnOmSWRDzUbpYcPjzVsEyFGSWeWefzVKvbMULPR2ElIlKKsOtU3ycfybN9kncZXKLFSsUiG3cgJUbc/g==" crossorigin="anonymous"></script>';
+        $js_e[] = "<script src=\"$url/$aceVer/ace.js\" crossorigin=\"anonymous\"></script>";
+        $js_e[] = "<script src=\"$url/$aceVer/ext-language_tools.min.js\" crossorigin=\"anonymous\"></script>";
+        $js_e[] = "<script src=\"$url/$aceVer/ext-options.min.js\" crossorigin=\"anonymous\"></script>";
+        $js_e[] = "<script src=\"$url/$aceVer/ext-code_lens.min.js\" crossorigin=\"anonymous\"></script>";
     }
 
     // add other plugins
