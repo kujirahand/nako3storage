@@ -31,14 +31,17 @@ function n3s_api_rec_widget()
     }
 
     // 作品が存在するか・公開かを確認（余分な情報は漏らさない）
-    $app = db_get1('SELECT user_id, is_private FROM apps WHERE app_id=?', [$app_id]);
+    $app = db_get1('SELECT user_id, is_private, editkey FROM apps WHERE app_id=?', [$app_id]);
     if (!$app) {
         // 存在しなくても 200 を返す（存在チェックを悪用させない）
         n3s_api_output(true, []);
         return;
     }
-    // 非公開の場合はカウントしない
-    if (intval($app['is_private']) === 1) {
+    // 閲覧権限がない場合はカウントしない
+    // is_private=1（非公開）および is_private=2（限定公開）を editkey なしで直接呼んで
+    // 統計を水増しできる問題を修正 (P1 security fix)
+    $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
+    if (!n3s_private_access_allowed($app, $editkey)) {
         n3s_api_output(true, []);
         return;
     }
