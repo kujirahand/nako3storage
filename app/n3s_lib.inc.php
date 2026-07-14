@@ -345,10 +345,10 @@ function n3s_get_login_info()
         ];
     }
     return [
-        'user_id' => $_SESSION['user_id'],
-        'name' => $_SESSION['name'],
-        'screen_name' => $_SESSION['screen_name'],
-        'profile_url' => $_SESSION['profile_url'],
+        'user_id' => $_SESSION['user_id'] ?? 0,
+        'name' => $_SESSION['name'] ?? '?',
+        'screen_name' => $_SESSION['screen_name'] ?? '?',
+        'profile_url' => $_SESSION['profile_url'] ?? 'skin/def/user-icon.png',
     ];
 }
 
