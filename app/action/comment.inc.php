@@ -164,6 +164,17 @@ function comment_api_add()
         n3s_api_output(false, ['msg' => 'app_idが不正です。']);
         return;
     }
+
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$app_id], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見当たりません。']);
+        return;
+    }
+    $editkey = isset($_REQUEST['editkey']) ? (string)$_REQUEST['editkey'] : '';
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品にコメントできません。']);
+        return;
+    }
     
     if ($body === '') {
         n3s_api_output(false, ['msg' => 'コメント内容が空です。']);
