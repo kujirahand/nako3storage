@@ -944,9 +944,9 @@ function n3s_discord_webhook($a)
     // 3時間以内に同じ投稿があっても無視する
     // check interval
     $last_times = json_decode(n3s_getInfoTag('discord_webhook_last_times', '{}'), TRUE);
-    // 3時間以内のエントリのみ残す
+    // N時間以内のエントリのみ残す
     $remain = [];
-    $limit = time() - 60 * 60 * 3;
+    $limit = time() - 60 * 60 * 24 * 3; // 3日間
     // ~~~~~~~~~ $limit -----$val------ $now
     foreach ($last_times as $key => $val) {
         if ($limit < $val) {
