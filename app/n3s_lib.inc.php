@@ -125,22 +125,22 @@ function n3s_db_migrate_comments()
     )", [], 'main');
 }
 
-// init-main.sql 作成後の既存DBに show_list カラムが無ければ追加する (Issue #202)。
-// 従来 w_noname タグで表現していた「一覧非掲載」をカラム追加時に一度だけ引き継ぐ。
-// 2回目以降はカラム存在チェックで早期リターンするため、バックフィルが再実行されることはない。
+// init-main.sql 作成後の既存DBに apps の追加カラムが無ければ追加する。
+// show_list 追加時だけ、従来 w_noname タグで表現していた「一覧非掲載」を一度だけ引き継ぐ。
 function n3s_db_migrate_apps()
 {
     $columns = db_get('PRAGMA table_info(apps)', [], 'main');
     if (!is_array($columns)) {
         return;
     }
-    foreach ($columns as $col) {
-        if ($col['name'] === 'show_list') {
-            return; // 追加済み
-        }
+    $names = array_column($columns, 'name');
+    if (!in_array('show_list', $names, true)) {
+        db_exec("ALTER TABLE apps ADD COLUMN show_list INTEGER DEFAULT 1", [], 'main');
+        db_exec("UPDATE apps SET show_list=0 WHERE tag LIKE '%w_noname%'", [], 'main');
     }
-    db_exec("ALTER TABLE apps ADD COLUMN show_list INTEGER DEFAULT 1", [], 'main');
-    db_exec("UPDATE apps SET show_list=0 WHERE tag LIKE '%w_noname%'", [], 'main');
+    if (!in_array('image_id', $names, true)) {
+        db_exec("ALTER TABLE apps ADD COLUMN image_id INTEGER DEFAULT 0", [], 'main');
+    }
 }
 
 // log DB に access_stats テーブルが無ければ作成する (Issue #217)
@@ -811,6 +811,165 @@ function n3s_getImageFile($id, $ext, $create = false, $token = '')
     return $file;
 }
 
+function n3s_delete_image_record_and_file($image_id)
+{
+    $image_id = intval($image_id);
+    if ($image_id <= 0) {
+        return;
+    }
+    $im = db_get1('SELECT * FROM images WHERE image_id=? LIMIT 1', [$image_id]);
+    if (!$im) {
+        return;
+    }
+    $filename = isset($im['filename']) ? $im['filename'] : '';
+    $ext = '.' . pathinfo($filename, PATHINFO_EXTENSION);
+    if ($ext === '.') {
+        $ext = '.jpg';
+    }
+    $targetFile = n3s_getImageFile($image_id, $ext, false, $im['token']);
+    db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
+    if (file_exists($targetFile)) {
+        @unlink($targetFile);
+    }
+}
+
+function n3s_cover_image_type_supported($type)
+{
+    if ($type === IMAGETYPE_JPEG || $type === IMAGETYPE_PNG || $type === IMAGETYPE_GIF) {
+        return true;
+    }
+    if (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp')) {
+        return true;
+    }
+    return false;
+}
+
+function n3s_gd_load_image($path, $type)
+{
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            return @imagecreatefromjpeg($path);
+        case IMAGETYPE_PNG:
+            return @imagecreatefrompng($path);
+        case IMAGETYPE_GIF:
+            return @imagecreatefromgif($path);
+        default:
+            if (defined('IMAGETYPE_WEBP') && $type === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp')) {
+                return @imagecreatefromwebp($path);
+            }
+    }
+    return false;
+}
+
+function n3s_gd_cover_resize($srcPath, $destPath, $w, $h)
+{
+    $info = @getimagesize($srcPath);
+    if (!$info || !isset($info[0], $info[1], $info[2])) {
+        throw new Exception('扉絵として使える画像ファイルではありません。');
+    }
+    $srcW = intval($info[0]);
+    $srcH = intval($info[1]);
+    $type = intval($info[2]);
+    if ($srcW <= 0 || $srcH <= 0 || !n3s_cover_image_type_supported($type)) {
+        throw new Exception('扉絵は JPEG/PNG/GIF/WebP の画像を指定してください。');
+    }
+    $src = n3s_gd_load_image($srcPath, $type);
+    if (!$src) {
+        throw new Exception('扉絵画像を読み込めませんでした。');
+    }
+    $dst = imagecreatetruecolor($w, $h);
+    if (!$dst) {
+        imagedestroy($src);
+        throw new Exception('扉絵画像を作成できませんでした。');
+    }
+    $white = imagecolorallocate($dst, 255, 255, 255);
+    imagefill($dst, 0, 0, $white);
+    $scale = max($w / $srcW, $h / $srcH);
+    $scaledW = (int)ceil($srcW * $scale);
+    $scaledH = (int)ceil($srcH * $scale);
+    $dstX = (int)floor(($w - $scaledW) / 2);
+    $dstY = (int)floor(($h - $scaledH) / 2);
+    $ok = imagecopyresampled($dst, $src, $dstX, $dstY, 0, 0, $scaledW, $scaledH, $srcW, $srcH);
+    if (!$ok || !imagejpeg($dst, $destPath, 90)) {
+        imagedestroy($src);
+        imagedestroy($dst);
+        throw new Exception('扉絵画像の保存に失敗しました。');
+    }
+    imagedestroy($src);
+    imagedestroy($dst);
+}
+
+function n3s_save_cover_image($app_id, $user_id, $file)
+{
+    if (!extension_loaded('gd')) {
+        throw new Exception('扉絵機能には GD 拡張が必要です。');
+    }
+    $app_id = intval($app_id);
+    $user_id = intval($user_id);
+    if ($app_id <= 0 || $user_id <= 0) {
+        throw new Exception('扉絵を設定するにはログインが必要です。');
+    }
+    if (!$file || !isset($file['error']) || intval($file['error']) === UPLOAD_ERR_NO_FILE) {
+        return 0;
+    }
+    if (intval($file['error']) !== UPLOAD_ERR_OK) {
+        throw new Exception('扉絵のアップロードに失敗しました。');
+    }
+    $size_upload_max = n3s_get_config('size_upload_max', 1024 * 1024 * 7);
+    if (intval($file['size']) > $size_upload_max) {
+        $mb = floor($size_upload_max / (1024 * 1024));
+        throw new Exception("扉絵のファイルサイズが最大の{$mb}MBを超えています。");
+    }
+    $tmp_name = isset($file['tmp_name']) ? $file['tmp_name'] : '';
+    $info = @getimagesize($tmp_name);
+    if (!$info || !isset($info[2]) || !n3s_cover_image_type_supported(intval($info[2]))) {
+        throw new Exception('扉絵は JPEG/PNG/GIF/WebP の画像を指定してください。');
+    }
+    $app = db_get1('SELECT title FROM apps WHERE app_id=? LIMIT 1', [$app_id]);
+    if (!$app) {
+        throw new Exception('扉絵を設定する作品が見つかりません。');
+    }
+    $title = mb_substr('扉絵: ' . $app['title'], 0, 512);
+    $token = bin2hex(random_bytes(8));
+    $image_id = 0;
+    $path = '';
+    db_exec('begin');
+    try {
+        $now = time();
+        $image_id = db_insert(
+            'INSERT INTO images (title,user_id,copyright,app_id,image_name,token,ctime,mtime)VALUES(?,?,?,?,?,?,?,?)',
+            [$title, $user_id, 'SELF', $app_id, '', $token, $now, $now]
+        );
+        $filename = "{$image_id}.jpg";
+        $path = n3s_getImageFile($image_id, '.jpg', true, $token);
+        db_exec('UPDATE images SET filename=? WHERE image_id=?', [$filename, $image_id]);
+        n3s_gd_cover_resize($tmp_name, $path, intval(n3s_get_config('cover_width', 600)), intval(n3s_get_config('cover_height', 240)));
+        db_exec('UPDATE apps SET image_id=? WHERE app_id=?', [$image_id, $app_id]);
+        db_exec('commit');
+    } catch (Exception $e) {
+        db_exec('rollback');
+        if ($path !== '' && file_exists($path)) {
+            @unlink($path);
+        }
+        throw $e;
+    }
+    return $image_id;
+}
+
+function n3s_unset_cover_image($app_id)
+{
+    $app_id = intval($app_id);
+    if ($app_id <= 0) {
+        return;
+    }
+    db_exec('UPDATE apps SET image_id=0 WHERE app_id=?', [$app_id]);
+}
+
+function n3s_delete_cover_image($app_id)
+{
+    n3s_unset_cover_image($app_id);
+}
+
 // 保存先のDBを調べる
 function n3s_getMaterialDB($material_id)
 {
@@ -1163,6 +1322,68 @@ function n3s_list_setIcon(&$list)
         $i['icon'] = "img/0-$icon.png";
     }
 }
+
+function n3s_cover_url_from_image_row($image)
+{
+    $filename = isset($image['filename']) ? $image['filename'] : '';
+    if ($filename === '') {
+        return n3s_get_config('cover_default_url', 'https://n3s.nadesi.com/image.php?f=721.png');
+    }
+    $baseurl = rtrim(n3s_get_config('baseurl', '.'), '/');
+    $url = $baseurl . '/image.php?f=' . rawurlencode($filename);
+    $token = isset($image['token']) ? $image['token'] : '';
+    if ($token !== '') {
+        $url = $baseurl . '/image.php?t=' . rawurlencode($token) . '&f=' . rawurlencode($filename);
+    }
+    return $url;
+}
+
+function n3s_get_cover_url($app_row)
+{
+    $image_id = intval(isset($app_row['image_id']) ? $app_row['image_id'] : 0);
+    if ($image_id <= 0) {
+        return n3s_get_config('cover_default_url', 'https://n3s.nadesi.com/image.php?f=721.png');
+    }
+    $image = db_get1('SELECT image_id,filename,token FROM images WHERE image_id=? LIMIT 1', [$image_id]);
+    if (!$image) {
+        return n3s_get_config('cover_default_url', 'https://n3s.nadesi.com/image.php?f=721.png');
+    }
+    return n3s_cover_url_from_image_row($image);
+}
+
+function n3s_list_setCoverURL(&$rows)
+{
+    if (!is_array($rows) || count($rows) === 0) {
+        return;
+    }
+    $ids = [];
+    foreach ($rows as $row) {
+        $image_id = intval(isset($row['image_id']) ? $row['image_id'] : 0);
+        if ($image_id > 0) {
+            $ids[$image_id] = true;
+        }
+    }
+    $images = [];
+    if (count($ids) > 0) {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $image_rows = db_get(
+            "SELECT image_id,filename,token FROM images WHERE image_id IN ($placeholders)",
+            array_keys($ids)
+        );
+        foreach ($image_rows as $image) {
+            $images[intval($image['image_id'])] = $image;
+        }
+    }
+    foreach ($rows as &$row) {
+        $image_id = intval(isset($row['image_id']) ? $row['image_id'] : 0);
+        if ($image_id > 0 && isset($images[$image_id])) {
+            $row['cover_url'] = n3s_cover_url_from_image_row($images[$image_id]);
+        } else {
+            $row['cover_url'] = n3s_get_config('cover_default_url', 'https://n3s.nadesi.com/image.php?f=721.png');
+        }
+    }
+}
+
 function n3s_list_setTagLink(&$list)
 {
     foreach ($list as &$i) {

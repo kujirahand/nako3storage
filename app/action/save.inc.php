@@ -68,6 +68,7 @@ function n3s_show_save_form($mode)
     }
     $a['presave'] = 'no';
     $a['edit_token'] = n3s_getEditToken();
+    $a['cover_url'] = n3s_get_cover_url($a);
     // set backurl (ログインした後、戻って来れるように)
     n3s_setBackURL(n3s_getURL($app_id, 'save', ['load_src' => 'yes']));
     n3s_template_fw('save.html', $a);
@@ -183,6 +184,7 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     $a['custom_head'] = isset($a['custom_head']) ? $a['custom_head'] : '';
     $a['edit_token'] = isset($a['edit_token']) ? $a['edit_token'] : '';
     $a['fav'] = intval(isset($a['fav']) ? $a['fav'] : 0);
+    $a['image_id'] = intval(isset($a['image_id']) ? $a['image_id'] : 0);
     $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : '';
     $a['app_name'] = isset($a['app_name']) ? $a['app_name'] : '';
     $a['editkey'] = isset($a['editkey']) ? $a['editkey'] : '';
@@ -277,6 +279,21 @@ function n3s_action_save_data($data, $agent = 'web')
     try {
         $data['user_id'] = n3s_get_user_id();
         $app_id = n3s_action_save_data_raw($data, $agent);
+        try {
+            n3s_action_save_cover_after($app_id);
+        } catch (Exception $cover_error) {
+            $show_url = n3s_getURL($app_id, 'show');
+            $edit_url = n3s_getURL($app_id, 'edit');
+            n3s_info(
+                '投稿を保存しました',
+                '<p>投稿本体は保存しましたが、扉絵の処理に失敗しました。</p>' .
+                    '<p>' . htmlspecialchars($cover_error->getMessage(), ENT_QUOTES) . '</p>' .
+                    "<p><a class='pure-button pure-button-primary' href='$show_url'>作品を見る</a> " .
+                    "<a class='pure-button' href='$edit_url'>扉絵を再設定する</a></p>",
+                true
+            );
+            return;
+        }
         n3s_jump($app_id, 'show');
     } catch (Exception $e) {
         $app_id = n3s_get_config('page', 0);
@@ -287,6 +304,27 @@ function n3s_action_save_data($data, $agent = 'web')
                 "<p><a class='pure-button' href='$url'>戻る</a></p>",
             true
         );
+    }
+}
+
+function n3s_action_save_cover_after($app_id)
+{
+    $has_upload = isset($_FILES['cover_image']) &&
+        isset($_FILES['cover_image']['error']) &&
+        intval($_FILES['cover_image']['error']) !== UPLOAD_ERR_NO_FILE;
+    $delete_cover = isset($_POST['cover_delete']) && intval($_POST['cover_delete']) === 1;
+    if (!$has_upload && !$delete_cover) {
+        return;
+    }
+    if (!n3s_is_login()) {
+        throw new Exception('扉絵を設定するにはログインが必要です。');
+    }
+    if ($has_upload) {
+        n3s_save_cover_image($app_id, n3s_get_user_id(), $_FILES['cover_image']);
+        return;
+    }
+    if ($delete_cover) {
+        n3s_unset_cover_image($app_id);
     }
 }
 
@@ -445,6 +483,7 @@ function n3s_action_save_delete($params)
         return;
     }
     // 削除
+    n3s_unset_cover_image($app_id);
     db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
     // 本文も削除 (残すとapp_id再利用時にmaterialsの主キー衝突が起きる)
     $dbname = n3s_getMaterialDB($app_id);

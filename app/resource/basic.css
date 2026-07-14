@@ -458,6 +458,283 @@ ul.devblock span.lbl {
   border:1px dotted silver; padding: 8px; margin: 8px;
 }
 
+.cover_image_option {
+  margin: 1em 0;
+}
+.cover_image_preview {
+  max-width: 600px;
+  margin: 0.5em 0;
+}
+.cover_image_preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 600 / 240;
+  object-fit: cover;
+  border: 1px solid #e8d3da;
+  border-radius: 8px;
+}
+.cover_delete_label {
+  display: block;
+  margin: 0.5em 0;
+}
+.show_cover_start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  max-width: 760px;
+  margin: 1em auto;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  border: 1px solid #e8d3da;
+  box-shadow: 0 6px 18px rgba(59, 49, 52, 0.12);
+}
+.show_cover_start .pure-button {
+  background: rgba(209, 71, 122, 0.92);
+  color: #fff;
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(59, 49, 52, 0.25);
+}
+
+.n3s-list-page {
+  --n3s-sakura-bg: #fef7f9;
+  --n3s-sakura-band: #fdf0f4;
+  --n3s-sakura-accent: #d1477a;
+  --n3s-sakura-soft: #e5a3b3;
+  --n3s-sumi: #3b3134;
+  --n3s-border: #e8d3da;
+  --n3s-gold: #c9a86a;
+  color: var(--n3s-sumi);
+  background: var(--n3s-sakura-bg);
+  padding: 1px 0 2em;
+}
+.n3s-list-page a {
+  color: var(--n3s-sakura-accent);
+  text-decoration: none;
+}
+.n3s-list-section {
+  max-width: 1180px;
+  margin: 18px auto;
+  padding: 0 16px;
+}
+.n3s-list-section h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  color: var(--n3s-sumi);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: 1.45em;
+  letter-spacing: 0;
+  border-bottom: 3px double var(--n3s-border);
+  padding-bottom: 0.35em;
+}
+.n3s-list-section h1::before {
+  content: "❀";
+  color: var(--n3s-sakura-accent);
+  font-size: 0.9em;
+}
+.n3s-section-lead {
+  color: #6f6065;
+  line-height: 1.7;
+}
+.n3s-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.n3s-app-card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--n3s-border);
+  border-radius: 8px;
+  box-shadow: 0 5px 16px rgba(59, 49, 52, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.n3s-app-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 22px rgba(59, 49, 52, 0.13);
+}
+.n3s-app-card-cover {
+  display: block;
+  background: var(--n3s-sakura-band);
+}
+.n3s-app-card-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 600 / 240;
+  object-fit: cover;
+}
+.n3s-app-card-body {
+  padding: 12px 14px 14px;
+}
+.n3s-app-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.n3s-app-icon {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: var(--n3s-sakura-band);
+}
+.n3s-app-meta {
+  min-width: 0;
+  color: #76676c;
+  font-size: 0.86em;
+}
+.n3s-app-author {
+  font-weight: bold;
+}
+.n3s-app-date::before {
+  content: "・";
+  color: var(--n3s-gold);
+  padding: 0 0.25em;
+}
+.n3s-app-title {
+  margin: 0.55em 0 0.25em;
+  font-size: 1.12em;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+.n3s-app-title a {
+  color: var(--n3s-sumi);
+}
+.n3s-app-memo {
+  min-height: 3.2em;
+  margin: 0;
+  color: #5f5357;
+  font-size: 0.92em;
+  line-height: 1.6;
+}
+.n3s-app-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  color: #76676c;
+  font-size: 0.86em;
+}
+.n3s-app-fav,
+.n3s-app-bad {
+  color: var(--n3s-sakura-accent);
+  font-weight: bold;
+}
+.n3s-app-tags a {
+  display: inline-block;
+  margin-right: 0.35em;
+  color: #9b6675;
+}
+.n3s-more,
+.next_button_div {
+  text-align: right;
+  padding: 0.8em 0;
+}
+.n3s-top-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+}
+.n3s-top-user,
+.n3s-user-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--n3s-border);
+  border-radius: 999px;
+  background: #fff;
+}
+.n3s-list-actions,
+.n3s-admin-links {
+  max-width: 1180px;
+  margin: 18px auto;
+  border: 1px solid var(--n3s-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+@media (max-width: 767px) {
+  .n3s-list-page {
+    background: #fff;
+  }
+  .n3s-list-section {
+    margin: 0;
+    padding: 0 12px;
+  }
+  .n3s-list-section h1 {
+    font-size: 1.18em;
+    margin: 16px 0 8px;
+  }
+  .n3s-tiles {
+    display: block;
+  }
+  .n3s-app-card {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 0;
+    border: 0;
+    border-bottom: 1px solid var(--n3s-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .n3s-app-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .n3s-app-card-cover {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--n3s-border);
+  }
+  .n3s-app-card-body {
+    display: contents;
+    padding: 0;
+  }
+  .n3s-app-card-head {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    align-items: flex-start;
+  }
+  .n3s-app-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+  .n3s-app-title,
+  .n3s-app-memo,
+  .n3s-app-foot {
+    grid-column: 2;
+  }
+  .n3s-app-title {
+    margin: -4px 0 0;
+    font-size: 1.02em;
+  }
+  .n3s-app-memo {
+    min-height: 0;
+    margin-top: 4px;
+  }
+  .n3s-app-foot {
+    margin-top: 8px;
+  }
+  .n3s-app-date {
+    display: inline;
+  }
+  .n3s-list-actions,
+  .n3s-admin-links {
+    margin: 12px;
+  }
+}
+
 /* Comment Section Styles */
 .fav-active {
   color: #ff9800 !important;

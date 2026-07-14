@@ -353,15 +353,7 @@ function delete_image()
         n3s_error('削除権限がありません。', '他人のリソースは削除できません。');
         return;
     }
-    $filename = $im['filename'];
-    $ext = '.' . pathinfo($filename, PATHINFO_EXTENSION);
-    $targetFile = n3s_getImageFile($image_id, $ext, FALSE, $im['token']);
-    // delete from db
-    db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
-    // delete file
-    if (file_exists($targetFile)) {
-        @unlink($targetFile);
-    }
+    n3s_delete_image_record_and_file($image_id);
     $back = n3s_getURL('my', 'mypage');
     n3s_info("ファイルを削除しました。", "ファイルを削除しました。<a href='$back'>戻る</a>", true);
 }

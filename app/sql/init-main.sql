@@ -21,6 +21,7 @@ CREATE TABLE apps (
   custom_head TEXT DEFAULT '', /* カスタムヘッダ */
   tag         TEXT DEFAULT '', /* (''|DNCL|library|w_noname)+ カンマで区切る */
   show_list   INTEGER DEFAULT 1, /* 1:作品一覧に掲載 0:非掲載 #202 */
+  image_id    INTEGER DEFAULT 0, /* 扉絵(imagesテーブルのimage_id) 0:扉絵なし */
   editkey     TEXT DEFAULT '', /* 編集用のキー(ハッシュ化されていない) */
   need_key    INTEGER DEFAULT 0, /* 0:不要 1: 見るには access_keyが必要 */
   access_key  TEXT DEFAULT '', /* 現在未使用 */
@@ -87,6 +88,9 @@ CREATE TABLE comment_likes (
 );
 
 /*
+2026/07/15 扉絵カラムを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)
+ALTER TABLE apps ADD COLUMN image_id INTEGER DEFAULT 0;
+
 2026/07/14 (#202) 一覧掲載フラグを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)
 ALTER TABLE apps ADD COLUMN show_list INTEGER DEFAULT 1;
 UPDATE apps SET show_list=0 WHERE tag LIKE '%w_noname%';

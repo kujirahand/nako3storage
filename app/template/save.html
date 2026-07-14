@@ -40,7 +40,7 @@
   <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
   {{ endif }}
 
-  <form method="POST"
+  <form method="POST" enctype="multipart/form-data"
     onsubmit="return checkSubmit()"
     action="index.php?action=save&page={{$app_id}}&mode=edit">
     <div id="program_options" class="option_box">
@@ -94,6 +94,30 @@
           <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
         </label>
       </p>
+      <div class="cover_image_option">
+        <label>扉絵(カバー画像):</label><br />
+        {{ if n3s_is_login() }}
+          {{ if $image_id gt 0 }}
+          <div class="cover_image_preview">
+            <img src="{{$cover_url}}" alt="現在の扉絵" />
+          </div>
+          <label class="cover_delete_label">
+            <input id="cover_delete" type="checkbox" name="cover_delete" value="1" />
+            扉絵を削除する
+          </label>
+          <div id="cover_image_file_wrap" style="display:none;">
+            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp" />
+          </div>
+          {{ else }}
+          <div id="cover_image_file_wrap">
+            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp" />
+          </div>
+          {{ endif }}
+          <div class="info">600x240px にリサイズ・中央切り抜きされます。自分専用素材として登録されます。</div>
+        {{ else }}
+          <div class="info">扉絵の設定にはログインが必要です。</div>
+        {{ endif }}
+      </div>
       <p>
         <label>関連URL (任意):<br />
           <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
@@ -446,6 +470,14 @@ is_private.addEventListener('change', (e) => {
     editkey_options.style.display = 'none'
   }
 });
+
+const coverDelete = document.getElementById('cover_delete')
+const coverImageFileWrap = document.getElementById('cover_image_file_wrap')
+if (coverDelete && coverImageFileWrap) {
+  coverDelete.addEventListener('change', () => {
+    coverImageFileWrap.style.display = coverDelete.checked ? 'block' : 'none'
+  })
+}
 
 </script>
 

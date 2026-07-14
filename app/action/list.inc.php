@@ -1,5 +1,7 @@
 <?php
-const MAX_APP = 15; // 何件まで表示するか
+const MAX_APP_RECENT = 20; // 最新の投稿を何件まで表示するか
+const MAX_APP_GUEST = 4; // ログインなし投稿を何件まで表示するか
+const MAX_APP_RANKING = 8; // トップページのランキング枠を何件まで表示するか
 const MAX_PAGE_OFFSET = 500; // 500以降は表示しない
 
 // ブラウザからのアクセスがあったとき
@@ -75,33 +77,33 @@ function n3s_list_get()
         $wheres1 = unserialize(serialize($wheres));
         $wheres1[] = "user_id > 0";
         $sql =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres1) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
-        $list = db_get($sql, array_merge($where_params, [MAX_APP, $offset]));
+        $list = db_get($sql, array_merge($where_params, [MAX_APP_RECENT, $offset]));
         // user_id == 0
         $wheres2 = unserialize(serialize($wheres));
         $wheres2[] = "user_id == 0";
         $sql2 =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres2) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
-        $list2 = db_get($sql2, array_merge($where_params, [MAX_APP, $offset]));
+        $list2 = db_get($sql2, array_merge($where_params, [MAX_APP_GUEST, $offset]));
     }
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
         $sql =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?';
-        $statements = array_merge($where_params, [MAX_APP]);
+        $statements = array_merge($where_params, [MAX_APP_RECENT]);
         $list = db_get($sql, $statements);
         $list2 = [];
     }
     // --------------------------------------------------------
     // next url link
     $next_url = n3s_getURL('all', 'list', [
-        'offset' => ($offset + MAX_APP),
+        'offset' => ($offset + MAX_APP_RECENT),
         'nofilter' => $nofilter,
         'user_id' => $find_user_id,
         'onlybad' => $onlybad,
@@ -133,7 +135,7 @@ function n3s_list_get()
         // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
         // 上位N件を取る
         shuffle($ranking);
-        $ranking = array_splice($ranking, 0, 7);
+        $ranking = array_splice($ranking, 0, MAX_APP_RANKING);
         // 重なる投稿を削除
         $all = [];
         foreach ($ranking_all as $row) {
@@ -148,7 +150,7 @@ function n3s_list_get()
             }
         }
         shuffle($ranking_all);
-        $ranking_all = array_splice($ranking_all, 0, 5);
+        $ranking_all = array_splice($ranking_all, 0, MAX_APP_RANKING);
 
         // 人気のユーザー (#185)
         $users = [];
@@ -182,10 +184,18 @@ function n3s_list_get()
     n3s_list_setIcon($list2);
     n3s_list_setIcon($ranking);
     n3s_list_setIcon($ranking_all);
+    n3s_list_setCoverURL($list);
+    n3s_list_setCoverURL($list2);
+    n3s_list_setCoverURL($ranking);
+    n3s_list_setCoverURL($ranking_all);
     n3s_list_setTagLink($list);
     n3s_list_setTagLink($list2);
     n3s_list_setTagLink($ranking);
     n3s_list_setTagLink($ranking_all);
+    n3s_list_setCardHTML($list);
+    n3s_list_setCardHTML($list2);
+    n3s_list_setCardHTML($ranking);
+    n3s_list_setCardHTML($ranking_all);
     return [
         "mode" => $mode,
         "list" => $list,
@@ -206,6 +216,58 @@ function n3s_list_get()
     ];
 }
 
+function n3s_list_setCardHTML(&$list)
+{
+    foreach ($list as &$r) {
+        if (empty($r['title'])) {
+            $r['card_html'] = '';
+            continue;
+        }
+        $app_id = intval($r['app_id']);
+        $title = t_check_mudai($r['title']);
+        $author = t_check_nanasi($r['author']);
+        $memo = t_trim100($r['memo']);
+        $date = t_date2($r['mtime']);
+        $cover_url = htmlspecialchars($r['cover_url'], ENT_QUOTES);
+        $icon = htmlspecialchars($r['icon'], ENT_QUOTES);
+        $fav = intval($r['fav']);
+        $bad = intval($r['bad']);
+        $user_id = intval($r['user_id']);
+        $tag_html = (!empty($r['tag'])) ? $r['tag_link'] : '';
+        if ($user_id > 0) {
+            $author_html = "<a class=\"n3s-app-author\" href=\"index.php?user_id={$user_id}&action=list\">{$author} 作</a>";
+        } else {
+            $author_html = "<span class=\"n3s-app-author\">{$author} 作</span>";
+        }
+        $fav_html = ($fav > 0) ? "<span class=\"n3s-app-fav\">⭐ {$fav}</span>" : '';
+        $bad_html = ($bad > 0) ? "<span class=\"n3s-app-bad\">⛔{$bad}</span>" : '';
+        $tag_html = ($tag_html !== '') ? "<span class=\"n3s-app-tags\">{$tag_html}</span>" : '';
+        $r['card_html'] = <<<HTML
+<article class="n3s-app-card">
+  <a class="n3s-app-card-cover" href="id.php?{$app_id}">
+    <img src="{$cover_url}" alt="{$title}">
+  </a>
+  <div class="n3s-app-card-body">
+    <div class="n3s-app-card-head">
+      <img class="n3s-app-icon" src="{$icon}" alt="">
+      <div class="n3s-app-meta">
+        {$author_html}
+        <span class="n3s-app-date">{$date}</span>
+      </div>
+    </div>
+    <h2 class="n3s-app-title"><a href="id.php?{$app_id}">{$title}</a></h2>
+    <p class="n3s-app-memo">{$memo}</p>
+    <div class="n3s-app-foot">
+      {$fav_html}
+      {$bad_html}
+      {$tag_html}
+    </div>
+  </div>
+</article>
+HTML;
+    }
+}
+
 // Web API向けのアクセスがあったとき
 function n3s_api_list()
 {
@@ -220,6 +282,7 @@ function n3s_api_list()
             "author" => $row['author'],
             "memo" => $row['memo'],
             "mtime" => $row['mtime'],
+            "cover_url" => $row['cover_url'],
             "top_users" => [],
         );
     }

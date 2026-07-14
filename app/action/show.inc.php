@@ -36,6 +36,7 @@ function n3s_api_show()
             'canvas_w' => $a['canvas_w'],
             'canvas_h' => $a['canvas_h'],
             'user_id' => $a['user_id'],
+            'cover_url' => $a['cover_url'],
             'body' => $a['body'],
         ];
         // APIアクセス統計を記録 (Issue #217)
@@ -291,6 +292,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // tag
     $a['tag'] = empty($a['tag']) ? '' : $a['tag'];
     $a['tag_link'] = n3s_makeTagLink($a['tag']);
+    $a['cover_url'] = n3s_get_cover_url($a);
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);

@@ -1,263 +1,127 @@
 {{ include parts_html_header.html }}
 
-<style>
-  .id_small { font-size: 0.7em; color: silver; }
-  #recent_list a { text-decoration: none; } 
-</style>
+<div class="n3s-list-page">
+  <div class="list info">{{ $top_message | raw }}</div>
 
-<div class="list info">{{ $top_message | raw }}</div>
+  {{ if ($find_user_id gt 0)&&(!empty($find_user_info)) }}
+  <section class="n3s-list-section">
+    <h1>{{$find_user_info.name}} さんの投稿</h1>
+  </section>
+  {{ endif }}
 
-{{ if ($find_user_id gt 0)&&(!empty($find_user_info)) }}
-  <!-- ユーザー紹介 -->
-  <div class="list">
-    <h1 class="list_user_profile">
-      {{$find_user_info.name}} さんの投稿:
-    </h1>
-    <div style="clear:both"></div>
-  </div>
-{{ endif }}
-
-{{ if $ranking_all && (!isset($app_id) || $app_id eq 0) }}
-  <!-- 偉大な投稿のリスト -->
-  <div class="list" id="ranking_list">
-  <h1>偉大な投稿</h1>
-  <p>
-    これまで投稿された{{$app_count}}件の投稿の中で偉大な投稿をランダムに表示します。
-    (<a href="index.php?action=list&mode=ranking&term=all">全期間</a>)
-  </p>
-  <table width="100%">
-      <tr>
-          <th>タイトル</th>
-          <th>説明</th>
-      </tr>
+  {{ if $ranking_all && (!isset($app_id) || $app_id eq 0) }}
+  <section class="n3s-list-section" id="ranking_list_all">
+    <h1>偉大な投稿</h1>
+    <p class="n3s-section-lead">
+      これまで投稿された{{$app_count}}件の投稿の中で偉大な投稿をランダムに表示します。
+      <a href="index.php?action=list&mode=ranking&term=all">全期間</a>
+    </p>
+    <div class="n3s-tiles">
       {{ for $ranking_all as $r }}
-      <tr>
-          <td>
-              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">&nbsp;{{$r.title | check_mudai }}</a>
-              {{if $r.fav gt 0}}
-              <br><span class='memo'>{{$r.fav | star}}</span>
-              {{endif}}
-          </td>
-          <td>
-              {{if $r.user_id gt 0}}
-              <span class="dev">
-                  <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
-              </span>
-              {{else}}
-              <span class="dev">{{$r.author | check_nanasi }} 作</span>
-              {{endif}}
-              <br>
-              <span class="memo">{{$r.memo | trim50 }}</span>
-              <span class="date">({{$r.mtime | date2}})</span>
-              {{if $r.tag != ""}}
-              <span class="memo">(タグ: {{$r.tag_link | raw}})</span>
-              {{endif}}
-        </td>
-      </tr>
+      {{ $r.card_html | raw }}
       {{ endfor }}
-  </table>
-  <p class="memo" style="text-align:right; padding:0.5em;"><a href="index.php?action=list&mode=ranking">→もっと見る...</a></p>
-  </div><!-- end of #ranking_list -->
-{{ else }}
-<div class="list" id="ranking_list"><h1>投稿数: {{$app_count}}件</h1></div>
-{{ endif /* end of ranking */ }}
+    </div>
+    <p class="n3s-more"><a href="index.php?action=list&mode=ranking">もっと見る...</a></p>
+  </section>
+  {{ else }}
+  <section class="n3s-list-section">
+    <h1>投稿数: {{$app_count}}件</h1>
+  </section>
+  {{ endif }}
 
-{{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
-  <!-- 人気のリスト -->
-  <div class="list" id="ranking_list">
-  <h1>人気の投稿</h1>
-  <p>最近の人気の投稿をランダムに表示します。</p>
-  <table width="100%">
-      <tr>
-          <th>タイトル</th>
-          <th>説明</th>
-      </tr>
+  {{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
+  <section class="n3s-list-section" id="ranking_list">
+    <h1>人気の投稿</h1>
+    <p class="n3s-section-lead">最近の人気の投稿をランダムに表示します。</p>
+    <div class="n3s-tiles">
       {{ for $ranking as $r }}
-      <tr>
-          <td>
-              <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24"> {{$r.title | check_mudai }}</a>
-              {{if $r.fav gt 0}}
-              <br><span class='memo'>{{$r.fav | star}}</span>
-              {{endif}}
-          </td>
-          <td>
-              {{if $r.user_id gt 0}}
-              <span class="dev">
-                  <a href="index.php?user_id={{$r.user_id}}&action=list">{{$r.author | check_nanasi }} 作</a>
-              </span>
-              {{else}}
-              <span class="dev">{{$r.author | check_nanasi }} 作</span>
-              {{endif}}
-              <br>
-              <span class="memo">{{$r.memo | trim50 }}</span>
-              <span class="date">({{$r.mtime | date2}})</span>
-              {{if $r.tag != ""}}
-              <span class="memo">(タグ: {{$r.tag_link | raw}})</span>
-              {{endif}}
-        </td>
-      </tr>
+      {{ $r.card_html | raw }}
       {{ endfor }}
-  </table>
-  <p class="memo" style="text-align:right; padding:0.5em;"><a href="index.php?action=list&mode=ranking">→もっと見る...</a></p>
-  </div><!-- end of #ranking_list -->
-{{ endif /* end of ranking */ }}
-
-{{ if $top_users }}
-<div class="list" id="top_users">
-  <h1>人気ユーザーの一覧 (登録ユーザー: {{$user_count}}名)</h1>
-  <div class="showblock">
-    {{ for $top_users as $u }}
-    {{ if $u.user_id == 0}}
-    👑{{ $u.name }}<span class="memo">({{ $u.count }})</span> /
-    {{ else }}
-    <a href="index.php?action=list&user_id={{$u.user_id}}">
-      👑{{ $u.name }}<span class="memo">({{ $u.count }})</span>
-    </a> /
-    {{ endif }}
-    {{ endfor }}
-    <a href="index.php?action=list&mode=ranking&term=all">人気作品...</a>
-  </div>
-</div><!-- end of #top_users -->
-{{ else }}
-<div class="list" id="top_users">
-  <h1>ユーザー数: {{$user_count}}名</h1>
-</div><!-- end of #top_users -->
-{{ endif }}
-
-<!-- #recent_lit -->
-<div class="list" id="recent_list">
-{{ if $mode == 'ranking' }}
-  <h1>人気順の表示</h1>
-{{ else }}
-  {{ if $offset == 0 }}
-  <h1>最新の投稿  {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
-  {{ else }}
-  <h1>投稿の一覧 (更新順 {{e:echo $offset}}件目から)  {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
+    </div>
+    <p class="n3s-more"><a href="index.php?action=list&mode=ranking">もっと見る...</a></p>
+  </section>
   {{ endif }}
-{{ endif }}
 
-{{ if (!$list) }}
-  <div class="showblock">😔 見つかりませんでした。</div>
-{{ else }}
-<table width="100%">
-    <tr>
-        <th>タイトル</th>
-        <th>説明</th>
-    </tr>
-    {{e: $n = 0; }}
-    {{ for $list as $r }}
-      {{ if empty($r['title']) }}
-        <!-- broken data -->
+  {{ if $top_users }}
+  <section class="n3s-list-section" id="top_users">
+    <h1>人気ユーザーの一覧</h1>
+    <div class="n3s-top-users">
+      <span class="n3s-user-count">登録ユーザー: {{$user_count}}名</span>
+      {{ for $top_users as $u }}
+      {{ if $u.user_id == 0}}
+      <span class="n3s-top-user">{{$u.name}}<span class="memo">({{ $u.count }})</span></span>
       {{ else }}
-        <tr>
-            <td>
-                <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">
-                  {{ $r.title | check_mudai }}</a>
-                {{if $r.fav gt 0}}
-                <br><span class='memo'>{{$r.fav | star}}</span>
-                {{endif}}
-                {{if $r.bad gt 0}}
-                <span class="memo">⛔{{$r.bad}}</span>
-                {{endif}}
-            </td>
-            <td>
-                {{if $r.user_id gt 0}}
-                <span class="dev">
-                    <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
-                </span>
-                {{else}}
-                <span class="dev">{{$r.author | check_nanasi }} 作</span>
-                {{endif}}
-                <br>
-                <span class="postmemo">{{$r.memo | trim100 }}</span>
-                <span class="date">({{$r.mtime | date2}})</span>
-                {{if $r.tag != ""}}
-                <span class="memo">(タグ: {{$r.tag_link | raw}})</span>
-                {{endif}}
-            </td>
-        </tr>
+      <a class="n3s-top-user" href="index.php?action=list&user_id={{$u.user_id}}">
+        {{$u.name}}<span class="memo">({{ $u.count }})</span>
+      </a>
       {{ endif }}
-    {{ endfor }}
-</table>
-{{ if $next_url }}
-<div class="next_button_div">
-    <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
-</div>
-{{ endif }}
-{{ endif }}
-</div><!-- end of #recent_list -->
-
-{{ if ($list2) }}
-<div class="list">
-<h1>ログインなしの投稿の一覧</h1>
-<table width="100%">
-  <tr>
-    <th>タイトル</th>
-    <th>説明</th>
-  </tr>
-  {{e: $n = 0; }}
-  {{ for $list2 as $r }}
-  {{ if empty($r['title']) }}
-  <!-- broken data -->
+      {{ endfor }}
+      <a class="n3s-top-user" href="index.php?action=list&mode=ranking&term=all">人気作品...</a>
+    </div>
+  </section>
   {{ else }}
-  <tr>
-    <td>
-      <a href="id.php?{{$r.app_id}}"><img src="{{$r.icon}}" width="24">
-        {{ $r.title | check_mudai }}</a>
-      {{if $r.fav gt 0}}
-      <br><span class='memo'>{{$r.fav | star}}</span>
-      {{endif}}
-      {{if $r.bad gt 0}}
-      <span class="memo">⛔{{$r.bad}}</span>
-      {{endif}}
-    </td>
-    <td>
-      {{if $r.user_id gt 0}}
-      <span class="dev">
-        <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
-      </span>
-      {{else}}
-      <span class="dev">{{$r.author | check_nanasi }} 作</span>
-      {{endif}}
-      <br>
-      <span class="postmemo">{{$r.memo | trim100 }}</span>
-      <span class="date">({{$r.mtime | date2}})</span>
-      {{if $r.tag != ""}}
-      <span class="memo">(タグ: {{$r.tag_link | raw}})</span>
-      {{endif}}
-    </td>
-  </tr>
+  <section class="n3s-list-section" id="top_users">
+    <h1>ユーザー数: {{$user_count}}名</h1>
+  </section>
   {{ endif }}
-  {{ endfor }}
-</table>
 
-{{ if $next_url }}
-<div class="next_button_div">
-  <a href='{{$next_url}}' class="pure-button">⏪ 次へ</a>
+  <section class="n3s-list-section" id="recent_list">
+    {{ if $mode == 'ranking' }}
+    <h1>人気順の表示</h1>
+    {{ else }}
+      {{ if $offset == 0 }}
+      <h1>最新の投稿 {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
+      {{ else }}
+      <h1>投稿の一覧 (更新順 {{e:echo $offset}}件目から) {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
+      {{ endif }}
+    {{ endif }}
+
+    {{ if (!$list) }}
+    <div class="showblock">見つかりませんでした。</div>
+    {{ else }}
+    <div class="n3s-tiles">
+      {{ for $list as $r }}
+      {{ $r.card_html | raw }}
+      {{ endfor }}
+    </div>
+    {{ if $next_url }}
+    <div class="next_button_div">
+      <a href='{{$next_url}}' class="pure-button">次へ</a>
+    </div>
+    {{ endif }}
+    {{ endif }}
+  </section>
+
+  {{ if ($list2) }}
+  <section class="n3s-list-section">
+    <h1>ログインなしの投稿の一覧</h1>
+    <div class="n3s-tiles">
+      {{ for $list2 as $r }}
+      {{ $r.card_html | raw }}
+      {{ endfor }}
+    </div>
+    {{ if $next_url }}
+    <div class="next_button_div">
+      <a href='{{$next_url}}' class="pure-button">次へ</a>
+    </div>
+    {{ endif }}
+  </section>
+  {{ endif }}
+
+  <div class="addon_block n3s-list-actions">
+    <a class="pure-button" href="index.php?action=upload&mode=list">素材ファイルの一覧を表示</a>
+    {{if n3s_is_login()}}
+    <a class="pure-button" href="index.php?action=mypage&page=my">自分の投稿(マイページ)を表示</a>
+    {{endif}}
+  </div>
+
+  {{ if $is_admin }}
+  <div class="addon_block n3s-admin-links">
+    <p>管理用</p>
+    <ul>
+      <li><a href="index.php?action=list&onlybad=1&noindex=1">問題投稿(閲覧注意)</a></li>
+      <li><a href="index.php?action=list&nofilter=1&noindex=1">問題込みで表示</a></li>
+    </ul>
+  </div>
+  {{ endif }}
 </div>
-{{ endif }}
-{{ endif }}
-</div><!-- end of #recent_list -->
-
-<div class="addon_block" style="border: 1px solid silver">
-  <a class="pure-button" href="index.php?action=upload&mode=list">🔧素材ファイルの一覧を表示</a>
-  {{if n3s_is_login()}}
-  <a class="pure-button" href="index.php?action=mypage&page=my">🐕自分の投稿(マイページ)を表示</a>
-  {{endif}}
-</div>
-
-<br>
-<br>
-
-{{ if $is_admin }}
-<div class="addon_block" style="background-color: #f0f0f0;border-top:1px dotted silver">
-  <p>管理用</p>
-  <ul>
-      <li><a href="index.php?action=list&onlybad=1&noindex=1">⛔問題投稿(閲覧注意)</a></li>
-      <li><a href="index.php?action=list&nofilter=1&noindex=1">⛔問題込みで表示</a></li>
-  </ul>
-</div><!-- /addon_block -->
-{{ endif }}
-
-{{ include parts_html_footer.html }}
-

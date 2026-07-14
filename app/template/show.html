@@ -20,6 +20,18 @@
       {{if $is_private == 2}}🔐{{endif}}
     </h1>
     <p class="memo">{{ $memo }}</p>
+    {{ if $nakotype eq 'wnako' || $nakotype eq 'html' }}
+      {{ if $is_private == 1 }}
+      <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
+      {{ else }}
+        {{ if $widget_url_run }}
+        <div class="show_cover_start" style="background-image:url('{{$cover_url}}');">
+          <a id="a_run_button" class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">
+            ▶ プログラムを実行</a>
+        </div>
+        {{ endif }}
+      {{ endif }}
+    {{ endif }}
   </div>
   <div id="program_area">
     <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
@@ -28,18 +40,6 @@
     {{ if $nakotype eq 'wnako' || $nakotype eq 'html' }}
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
-      <!-- widget -->
-      {{ if $is_private == 1 }}
-      <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
-      {{ else }}
-        {{ if $widget_url_run }}
-        <div style="text-align: center;">
-          <a id="a_run_button" class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">
-            プログラムを実行</a>
-        </div>
-        {{ endif }}
-      {{ endif }}
-      <!-- /widget -->
     {{ else }}
       <button id="runButton" style="display:none"></button>
       <button id="clearButton" style="display:none"></button>
