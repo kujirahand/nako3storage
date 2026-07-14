@@ -7,46 +7,187 @@
 </div>
 <div class="showblock">
     <h1>ログイン</h1>
-    <div class="info_box">
-        <h3>{{ $error | raw }}</h3>
-        <div>
-            <form 
-                class="pure-form"
-                action="index.php?action=login&page=trylogin"
-                onsubmit="return onBeforeSubmit();"
-                method="POST">
-                <p>
-                    <label for="email2">メールアドレス</label><br>
-                    <input type="email" name="email" id="email2" placeholder="メールアドレス" required>
-                </p>
-                <p>
-                    <label for="password">パスワード</label><br>
-                    <input type="password" name="password" id="password2" placeholder="パスワード" required>
-                </p>
-                <p>
-                    <input type="checkbox" name="memory" id="memory" value="on">
-                    <label for="memory">メールアドレスを記憶(自分端末の時だけ)</label>
-                </p>
-                <p>
-                    <button type="submit" class="pure-button pure-button-primary">ログイン</button>
-                </p>
-                <input type="hidden" name="edit_token" value="{{ $token }}" />
-            </form>
+    <div class="login-card">
+        {{ if $error }}
+        <h3 class="login-error">{{ $error | raw }}</h3>
+        {{ endif }}
+        <p class="login-hint">
+            なでしこ3貯蔵庫では、Googleアカウントか独自のメールアドレスを利用してログインできます。
+            本サーバーのメール送信の問題で、メールが届かないことがあるので、Googleアカウントでのログインをオススメします。
+        </p>
+        {{ if $google_login_enabled }}
+        <div class="google-signin-wrap">
+            <a class="google-signin-btn" href="index.php?action=login&page=google_login">
+                <svg class="google-signin-icon" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                </svg>
+                <span>Googleでログイン</span>
+            </a>
+        </div>
+        <div class="login-divider"><span>または</span></div>
+        {{ endif }}
+        <form
+            class="pure-form login-form"
+            action="index.php?action=login&page=trylogin"
+            onsubmit="return onBeforeSubmit();"
+            method="POST">
+            <p>
+                <label for="email2">メールアドレス</label><br>
+                <input type="email" name="email" id="email2" placeholder="メールアドレス" required>
+            </p>
+            <p>
+                <label for="password2">パスワード</label><br>
+                <input type="password" name="password" id="password2" placeholder="パスワード" required>
+            </p>
+            <p class="login-remember">
+                <input type="checkbox" name="memory" id="memory" value="on">
+                <label for="memory">メールアドレスを記憶(自分端末の時だけ)</label>
+            </p>
+            <p>
+                <button type="submit" class="pure-button pure-button-primary login-submit">ログイン</button>
+            </p>
+            <input type="hidden" name="edit_token" value="{{ $token }}" />
+        </form>
+        <div class="login-divider"><span>または</span></div>
+        <div class="login-links">
+            <a href="index.php?action=login&page=register">メールアでユーザー登録</a>
+            {{ if $google_login_enabled }}
+            / <a href="index.php?action=login&page=google_login">Googleアカウントで登録</a>
+            {{ endif }}
+            /
+            <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
         </div>
     </div>
-    <br>
-    {{ if $google_login_enabled }}
-    <div class="info_box">
-        <a class="pure-button" href="index.php?action=login&page=google_login">Googleでログイン</a>
-    </div>
-    <br>
-    {{ endif }}
-    <div class="info_box">
-        <a href="index.php?action=login&page=register">ユーザーの新規登録</a> /
-        <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
-    </div>
-    <br>
 </div>
+<style>
+    .login-card {
+        max-width: 460px;
+        margin: 0 auto;
+        padding: 1.8em 2em;
+        background-color: #fff;
+        border: 1px solid #f1d6d6;
+        border-top: 4px solid #ffc0c0;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(120, 60, 60, 0.08);
+    }
+    .login-hint {
+        margin: 0 0 1.5em 0;
+        padding: 0.75em 0.9em;
+        background-color: #fff5f5;
+        border-radius: 4px;
+        color: #957070;
+        font-size: 0.75em;
+        line-height: 1.7;
+    }
+    .login-error {
+        margin: 0 0 1.15em 0;
+        padding: 0.7em 0.85em;
+        background-color: #fff1f1;
+        border: 1px solid #ffd0d0;
+        border-radius: 6px;
+        font-size: 1em;
+        color: #8a3a3a;
+    }
+    .google-signin-wrap {
+        margin: 0 0 1.45em 0;
+    }
+    .google-signin-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75em;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 48px;
+        padding: 0.85em 1.2em;
+        background-color: #fff;
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        color: #3c4043;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .google-signin-btn:hover {
+        background-color: #f7f8f8;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    .google-signin-btn:active {
+        background-color: #eeeeee;
+    }
+    .google-signin-icon {
+        flex-shrink: 0;
+    }
+    .login-divider {
+        display: flex;
+        align-items: center;
+        color: #9c8e8e;
+        font-size: 0.8em;
+        margin: 1.55em 0;
+    }
+    .login-divider::before,
+    .login-divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #eee;
+    }
+    .login-divider span {
+        padding: 0 1em;
+    }
+    .login-form {
+        padding-top: 0.1em;
+    }
+    .login-form p {
+        margin: 0 0 1.15em 0;
+    }
+    .login-form label {
+        color: #554848;
+        font-weight: 600;
+    }
+    .login-form input[type="email"],
+    .login-form input[type="password"] {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 0.35em;
+        padding: 0.72em 0.8em;
+        border: 1px solid #ddd0d0;
+        border-radius: 6px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .login-form input[type="email"]:focus,
+    .login-form input[type="password"]:focus {
+        border-color: #f3a3a3;
+        box-shadow: 0 0 0 3px rgba(255, 192, 192, 0.28);
+        outline: none;
+    }
+    .login-remember {
+        font-size: 0.85em;
+        color: #777;
+    }
+    .login-submit {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 0.2em;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+    .login-links {
+        margin-top: 0.9em;
+        text-align: center;
+        font-size: 0.85em;
+        line-height: 1.8;
+    }
+    @media (max-width: 560px) {
+        .login-card {
+            padding: 1.35em 1.1em;
+        }
+    }
+</style>
 <script>
     //-------------------------------------------------------------
     // メルアドを復元する

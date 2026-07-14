@@ -66,6 +66,23 @@ RewriteRule ^([0-9a-z_\-]+)\.js\.map$ /cdn.php?f=release/$1.js.map
 </IfModule>
 ```
 
+## Googleアカウントでのログインを有効にする場合
+
+メールアドレス/パスワードによるログインに加えて、Googleアカウントでのログインを有効にできます(設定しない場合、ログイン画面に「Googleでログイン」ボタンは表示されず、従来通りメールアドレス/パスワードのみでログインします)。設計の詳細は [docs/user_login_oauth_google.md](docs/user_login_oauth_google.md) を参照してください。
+
+1. [Google Cloud Console](https://console.cloud.google.com/) で OAuth 2.0 クライアントID(種類は「ウェブ アプリケーション」)を作成する。
+2. 「承認済みのリダイレクト URI」に、下記で設定する `google_oauth_redirect_uri` と**完全に一致する**URLを登録する(例: `https://n3s.example.com/index.php?action=login&page=google_callback`)。
+3. `n3s_config.ini.php` に、発行されたクライアントIDとクライアントシークレット、上記のリダイレクトURIを追加する。
+
+```php
+// Google OAuth 2.0 の設定
+$n3s_config['google_oauth_client_id'] = '(発行されたクライアントID)';
+$n3s_config['google_oauth_client_secret'] = '(発行されたクライアントシークレット)';
+$n3s_config['google_oauth_redirect_uri'] = 'https://n3s.example.com/index.php?action=login&page=google_callback';
+```
+
+`n3s_config.ini.php` はサイト固有の設定ファイルであり(`.gitignore`対象)、リポジトリにはコミットされません。クライアントシークレットも含むため、第三者に共有しないよう管理してください。
+
 ## 安全に運用するためのTips
 
 運用したいURL(n3s.example.com)に加えて、サンドボックスとして運用するURL(n3s-sandbox.example.com)を用意します。そして、その2つのURLには全く同じコンテンツが表示されるように設定してください。その上で、以下の設定を記述します。
