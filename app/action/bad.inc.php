@@ -27,9 +27,8 @@ function echo_bad()
         return;
     }
     // db
-    $db = n3s_get_db();
     try {
-        $r = $db->query("SELECT title,author,bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
+        $r = db_get1('SELECT title,author,bad,fav_lastip FROM apps WHERE app_id=?', [$app_id]);
         if ($q === 'up') {
             if (! n3s_is_login()) {
                 echo "error, please login.";
@@ -54,12 +53,11 @@ function echo_bad()
                     $up_count = 100;
                 }
                 // 通報数を加算する
-                $db->query('begin');
-                $db->query("UPDATE apps SET bad=bad+{$up_count} WHERE app_id={$app_id}");
-                $stmt = $db->prepare("UPDATE apps SET fav_lastip=?  WHERE app_id={$app_id}");
-                $stmt->execute([$ip]);
-                $r = $db->query("SELECT bad,fav_lastip FROM apps WHERE app_id={$app_id}")->fetch();
-                $db->query('commit');
+                db_begin();
+                db_exec('UPDATE apps SET bad=bad+? WHERE app_id=?', [$up_count, $app_id]);
+                db_exec('UPDATE apps SET fav_lastip=? WHERE app_id=?', [$ip, $app_id]);
+                $r = db_get1('SELECT bad,fav_lastip FROM apps WHERE app_id=?', [$app_id]);
+                db_commit();
                 // 通報があった旨をメールする
                 $admin_email = n3s_get_config('admin_email', '');
                 if ($admin_email != '') {

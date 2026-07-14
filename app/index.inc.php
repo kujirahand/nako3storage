@@ -32,6 +32,7 @@ function n3s_action()
     $func_action = "n3s_{$agent}_{$action}";
     // セッションの開始
     ini_set( "session.gc_maxlifetime", $n3s_config['session_lifetime']); // セッションの最大時間を指定
+    n3s_configure_session_cookie(); // httponly/secure/samesite を設定する (todo-security.md #7)
     @session_start(); // セッションの開始
     //
     if (file_exists($file_action)) {

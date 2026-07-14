@@ -142,6 +142,39 @@ function n3s_hash_editkey($key)
     return hash('sha256', "$key::$salt");
 }
 
+// セッションクッキーの属性を返す(session_start()前に session_set_cookie_params()へ渡す)。
+// todo-security.md #7: 以前は httponly/secure/samesite を明示しておらず、php.ini依存だった。
+// - httponly: JSからのクッキー読み取りは不要なため常にtrue(XSS発生時の被害軽減)。
+// - samesite=Lax: strictにすると Google OAuth のコールバック(トップレベルのGETリダイレクト)で
+//   セッションクッキーが送られず ログインできなくなるため、Laxを使う(CSRF対策とOAuth互換性の両立)。
+// - secure: HTTPS時のみtrue。常時trueにすると `php -S localhost:8000` 等のローカルhttp開発が
+//   壊れるため、実際の接続方式で判定する。
+function n3s_session_cookie_params()
+{
+    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    return [
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+}
+
+// session_start() の直前に呼ぶこと。
+function n3s_configure_session_cookie()
+{
+    $p = n3s_session_cookie_params();
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params($p);
+    } else {
+        // samesite は PHP 7.3 未満では指定できない(AGENTS.mdの要求バージョンはPHP7以上のため、
+        // 古い環境でもfatal errorにはせず、対応可能な属性だけ設定するに留める)
+        session_set_cookie_params($p['lifetime'], $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+    }
+}
+
 function n3s_parseURI()
 {
     global $n3s_config;
@@ -840,11 +873,7 @@ function n3s_discord_webhook($a)
     );
     $message_json = json_encode($message);
     // curlを利用してポスト(非同期)
-    $curl_command = sprintf(
-        'curl -X POST %s -H "Content-Type: application/json; charset=utf-8" -d %s --insecure > /dev/null 2>&1 &',
-        escapeshellarg($discord_webhook_url),
-        escapeshellarg($message_json)
-    );
+    $curl_command = n3s_discord_webhook_curl_command($discord_webhook_url, $message_json);
     @exec($curl_command);
     /*
     // curlのオプションを設定してPOST
@@ -859,6 +888,23 @@ function n3s_discord_webhook($a)
     $_resp = curl_exec($ch);
     curl_close($ch);
     */
+}
+
+// Discord Webhook用のcurlコマンド文字列を組み立てる(副作用なし。execはしない)。
+// todo-security.md #10: 従来は常に --insecure を付けてTLS証明書検証を無効化していた。
+// サーバー環境によっては証明書検証を有効にするとcurlがエラーになる(自己署名証明書・
+// 中間証明書未設置など)ため、既定は従来通り --insecure(後方互換・デフォルトfalse)のまま
+// にしつつ、設定 `webhook_secure` を true にした環境ではTLS証明書検証を有効にできるようにする。
+function n3s_discord_webhook_curl_command($url, $json)
+{
+    $secure = n3s_get_config('webhook_secure', false);
+    $insecure_flag = $secure ? '' : ' --insecure';
+    return sprintf(
+        'curl -X POST %s -H "Content-Type: application/json; charset=utf-8" -d %s%s > /dev/null 2>&1 &',
+        escapeshellarg($url),
+        escapeshellarg($json),
+        $insecure_flag
+    );
 }
 
 function n3s_getInfo($key, $def = null)
@@ -1056,11 +1102,82 @@ function n3s_logout()
     }
 }
 
+// --------------------------------------------------------
+// 非公開・限定公開の作品を、現在のリクエストで閲覧してよいか判定する共通ロジック。
+// show / widget / widget_frame / api など、閲覧系アクションすべてで使う (todo-security.md #6)。
+//
+// 以前は show.inc.php が保存時に指定された editkey を見る一方、widget_frame.inc.php は
+// 常に未使用のまま空文字が入っている access_key カラムを見ていた。そのため widget/widget_frame
+// 経由では「保存されたキー('')」と「GETで渡されなかった場合のデフォルト('')」が常に一致してしまい、
+// 限定公開のチェックが実質機能していなかった。
+// --------------------------------------------------------
+
+// $a (apps テーブルの1行) を、キー $key を提示した状態で閲覧してよいか判定する。
+// 副作用なし(exitや画面出力をしない)の純粋な判定関数。
+function n3s_private_access_allowed($a, $key)
+{
+    if (!$a) {
+        return false;
+    }
+    $is_private = intval(isset($a['is_private']) ? $a['is_private'] : 0);
+    if ($is_private !== 1 && $is_private !== 2) {
+        return true; // 公開作品(0)、あるいは想定外の値は許可(既存挙動を踏襲)
+    }
+    if (n3s_is_admin()) {
+        return true;
+    }
+    $stored_key = isset($a['editkey']) ? (string)$a['editkey'] : '';
+    $given_key = (string)$key;
+    $owner_user_id = intval(isset($a['user_id']) ? $a['user_id'] : 0);
+    if ($owner_user_id === 0) {
+        // ログインなしで投稿された作品は、editkeyの一致でのみ閲覧できる
+        // (匿名投稿には「本人」の概念がないため)
+        return hash_equals($stored_key, $given_key);
+    }
+    if ($owner_user_id === n3s_get_user_id()) {
+        return true; // 投稿者本人は常に閲覧可能
+    }
+    if ($is_private === 1) {
+        return false; // 非公開は本人・管理者のみ閲覧可能(editkeyでの迂回は不可)
+    }
+    // is_private === 2 (限定公開): editkeyが一致すれば第三者も閲覧できる
+    return hash_equals($stored_key, $given_key);
+}
+
+// n3s_private_access_allowed() が false のときの共通の拒否処理。
+// ログインユーザーの非公開(1)は入力の余地がないためエラー表示のみ(agent=apiならJSON)。
+// それ以外(匿名投稿の非公開/限定公開、ログインユーザーの限定公開)は
+// editkey の入力画面を表示し、リトライできるようにする。
+function n3s_deny_private_access($a, $agent, $action)
+{
+    $is_private = intval(isset($a['is_private']) ? $a['is_private'] : 0);
+    $owner_user_id = intval(isset($a['user_id']) ? $a['user_id'] : 0);
+    if ($owner_user_id > 0 && $is_private === 1) {
+        n3s_error(
+            "非公開の投稿($agent)",
+            'この投稿は非公開です。',
+            false,
+            ($agent === 'api')
+        );
+        exit;
+    }
+    n3s_template_fw('show_input_editkey.html', [
+        'app_id' => isset($a['app_id']) ? $a['app_id'] : 0,
+        'author' => isset($a['author']) ? $a['author'] : '',
+        'run' => empty($_GET['run']) ? 0 : $_GET['run'],
+        'back' => $action,
+    ]);
+    exit;
+}
+
 function n3s_randomIntStr($length = 7)
 {
+    // パスワード再設定の認証番号などに使われるため、予測不能な乱数(CSPRNG)を使う。
+    // 以前は rand() (Mersenne Twister) を使っており、内部状態を推測されると
+    // 認証番号を予測される恐れがあった (todo-security.md #5)。
     $r = '';
     for ($i = 0; $i < $length; $i++) {
-        $r .= '' . rand(0, 9);
+        $r .= '' . random_int(0, 9);
     }
     return $r;
 }

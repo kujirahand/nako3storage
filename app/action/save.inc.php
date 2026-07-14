@@ -76,9 +76,8 @@ function n3s_show_save_form($mode)
 function n3s_web_save_check($app_id, &$a)
 {
     global $n3s_config;
-    $db = n3s_get_db();
     $msg = '';
-    $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
+    $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
     if (!$a) {
         n3s_jump(0, 'save'); // 新規保存のページを表示
         exit;
@@ -223,7 +222,13 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     }
     if (intval($a['user_id']) == 0 && $a['nakotype'] != 'wnako') {
         throw new Exception("ログインしていない場合、なでしこ以外の言語は選べません。");
-    }   
+    }
+    // 限定公開(is_private=2)はログインユーザーのみが使える機能とする (todo-security.md #6)。
+    // 匿名投稿の限定公開は editkey のみが閲覧の拠り所になり、editkeyが空のまま保存されると
+    // 誰でも閲覧できてしまう等、保護が弱くなりやすいため。
+    if (intval($a['user_id']) == 0 && intval($a['is_private']) == 2) {
+        throw new Exception("ログインしていない場合、限定公開は選べません。");
+    }
 }
 
 // save
@@ -382,8 +387,7 @@ function n3s_action_save_delete($params)
         return;
     }
 
-    $db = n3s_get_db();
-    $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
+    $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
     if (!$a) {
         n3s_error('指定のIDのアプリがありません', 'IDのエラー');
         exit;
@@ -404,7 +408,7 @@ function n3s_action_save_delete($params)
         return;
     }
     // 削除
-    $db->query("DELETE FROM apps WHERE app_id=$app_id");
+    db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} を削除しました。",
@@ -427,8 +431,7 @@ function n3s_action_save_reset_bad($params)
     // 値を何に変更するか
     $bad_value = intval(empty($_POST['bad_value']) ? '0' : $_POST['bad_value']);
     // check app_id exists
-    $db = n3s_get_db();
-    $a = $db->query("SELECT * FROM apps WHERE app_id=$app_id")->fetch();
+    $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
     if (!$a) {
         n3s_error('指定のIDのアプリがありません', 'IDのエラー');
         exit;
@@ -442,7 +445,7 @@ function n3s_action_save_reset_bad($params)
     }
     // 通報リセット
     $time = time();
-    $db->query("UPDATE apps SET bad=$bad_value,mtime=$time WHERE app_id=$app_id");
+    db_exec('UPDATE apps SET bad=?,mtime=? WHERE app_id=?', [$bad_value, $time, $app_id]);
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",

@@ -40,6 +40,7 @@ function n3s_list_get()
     // --------------------------------------------------------
     // list (app_id for list pager)
     $wheres = array('tag != "w_noname"');
+    $where_params = []; // $wheres の "?" に対応する値を、出現順に積んでいく
     $statements = [];
     // check nofilter parameters
     if ($nofilter < 1 && $onlybad == 0) { // パラメータがない場合(通報がないものだけを表示する - 通報機能 #18)
@@ -51,7 +52,8 @@ function n3s_list_get()
     }
     // check user_id
     if ($find_user_id > 0) {
-        $wheres[] = "user_id = $find_user_id";
+        $wheres[] = 'user_id = ?';
+        $where_params[] = $find_user_id;
         $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id], "users");
     }
     // 非公開投稿は表示しない
@@ -72,11 +74,11 @@ function n3s_list_get()
         // user_id > 0
         $wheres1 = unserialize(serialize($wheres));
         $wheres1[] = "user_id > 0";
-        $sql = 
+        $sql =
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres1) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
-        $list = db_get($sql, [MAX_APP, $offset]);
+        $list = db_get($sql, array_merge($where_params, [MAX_APP, $offset]));
         // user_id == 0
         $wheres2 = unserialize(serialize($wheres));
         $wheres2[] = "user_id == 0";
@@ -84,7 +86,7 @@ function n3s_list_get()
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres2) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
-        $list2 = db_get($sql2, [MAX_APP, $offset]);
+        $list2 = db_get($sql2, array_merge($where_params, [MAX_APP, $offset]));
     }
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
@@ -92,7 +94,7 @@ function n3s_list_get()
             'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?';
-        $statements[] = MAX_APP;
+        $statements = array_merge($where_params, [MAX_APP]);
         $list = db_get($sql, $statements);
         $list2 = [];
     }

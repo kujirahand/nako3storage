@@ -3,6 +3,64 @@
 header('X-Frame-Options: SAMEORIGIN');
 define('ITAZURA_ANSWER', 'ニンゲン');
 
+// パスワード再設定の認証番号に対する総当たり対策 (todo-security.md #5)
+define('N3S_SETPW_MAX_TRIES', 10);        // ウィンドウ内に許容する失敗回数
+define('N3S_SETPW_WINDOW_SEC', 60 * 15);  // 失敗回数を数える時間窓(秒)
+
+// email または ip に紐づく、ウィンドウ内のパスワード再設定の失敗回数を返す。
+// (memo に email を保存しているため、分散IPからの単一アカウント狙いも数えられる)
+function n3s_setpw_recent_failures($email, $ip)
+{
+    $since = time() - N3S_SETPW_WINDOW_SEC;
+    $r = db_get1(
+        'SELECT count(*) AS cnt FROM ip_check WHERE key=1 AND ctime>? AND (memo=? OR ip=?)',
+        [$since, $email, $ip],
+        'log'
+    );
+    return $r ? intval($r['cnt']) : 0;
+}
+
+// パスワード再設定の認証番号ミスを1件記録する。
+function n3s_setpw_record_failure($email, $ip)
+{
+    db_exec(
+        'INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)',
+        [1, $ip, $email, time()],
+        'log'
+    );
+}
+
+// 認証番号の「再発行」そのものに対する総当たり/スパム対策 (todo-security.md #5 追加対応)。
+// 以前は再発行のたびに失敗カウンタ(n3s_setpw_recent_failures)をリセットしていたため、
+// 攻撃者が「数回試行→再発行→数回試行」を繰り返すことで N3S_SETPW_MAX_TRIES の制限を
+// 実質無制限に回避できてしまっていた。そのため、失敗カウンタは再発行時にリセットしない
+// (n3s_web_login_setpw_sendmail() 参照)方針に変更し、加えて再発行そのものにもIP単位の
+// 回数制限を設ける。
+define('N3S_SETPW_REISSUE_MAX_TRIES', 5);        // ウィンドウ内に許容する再発行回数
+define('N3S_SETPW_REISSUE_WINDOW_SEC', 60 * 15); // 再発行回数を数える時間窓(秒)
+
+// ipに紐づく、ウィンドウ内の認証番号の再発行回数を返す。
+function n3s_setpw_recent_reissues($ip)
+{
+    $since = time() - N3S_SETPW_REISSUE_WINDOW_SEC;
+    $r = db_get1(
+        'SELECT count(*) AS cnt FROM ip_check WHERE key=2 AND ctime>? AND ip=?',
+        [$since, $ip],
+        'log'
+    );
+    return $r ? intval($r['cnt']) : 0;
+}
+
+// 認証番号の再発行を1件記録する。
+function n3s_setpw_record_reissue($ip)
+{
+    db_exec(
+        'INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)',
+        [2, $ip, '', time()],
+        'log'
+    );
+}
+
 // no api login
 function n3s_api_login()
 {
@@ -82,12 +140,20 @@ function n3s_web_login_register()
                 $email = '';
             } else {
                 // add user
-                $password = hash('sha256', $email . time() . rand());
+                // 初期パスワードは本人がメール経由で再設定するまでのダミー。
+                // 予測不能にするため CSPRNG を使う (rand() は予測可能: todo-security.md #5)。
+                $password = bin2hex(random_bytes(32));
                 $user_id = n3s_add_user($email, $password, $name);
                 if ($user_id == 0) {
                     $error = '既にメールアドレスが登録されています。<a href="index.php?action=login&page=forgot">こちらからパスワードを変更</a>してください。';
                 } else {
-                    n3s_web_login_setpw_sendmail($user_id, $email, 'register');
+                    if (!n3s_web_login_setpw_sendmail($user_id, $email, 'register')) {
+                        n3s_error(
+                            '登録できません',
+                            '短時間に再発行の操作が繰り返されたため、しばらく時間をおいてから再度お試しください。'
+                        );
+                        return;
+                    }
                     n3s_web_login_setpw($email);
                     return;
                 }
@@ -105,8 +171,21 @@ function n3s_web_login_register()
     ]);
 }
 
+// 認証番号を発行してメール送信する。再発行の回数制限に達していれば発行せず false を返す。
+// (呼び出し元は false の場合、n3s_web_login_setpw() へ進まずエラーを表示すること)
 function n3s_web_login_setpw_sendmail($user_id, $email, $action)
 {
+    // 再発行そのものにIP単位の回数制限をかける (todo-security.md #5 追加対応)。
+    // これが無いと、認証番号の試行に失敗するたびに新しい番号を再発行することで、
+    // 総当たり試行回数を実質無制限にできてしまう。
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    if ($ip !== '' && n3s_setpw_recent_reissues($ip) >= N3S_SETPW_REISSUE_MAX_TRIES) {
+        n3s_log("[forgot] email={$email},ip={$ip},error=認証番号の再発行回数超過", "setpw", 1);
+        return false;
+    }
+    if ($ip !== '') {
+        n3s_setpw_record_reissue($ip);
+    }
     $passtoken1 = n3s_randomIntStr(3);
     $passtoken2 = n3s_randomIntStr(4);
     $passtoken = "{$passtoken1}-{$passtoken2}";
@@ -115,6 +194,10 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
         [$passtoken, time(), $user_id],
         'users'
     );
+    // 注意: 認証番号の試行失敗カウンタ(n3s_setpw_recent_failures)は、ここではリセットしない。
+    // 以前は再発行のたびにリセットしていたが、それだと「試行→再発行」を繰り返すことで
+    // N3S_SETPW_MAX_TRIES の制限を回避できてしまっていた。失敗カウンタは
+    // N3S_SETPW_WINDOW_SEC の時間経過により自然に失効する。
     // メールの送信
     $host = $_SERVER['HTTP_HOST'];
     // $passtoken_enc = urlencode($passtoken);
@@ -135,6 +218,7 @@ function n3s_web_login_setpw_sendmail($user_id, $email, $action)
     if (explode(':', $host . ':')[0] === 'localhost') {
         echo "<pre>" . $body . "</pre>";
     }
+    return true;
 }
 
 function n3s_web_login_forgot()
@@ -156,7 +240,16 @@ function n3s_web_login_forgot()
         if ($error == '') {
             $user_id = n3s_get_user_id_by_email($email);
             if ($user_id > 0) {
-                n3s_web_login_setpw_sendmail($user_id, $email, 'forgot');
+                // メールアドレスの存在有無を区別させないため、再発行の回数制限時のみ
+                // 専用のエラーを表示する(存在しないメールアドレスの場合は通常通り
+                // 認証番号入力画面へ進める)。
+                if (!n3s_web_login_setpw_sendmail($user_id, $email, 'forgot')) {
+                    n3s_error(
+                        '再発行できません',
+                        '短時間に再発行の操作が繰り返されたため、しばらく時間をおいてから再度お試しください。'
+                    );
+                    return;
+                }
             }
             // log
             n3s_log("sendto={$email}", "forgot");
@@ -209,6 +302,22 @@ __EOS__;
         n3s_error('セッションが切れました', "<a href='$url'>もう一度試行してください。</a>");
         return;
     }
+    // 認証番号の総当たり対策 (todo-security.md #5)
+    // 一定時間内の失敗が上限を超えたら、発行済みトークンを無効化して打ち切る。
+    // (CSRFトークンは攻撃者自身のセッションで取得できるため障壁にならない)
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    if (n3s_setpw_recent_failures($email, $ip) >= N3S_SETPW_MAX_TRIES) {
+        db_exec('UPDATE users SET pass_token="" WHERE email=?', [$email], 'users');
+        n3s_log("[forgot] email={$email},ip={$ip},error=認証番号の試行回数超過", "setpw", 1);
+        $retry = n3s_getURL('forgot', 'login');
+        n3s_error(
+            '試行回数が多すぎます',
+            "パスワード再設定の認証番号を何度も間違えたため、安全のためこの認証番号は無効になりました。" .
+                "お手数ですが、<a href='$retry'>最初からやり直して</a>ください。",
+            true
+        );
+        return;
+    }
     // check pass token
     // get user info
     $row = db_get1(
@@ -217,6 +326,7 @@ __EOS__;
         'users'
     );
     if (!$row) {
+        n3s_setpw_record_failure($email, $ip);
         $retry = n3s_getURL('setpw', 'login', ['email' => $email]);
         n3s_log("[forgot] email={$email},error=パスワードの設定失敗/認証番号の入力ミス", "info");
         n3s_error('登録失敗', "改めてメールに書かれている登録番号を確認して入力してください。<a href='$retry'>やり直す</a>", true);
