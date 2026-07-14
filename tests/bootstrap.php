@@ -33,6 +33,7 @@ function n3s_test_setup(array $config_overrides = []): string
     $n3s_config['dir_sql'] = N3S_TEST_ROOT . '/app/sql';
     $n3s_config['dir_template'] = N3S_TEST_ROOT . '/app/template';
     $n3s_config['dir_cache'] = $dir . '/cache';
+    $n3s_config['dir_data'] = $dir;
     $n3s_config['file_db_users'] = 'sqlite:' . $dir . '/n3s_users.sqlite';
     $n3s_config['file_db_log'] = 'sqlite:' . $dir . '/n3s_log.sqlite';
     $n3s_config['file_db_main'] = 'sqlite:' . $dir . '/n3s_main.sqlite';
