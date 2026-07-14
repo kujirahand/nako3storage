@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const appId = window.app_id;
+    const params = new URLSearchParams(window.location.search);
+    const editKey = params.get("editkey") || window.n3s_editkey || "";
     const accordionHeader = document.getElementById("comment_accordion_header");
     const accordionContent = document.getElementById("comment_accordion_content");
     const accordionIcon = document.getElementById("comment_accordion_icon");
@@ -7,9 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
     const storageKey = "n3s_comments_open_" + appId;
     
-    // コメント一覧を読み込んで描画する関数
     function loadComments() {
-        fetch("api.php?action=comment&mode=list&app_id=" + appId + "&editkey=" + encodeURIComponent(window.n3s_editkey || ""))
+        fetch("api.php?action=comment&mode=list&app_id=" + appId + "&editkey=" + encodeURIComponent(editKey))
             .then(res => res.json())
             .then(data => {
                 if (data.result) {
@@ -95,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     html += `        <input type="hidden" name="edit_token" value="${window.n3s_edit_token}">`;
                     html += `        <input type="hidden" name="app_id" value="${appId}">`;
                     html += `        <input type="hidden" name="parent_id" value="${c.comment_id}">`;
+                    html += `        <input type="hidden" name="editkey" value="${editKey}">`;
                     html += `        <textarea name="body" rows="2" style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95em; margin-bottom: 8px; resize: vertical;" placeholder="返信を入力してください" required></textarea>`;
                     html += `        <div style="text-align: right;">`;
                     html += `          <button type="button" onclick="hideReplyForm(${c.comment_id})" class="pure-button" style="font-size: 0.85em; padding: 4px 10px; margin-right: 5px; background-color: #e0e0e0;">キャンセル</button>`;
@@ -277,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("edit_token", window.n3s_edit_token);
-        formData.append("editkey", window.n3s_editkey || "");
+        formData.append("editkey", editKey);
         
         fetch("api.php?action=comment&mode=fav", {
             method: "POST",
@@ -308,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function() {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
-        formData.append("editkey", window.n3s_editkey || "");
+        formData.append("editkey", editKey);
         
         fetch("api.php?action=comment&mode=add", {
             method: "POST",
@@ -342,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
-        formData.append("editkey", window.n3s_editkey || "");
+        formData.append("editkey", editKey);
         
         fetch("api.php?action=comment&mode=add", {
             method: "POST",
@@ -380,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("edit_token", window.n3s_edit_token);
-        formData.append("editkey", window.n3s_editkey || "");
+        formData.append("editkey", editKey);
         
         fetch("api.php?action=comment&mode=delete", {
             method: "POST",
