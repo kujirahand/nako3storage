@@ -271,14 +271,13 @@ window.addEventListener('message', function(e) {
   
   <!-- アコーディオンのコンテンツ本体 -->
   <div id="comment_accordion_content" style="display: none; margin-top: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px; padding: 15px; background-color: #fff;">
-    <!-- コメント一覧 -->
-    <div id="comment_list_area"></div>
+    <div id="comment_info_message" style="display: none; padding: 12px; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; border-radius: 4px; margin-bottom: 15px; font-size: 0.95em; line-height: 1.5;"></div>
     
     <!-- 新規コメント投稿フォーム（ログイン時のみ） -->
     {{ if n3s_is_login() }}
     <div class="comment-form-container" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
       <h3 style="margin-top: 0; font-size: 1.1em; color: #333;">新規コメントを投稿</h3>
-      <div id="comment_info_message" style="display: none; padding: 12px; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; border-radius: 4px; margin-bottom: 15px; font-size: 0.95em; line-height: 1.5;"></div>
+      <p style="font-size: 0.8em; color: #955;">コメントは<strong>ポジティブで積極的なものだけ</strong>許可されています。AIでネガポジ判定して後ほど表示されます。</p>
       <form id="comment_post_form" onsubmit="submitComment(event)">
         <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
         <input type="hidden" name="app_id" value="{{ $app_id }}">
@@ -289,6 +288,7 @@ window.addEventListener('message', function(e) {
         <div style="text-align: right;">
           <button type="submit" class="pure-button pure-button-primary">コメントを送信</button>
         </div>
+        <br>
       </form>
     </div>
     {{ else }}
@@ -297,6 +297,12 @@ window.addEventListener('message', function(e) {
       <a href="index.php?action=login&back={{ $backurl }}">ログイン</a>するとコメントを投稿できます。
     </div>
     {{ endif }}
+    <!-- コメント投稿フォームここまで -->
+    
+    <div style="border-top: 1px solid silver; padding: 8px"></div>
+
+    <!-- コメント一覧 -->
+    <div id="comment_list_area"></div>   
   </div>
 </div>
 
