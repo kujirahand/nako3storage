@@ -105,6 +105,32 @@ function n3s_api_astorage_db($app_id)
     return database_get(AS_USER);
 }
 
+// astorage API の key/value がサイズ上限内かを判定する(副作用なしの純粋関数)。
+// (todo-security.md #8: 以前は値サイズが無制限で、ログインユーザーが巨大な文字列を
+// 繰り返し保存することでSQLiteファイルを際限なく肥大化させる、ストレージ枯渇DoSが可能だった)
+function n3s_astorage_key_size_ok($key)
+{
+    return strlen((string)$key) <= n3s_get_config('size_astorage_key_max', 256);
+}
+function n3s_astorage_value_size_ok($value)
+{
+    return strlen((string)$value) <= n3s_get_config('size_astorage_value_max', 1024 * 64);
+}
+
+// key/valueが上限を超えていればJSONエラーを返してexitする。書き込み系API(set_key_*/
+// insert_item_*/update_item_*)の先頭で呼ぶこと。
+function n3s_astorage_check_size($key, $value)
+{
+    if (!n3s_astorage_key_size_ok($key)) {
+        $key_max = n3s_get_config('size_astorage_key_max', 256);
+        api_error("keyが長すぎます。{$key_max}バイト以内にしてください。");
+    }
+    if (!n3s_astorage_value_size_ok($value)) {
+        $value_max = n3s_get_config('size_astorage_value_max', 1024 * 64);
+        api_error("valueが長すぎます。{$value_max}バイト以内にしてください。");
+    }
+}
+
 // as user key
 function n3s_api__list_key_as_user($params)
 {
@@ -126,6 +152,7 @@ function n3s_api__set_key_as_user($params)
     $app_id = $params['app_id'];
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $val);
     n3s_api_astorage_db($app_id);
     db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_USER);
     db_exec("INSERT INTO keys (app_id, key, value, mtime) VALUES (?, ?, ?, ?)", [$app_id, $key, $val, time()], AS_USER);
@@ -181,6 +208,7 @@ function n3s_api__insert_item_as_user($params)
     $app_id = $params['app_id'];
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $val);
     n3s_api_astorage_db($app_id);
     $item_id = db_insert(
         "INSERT INTO items (app_id, key, value, ctime, mtime) VALUES (?, ?, ?, ?, ?)", [
@@ -243,6 +271,7 @@ function n3s_api__update_item_as_user($params)
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
     $value = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $value);
     if ($item_id <= 0) {
         n3s_api_output(false, ["message" => "item_id is invalid"]);
         exit;
@@ -276,6 +305,7 @@ function n3s_api__set_key_as_app($params)
     $app_id = $params['app_id'];
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $val);
     n3s_api_astorage_db($app_id);
     db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_APP);
     db_exec("INSERT INTO keys (app_id, key, value, mtime) VALUES (?, ?, ?, ?)", [$app_id, $key, $val, time()], AS_APP);
@@ -330,6 +360,7 @@ function n3s_api__insert_item_as_app($params)
     $app_id = $params['app_id'];
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $val);
     n3s_api_astorage_db($app_id);
     $item_id = db_insert(
         "INSERT INTO items (app_id, key, value, ctime, mtime) VALUES (?, ?, ?, ?, ?)",
@@ -398,6 +429,7 @@ function n3s_api__update_item_as_app($params)
     $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
     $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
     $value = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_check_size($key, $value);
     if ($item_id <= 0) {
         n3s_api_output(false, ["message" => "item_id is invalid"]);
         exit;

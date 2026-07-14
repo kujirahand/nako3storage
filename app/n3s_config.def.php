@@ -33,6 +33,8 @@ $n3s_config = [
     "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
     "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
     "size_upload_max" => 1024 * 1024 * 7, // 最大アップロードサイズ
+    "size_astorage_key_max" => 256,        // アプリ内ストレージAPIのkey最大サイズ(バイト)
+    "size_astorage_value_max" => 1024 * 64, // アプリ内ストレージAPIのvalue最大サイズ(64KB)
     "extra_header_html" => "",
     "search_word" => "",
     "n3s_css_mtime" => filemtime("$app_dir/resource/basic.css"),
@@ -56,6 +58,10 @@ $n3s_config = [
     // Discord
     "discord_webhook_name" => "なでしこ3貯蔵庫",
     "discord_webhook_url" => "",
+    // Webhook送信時にTLS証明書検証を行うか (todo-security.md #10)。
+    // 既定はfalse(従来通り --insecure 付き)。サーバー証明書の検証環境が整っている場合は
+    // n3s_config.ini.php で true にすることを推奨。
+    "webhook_secure" => true,
     // Google OAuth ログイン (docs/user_login_oauth_google.md)
     "google_oauth_client_id" => "",
     "google_oauth_client_secret" => "",

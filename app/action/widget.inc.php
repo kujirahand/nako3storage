@@ -7,9 +7,11 @@ include_once __DIR__ . '/widget_frame.inc.php';
 
 function n3s_web_widget()
 {
+    // サンドボックスURLが未設定なら、主オリジンでの実行を防ぐためここで停止する (todo-security.md #4)
+    n3s_require_sandbox_or_error();
     // get from database
     $a = n3s_show_get('widget', 'web', false);
-    n3s_widgetd_check_private($a);
+    n3s_widgetd_check_private($a, 'widget');
     // run mode?
     $run = $a['run'] = isset($_GET['run']) ? intval($_GET['run']) : 0;
     $allow = $a['allow'] = isset($_GET['allow']) ? intval($_GET['allow']) : 0;

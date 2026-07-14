@@ -39,72 +39,19 @@ function n3s_api_show()
 }
 
 // check private app
+// 判定ロジック本体は n3s_lib.inc.php の n3s_private_access_allowed() /
+// n3s_deny_private_access() に共通化した (todo-security.md #6)。
 function n3s_check_private(&$a, $agent, $action)
 {
     if (!$a) {
         return;
     }
     $a['result'] = isset($a['app_id']);
-    // プライベートな作品であれば他人には見せない
-    $user_id = $a['user_id'];
-    $is_private = $a['is_private'];
-    $my_user_id = n3s_get_user_id();
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
-    if ($is_private == 1 || $is_private == 2) {
-        // 管理者は見れる
-        if (n3s_is_admin()) {
-            return; // ok
-        } 
-        // ユーザー登録なしの場合
-        if ($a['user_id'] == 0) {
-            if ($a['editkey'] === $editkey) {
-                return; // ok
-            } else {
-                // 入力画面
-                n3s_template_fw('show_input_editkey.html', [
-                    'app_id' => $a['app_id'],
-                    'author' => $a['author'],
-                    'run' => empty($_GET['run']) ? 0 : $_GET['run'],
-                    'back' => $action,
-                ]);
-                exit;
-            }
-        }
-        // 自分なら見れる
-        if ($user_id == $my_user_id) {
-            // ok
-            return;
-        }
-        if ($is_private == 1) {
-            n3s_error(
-                "非公開の投稿($agent)",
-                'この投稿は非公開です。',
-                false,
-                ($agent == 'api')
-            );
-            exit;
-        }
-        // 限定公開の場合
-        if ($is_private == 2) {
-            if ($a['editkey'] === $editkey) {
-                return; // ok
-            }
-            // 入力画面
-            n3s_template_fw('show_input_editkey.html', [
-                'app_id' => $a['app_id'],
-                'author' => $a['author'],
-                'run' => empty($_GET['run']) ? 0 : $_GET['run'],
-                'back' => $action,
-        ]);
-            exit;
-        }
-        n3s_error(
-            'この投稿は非公開です',
-            'この投稿は非公開です。',
-            false, ($agent == 'api')
-        );
-        exit;
+    if (n3s_private_access_allowed($a, $editkey)) {
+        return;
     }
+    n3s_deny_private_access($a, $agent, $action);
 }
 
 /**
@@ -151,8 +98,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     $fav = false;
     $my_user_id = n3s_get_user_id();
     if ($app_id > 0) {
-        $sql = "SELECT * FROM apps WHERE app_id=$app_id";
-        $a = db_get1($sql);
+        $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
         if (!$a) {
             header("HTTP/1.1 404 Not Found");
             n3s_error('作品が見当たりません。', "id={$app_id}の作品がありません。");
@@ -295,7 +241,16 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
-    $sandbox_url = n3s_get_config('sandbox_url', $n3s_url);
+    // 注意: n3s_get_config() の第2引数はキーが「未設定」の場合のみ使われる。
+    // sandbox_url は n3s_config.def.php で常に '' として定義済み(=キーは存在する)ため、
+    // ここで単に n3s_get_config('sandbox_url', $n3s_url) としても既定値は効かず、
+    // 常に空文字になってしまう。sandbox_url が空のときはアプリ自身のbaseurl($n3s_url)へ
+    // フォールバックする(サブディレクトリ配置でルート相対URL "/widget.php..." に
+    // なってしまい、実行リンクが壊れる不具合の修正)。
+    $sandbox_url = trim(n3s_get_config('sandbox_url', ''));
+    if ($sandbox_url === '') {
+        $sandbox_url = $n3s_url;
+    }
     if (substr($sandbox_url, -1) !== "/") {
         $sandbox_url .= "/";
     }

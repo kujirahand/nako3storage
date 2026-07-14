@@ -42,16 +42,12 @@ function n3s_web_plain()
         exit; // broken?
     }
     // output
-    $t = $r['nakotype'];
-    if ($t == 'wnako' || $t == 'cnako') {
-        header("Content-Type: text/plain; charset=utf-8");
-        header("Content-Disposition: inline; filename=\"$page\"");
-    } else {
-        $mime = n3s_get_mime($t);
-        header("Content-Type: $mime; charset=utf-8");
-        // header("Content-Disposition: attachment; filename=\"$page\"");
-        header("Content-Disposition: inline; filename=\"$page\"");
-    }
+    // 注意: ここで配信するのはユーザー投稿の本文(材料テキスト)である。
+    // インライン表示時にブラウザがスクリプトを実行し得る MIME 型でそのまま配信すると
+    // 主オリジンでの Stored XSS になるため、安全な型のみ許可する (todo-security.md #2)。
+    header('X-Content-Type-Options: nosniff');
+    header('Content-Type: ' . n3s_plain_safe_content_type($r['nakotype']));
+    header("Content-Disposition: inline; filename=\"$page\"");
     // アクセスコントロール
     header('Access-Control-Allow-Origin: *');
     // 内容を出力
@@ -60,6 +56,23 @@ function n3s_web_plain()
         $body = str_replace("\r\n", "\n", $body);
     }
     echo $body;
+}
+
+// 投稿本文をインライン配信する際の安全な Content-Type(charset付き)を返す。
+// image/svg+xml や text/html など、インライン表示でスクリプトが実行され得る型は
+// text/plain に落とす。安全と分かっている型のみそのまま通す (todo-security.md #2)。
+function n3s_plain_safe_content_type($nakotype)
+{
+    if ($nakotype === 'wnako' || $nakotype === 'cnako') {
+        return 'text/plain; charset=utf-8';
+    }
+    $mime = n3s_get_mime($nakotype);
+    $safe_inline = ['text/plain', 'text/csv', 'text/tsv', 'application/json'];
+    $mime_main = trim(explode(';', strtolower($mime))[0]);
+    if (!in_array($mime_main, $safe_inline, true)) {
+        $mime = 'text/plain'; // 安全でない型は平文として配信(スクリプト実行を防ぐ)
+    }
+    return $mime . '; charset=utf-8';
 }
 
 function error403()
