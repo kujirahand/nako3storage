@@ -1,0 +1,101 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+  <h1>📊 アクセス統計 (直近{{$days}}日間)</h1>
+  <p>集計期間: {{$since}} 〜 本日</p>
+
+  <h2>サマリー</h2>
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:500px">
+    <thead>
+      <tr><th>種別</th><th>合計</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>👀 作品ページ閲覧 (show)</td><td>{{$total_show}}</td></tr>
+      <tr><td>▶️ ウィジェット実行 (widget)</td><td>{{$total_widget}}</td></tr>
+      <tr><td>🔌 API アクセス (api)</td><td>{{$total_api}}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>日別推移</h2>
+  <div style="max-width:900px; margin-bottom:2em;">
+    <canvas id="stats-chart" height="80"></canvas>
+  </div>
+
+  <h2>閲覧数 上位作品 (show)</h2>
+  {{if $top_show}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:700px">
+    <thead>
+      <tr><th>#</th><th>作品</th><th>作者</th><th>閲覧数</th></tr>
+    </thead>
+    <tbody>
+    {{e: $n = 0; }}
+    {{for $top_show as $i=>$row}}
+    {{e: $n++; }}
+      <tr>
+        <td>{{$n}}</td>
+        <td><a href="index.php?action=show&page={{$row.app_id}}">{{$row.title}}</a></td>
+        <td>{{$row.author}}</td>
+        <td>{{$row.total}}</td>
+      </tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>データなし</p>
+  {{endif}}
+
+  <h2>実行数 上位作品 (widget)</h2>
+  {{if $top_widget}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:700px">
+    <thead>
+      <tr><th>#</th><th>作品</th><th>作者</th><th>実行数</th></tr>
+    </thead>
+    <tbody>
+    {{e: $n = 0; }}
+    {{for $top_widget as $i=>$row}}
+    {{e: $n++; }}
+      <tr>
+        <td>{{$n}}</td>
+        <td><a href="index.php?action=show&page={{$row.app_id}}">{{$row.title}}</a></td>
+        <td>{{$row.author}}</td>
+        <td>{{$row.total}}</td>
+      </tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>データなし</p>
+  {{endif}}
+
+  <p><a href="index.php?action=admin" class="pure-button">← ログページに戻る</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js"
+  integrity="sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=" crossorigin="anonymous"></script>
+<script>
+(function() {
+  var labels  = {{$date_labels | safe}};
+  var show    = {{$show_counts | safe}};
+  var widget  = {{$widget_counts | safe}};
+  var api     = {{$api_counts | safe}};
+  var ctx = document.getElementById('stats-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: '閲覧 (show)',    data: show,   borderColor: '#4e8cff', backgroundColor: 'rgba(78,140,255,0.1)', fill: true, tension: 0.3 },
+        { label: '実行 (widget)', data: widget, borderColor: '#f0a500', backgroundColor: 'rgba(240,165,0,0.1)',  fill: true, tension: 0.3 },
+        { label: 'API',           data: api,    borderColor: '#38b56a', backgroundColor: 'rgba(56,181,106,0.1)', fill: true, tension: 0.3 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+})();
+</script>
+
+{{ include parts_html_footer.html }}

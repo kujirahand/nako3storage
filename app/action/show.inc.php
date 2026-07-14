@@ -12,6 +12,10 @@ function n3s_web_show()
     $sandbox_url = n3s_get_config('sandbox_url', '');
     $a['sandbox_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&mute_title=1&editkey={$editkey}";
     n3s_set_config('page_title', $a['title']);
+    // 閲覧統計を記録 (Issue #217)
+    if (!empty($a['app_id'])) {
+        n3s_record_access('show', $a['app_id']);
+    }
     n3s_template_fw('show.html', $a);
 }
 
@@ -34,6 +38,8 @@ function n3s_api_show()
             'user_id' => $a['user_id'],
             'body' => $a['body'],
         ];
+        // APIアクセス統計を記録 (Issue #217)
+        n3s_record_access('api', $a['app_id']);
     }
     n3s_api_output($a['result'], $result);
 }
