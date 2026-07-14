@@ -23,6 +23,16 @@ function n3s_web_widget_frame()
     $a['w_noname'] = in_array('w_noname', $tags);
     $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
 
+    // ウィジェット実行統計を記録 (Issue #217)
+    // run=1 かつ作品オーナー本人でない場合のみカウント
+    if ($a['run'] === 1 && !empty($a['app_id'])) {
+        $owner_id = intval(isset($a['user_id']) ? $a['user_id'] : 0);
+        $is_owner = ($owner_id > 0 && n3s_get_user_id() === $owner_id);
+        if (!$is_owner) {
+            n3s_record_access('widget', $a['app_id']);
+        }
+    }
+
     // nakotypeの例外(html/text/javascript)のときの処理
     // 注意: nakotype は必ずDBに保存された値($a['nakotype'])を使うこと。
     // 以前は $_GET['nakotype'] を信用していたため、任意の作品(非ログインでも

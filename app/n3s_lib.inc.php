@@ -45,6 +45,7 @@ function n3s_db_init()
     // 既存DB(init-users.sqlが実行済み)向けの軽量マイグレーション
     n3s_db_migrate_users();
     n3s_db_migrate_comments();
+    n3s_db_migrate_access_stats(); // アクセス統計テーブル (Issue #217)
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -121,6 +122,53 @@ function n3s_db_migrate_comments()
       reason      TEXT DEFAULT '',
       ctime       INTEGER DEFAULT 0
     )", [], 'main');
+}
+
+// log DB に access_stats テーブルが無ければ作成する (Issue #217)
+function n3s_db_migrate_access_stats()
+{
+    db_exec(
+        'CREATE TABLE IF NOT EXISTS access_stats (
+            stat_id INTEGER PRIMARY KEY,
+            date    TEXT NOT NULL,
+            kind    TEXT NOT NULL,
+            app_id  INTEGER DEFAULT 0,
+            count   INTEGER DEFAULT 0,
+            UNIQUE(date, kind, app_id)
+        )',
+        [],
+        'log'
+    );
+}
+
+/**
+ * アクセス統計を日別にアップサートする (Issue #217)
+ *
+ * @param string $kind   'show' | 'widget' | 'api'
+ * @param int    $app_id 対象の app_id (0 = 全体)
+ */
+function n3s_record_access($kind, $app_id)
+{
+    $date = date('Y-m-d');
+    $app_id = intval($app_id);
+    // アプリ単位のカウントアップ
+    db_exec(
+        'INSERT INTO access_stats (date, kind, app_id, count)
+         VALUES (?, ?, ?, 1)
+         ON CONFLICT(date, kind, app_id) DO UPDATE SET count = count + 1',
+        [$date, $kind, $app_id],
+        'log'
+    );
+    // 全体合計 (app_id=0) のカウントアップ
+    if ($app_id !== 0) {
+        db_exec(
+            'INSERT INTO access_stats (date, kind, app_id, count)
+             VALUES (?, ?, 0, 1)
+             ON CONFLICT(date, kind, app_id) DO UPDATE SET count = count + 1',
+            [$date, $kind],
+            'log'
+        );
+    }
 }
 
 /**

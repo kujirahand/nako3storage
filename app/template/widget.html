@@ -134,17 +134,44 @@
     <script>
       const editor = 'editor';
       const start_screen = document.getElementById('start_screen')
+      // run=0 のとき、「実行」ボタンが押されたら統計APIを呼ぶ (Issue #217)
+      const _n3s_run_mode = {{ $run }};
+      var _n3s_widget_counted = false; // 1セッション内での重複カウント防止
+      function _n3s_record_widget_run() {
+        if (_n3s_run_mode !== 0) { return; } // run=1 はサーバーサイドで計上済み
+        if (_n3s_widget_counted) { return; }
+        _n3s_widget_counted = true;
+        try {
+          fetch('api.php?action=rec_widget&page=' + app_id, {
+            method: 'GET',
+            credentials: 'include'
+          }).catch(function() {}); // エラーは無視（fire-and-forget）
+        } catch(e) {}
+      }
       function runNako3() {
         start_screen.style.display = 'none'
+        _n3s_record_widget_run()
         runButtonOnClick()
         setTimeout(() => {
           postFrameHeight()
         }, 100)
       }
       start_screen.onclick = runNako3
-      {{ if $run eq 1 }}
-      document.addEventListener("DOMContentLoaded", runNako3);
-      {{ endif }}
+      // nako3storage_show.js (defer) がrunButtonをセットした後にラップする
+      // defer スクリプトは DOMContentLoaded 発火前に実行されるため DOMContentLoaded で OK
+      document.addEventListener("DOMContentLoaded", function() {
+        // runButtonOnClick をラップして統計記録を挟む
+        if (typeof runButtonOnClick === 'function') {
+          var _origRunButtonOnClick = runButtonOnClick;
+          runButtonOnClick = function() {
+            _n3s_record_widget_run();
+            _origRunButtonOnClick.apply(this, arguments);
+          };
+        }
+        {{ if $run eq 1 }}
+        runNako3();
+        {{ endif }}
+      });
       // post fame height
       function postFrameHeight() {
         let scHeight = document.getElementsByTagName("html")[0].scrollHeight
