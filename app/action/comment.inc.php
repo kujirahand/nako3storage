@@ -316,11 +316,9 @@ function comment_api_fav()
         return;
     }
     
-    $new_fav = intval($comment['fav']) + $fav_diff;
-    n3s_api_output(true, [
-        'action' => $action,
-        'fav' => $new_fav
-    ]);
+    $fav_row = db_get1("SELECT fav FROM comments WHERE comment_id = ?", [$comment_id], 'main');
+    $new_fav = $fav_row ? intval($fav_row['fav']) : 0;
+    n3s_api_output(true, ['action' => $action, 'fav' => $new_fav]);
 }
 
 function comment_api_delete()
