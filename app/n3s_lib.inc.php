@@ -836,8 +836,9 @@ function n3s_saveNewProgram(&$data)
     $app_id = db_insert($sql, [$a['title'], $a['user_id'], $a['ctime']]);
     // プログラムのDBに入れる
     $dbname = n3s_getMaterialDB($app_id);
+    // 削除済み作品の残骸行があってもapp_id再利用時に主キー衝突しないよう REPLACE を使う
     db_insert(
-        'INSERT INTO materials (material_id) VALUES (?)',
+        'INSERT OR REPLACE INTO materials (material_id) VALUES (?)',
         [$app_id],
         $dbname
     );

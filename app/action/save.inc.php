@@ -409,6 +409,9 @@ function n3s_action_save_delete($params)
     }
     // 削除
     db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
+    // 本文も削除 (残すとapp_id再利用時にmaterialsの主キー衝突が起きる)
+    $dbname = n3s_getMaterialDB($app_id);
+    db_exec('DELETE FROM materials WHERE material_id=?', [$app_id], $dbname);
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} を削除しました。",
