@@ -267,7 +267,7 @@ function comment_api_fav()
                 'main'
             );
             db_exec(
-                "UPDATE comments SET fav = fav - 1 WHERE comment_id = ?",
+                "UPDATE comments SET fav = CASE WHEN fav > 0 THEN fav - 1 ELSE 0 END WHERE comment_id = ?",
                 [$comment_id],
                 'main'
             );
