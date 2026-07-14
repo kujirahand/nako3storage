@@ -203,19 +203,27 @@ if (fav_button) { // fav_button が非表示になることがある
     fav_button.disabled = true
     ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
       fav_button.disabled = false
-      fav.innerHTML = txt
-      // プロパティを変更
-      let b = fav_button.getAttribute('data-bookmark')
-      console.log('bookmark=', b)
-      if (b == 1) {
-        fav_button.innerHTML = '🌟 気に入った'
-        fav_button.setAttribute('data-bookmark', 0)
-      } else {
-        fav_button.innerHTML = '🌟 解除'
-        fav_button.setAttribute('data-bookmark', 1)
+      // 応答はJSON形式 {result, fav, bookmark, msg}
+      let res = null
+      try { res = JSON.parse(txt) } catch (e) { /* 旧形式(数値のみ)など */ }
+      if (!res) {
+        fav.innerHTML = txt
+        return
       }
+      if (!res.result) {
+        // 自分の作品へのお気に入りなど、登録できなかったとき
+        if (res.msg) { alert(res.msg) }
+        return
+      }
+      fav.innerHTML = res.fav
+      // ボタン表示はサーバーが返した登録状態に合わせる
+      if (res.bookmark == 1) {
+        fav_button.innerHTML = '🌟 解除'
+      } else {
+        fav_button.innerHTML = '🌟 気に入った'
+      }
+      fav_button.setAttribute('data-bookmark', res.bookmark)
     })
-  
   }
   // favの値を取得する --- 現在不使用
   function getFavCount(){

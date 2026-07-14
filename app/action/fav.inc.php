@@ -71,8 +71,10 @@ function echo_fav()
         return;
     }
     // ログインしてなければ q は無効
+    // (以前は 'vew' というタイポのせいで view 扱いにならず、
+    //  未ログインでも q=up の加算処理に到達してしまうバグがあった)
     if (!n3s_is_login()) {
-        $q = 'vew';
+        $q = 'view';
     }
     // view
     if ($q == 'view') {
@@ -126,30 +128,45 @@ function echo_fav()
             throw $e;
         }
         $fav--;
-    } else {
-        // 自分の作品にはお気に入り登録できない
-        if ($app_user_id === intval($user_id)) {
-            echo $fav;
-            return;
-        }
-        // insert
-        db_begin();
-        try {
-            db_exec(
-                'UPDATE apps SET fav=fav+1 WHERE app_id=?',
-                [$app_id]
-            );
-            db_exec(
-                'INSERT INTO bookmarks (app_id, user_id)'.
-      'VALUES(?,?)',
-                [$app_id, $user_id]
-            );
-            db_commit();
-        } catch (Exception $e) {
-            db_rollback();
-            throw $e;
-        }
-        $fav++;
+        echo_fav_result(true, $fav, 0);
+        return;
     }
-    echo $fav;
+    // 自分の作品にはお気に入り登録できない
+    if ($app_user_id === intval($user_id)) {
+        echo_fav_result(false, $fav, 0, '自分の作品にはお気に入り登録できません。');
+        return;
+    }
+    // insert
+    db_begin();
+    try {
+        db_exec(
+            'UPDATE apps SET fav=fav+1 WHERE app_id=?',
+            [$app_id]
+        );
+        db_exec(
+            'INSERT INTO bookmarks (app_id, user_id, ctime)'.
+  'VALUES(?,?,?)',
+            [$app_id, $user_id, time()]
+        );
+        db_commit();
+    } catch (Exception $e) {
+        db_rollback();
+        throw $e;
+    }
+    $fav++;
+    echo_fav_result(true, $fav, 1);
+}
+
+// q=up の応答。数値だけでは「自分の作品なので登録できなかった」ことを
+// クライアントに伝えられないため、JSON形式で返す。
+// (呼び出し元は app/resource/nako3storage_edit.js の fav_button のみ)
+function echo_fav_result($result, $fav, $bookmark, $msg = '')
+{
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'result' => $result,
+        'fav' => $fav,
+        'bookmark' => $bookmark,
+        'msg' => $msg,
+    ], JSON_UNESCAPED_UNICODE);
 }

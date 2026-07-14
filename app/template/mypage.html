@@ -17,7 +17,26 @@
     </h1>
 </div>
 
-{{ if $page == 0 }}
+{{ if $is_mypage_top }}
+<div class="showblock">
+  <h3><a name="comments">最近コメントが付いた投稿</a></h3>
+  <div class='favblock'>
+    {{ if !$recent_comments }}
+      最近ついたコメントはありません。
+    {{ else }}
+      <ul>
+      {{ for $recent_comments as $i }}
+      <li>
+        <a href="{{$i.link}}">{{$i.app_title | check_mudai}}</a>
+        に「{{$i.name | check_nanasi}}」さんから: {{$i.body | trim50}}
+        <span class="memo">{{$i.ctime | datetime}}</span>
+      </li>
+      {{ endfor }}
+      </ul>
+    {{ endif }}
+  </div>
+</div>
+
 <div class="showblock">
   <h3><a name="fav">最近のお気に入り</a></h3>
   <div class='favblock'>

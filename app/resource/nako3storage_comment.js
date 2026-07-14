@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!Number.isInteger(userId) || userId <= 0) {
             return name;
         }
-        return `<a href="index.php?action=list&user_id=${encodeURIComponent(userId)}">${name}</a>`;
+        return `<a href="index.php?action=list&user_id=${encodeURIComponent(userId)}" style="color: inherit;">${name}</a>`;
     }
     
     // アコーディオンの開閉処理
