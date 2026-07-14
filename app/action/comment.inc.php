@@ -70,24 +70,69 @@ function comment_api_list()
         'main'
     );
     
-    $results = [];
+    if (empty($parents)) {
+        n3s_api_output(true, ['comments' => []]);
+        return;
+    }
+    
+    // 親コメントのID一覧を収集
+    $parent_ids = [];
+    foreach ($parents as $p) {
+        $parent_ids[] = intval($p['comment_id']);
+    }
+    
+    // 2. 子コメントを一括取得 (IN句)
+    $in_clause_parents = implode(',', $parent_ids);
+    $children = db_get(
+        "SELECT * FROM comments 
+         WHERE parent_id IN ($in_clause_parents) AND status IN ('approved', 'pending', 'ng')
+         ORDER BY ctime ASC",
+        [],
+        'main'
+    );
+    
+    // 子コメントを親IDごとにグループ化
+    $children_by_parent = [];
+    foreach ($children as $c) {
+        $pid = intval($c['parent_id']);
+        if (!isset($children_by_parent[$pid])) {
+            $children_by_parent[$pid] = [];
+        }
+        $children_by_parent[$pid][] = $c;
+    }
+    
+    // 親・子すべてのコメントIDを収集
+    $all_comment_ids = [];
+    foreach ($parents as $p) {
+        $all_comment_ids[] = intval($p['comment_id']);
+    }
+    foreach ($children as $c) {
+        $all_comment_ids[] = intval($c['comment_id']);
+    }
+    
+    // 3. ログイン中なら、自分がいいねしたコメントIDを一括取得 (IN句)
+    $liked_comment_ids = [];
     $user_id = n3s_get_user_id();
+    if ($user_id > 0 && !empty($all_comment_ids)) {
+        $in_clause_all = implode(',', $all_comment_ids);
+        $likes = db_get(
+            "SELECT comment_id FROM comment_likes WHERE user_id = ? AND comment_id IN ($in_clause_all)",
+            [$user_id],
+            'main'
+        );
+        foreach ($likes as $l) {
+            $liked_comment_ids[intval($l['comment_id'])] = true;
+        }
+    }
+    
+    $results = [];
+    $is_admin = n3s_is_admin();
     
     foreach ($parents as $p) {
-        // 自分がこの親コメントにいいねしたかチェック
-        $liked = false;
-        if ($user_id > 0) {
-            $like = db_get1(
-                "SELECT * FROM comment_likes WHERE user_id = ? AND comment_id = ?",
-                [$user_id, $p['comment_id']],
-                'main'
-            );
-            $liked = isset($like['comment_like_id']);
-        }
-        
+        $comment_id = intval($p['comment_id']);
+        $liked = isset($liked_comment_ids[$comment_id]);
         $is_pending = ($p['status'] === 'pending');
         $is_ng = ($p['status'] === 'ng');
-        $is_admin = n3s_is_admin();
         $can_delete = ($user_id > 0 && (intval($p['user_id']) === $user_id || $is_admin));
         
         $p_body = $p['body'];
@@ -98,7 +143,7 @@ function comment_api_list()
         }
         
         $p_data = [
-            'comment_id' => intval($p['comment_id']),
+            'comment_id' => $comment_id,
             'user_id' => intval($p['user_id']),
             'name' => $p['name'],
             'body' => $p_body,
@@ -110,26 +155,10 @@ function comment_api_list()
             'replies' => []
         ];
         
-        // 子コメントの取得
-        $children = db_get(
-            "SELECT * FROM comments 
-             WHERE parent_id = ? AND status IN ('approved', 'pending', 'ng')
-             ORDER BY ctime ASC",
-            [$p['comment_id']],
-            'main'
-        );
-        
-        foreach ($children as $c) {
-            $c_liked = false;
-            if ($user_id > 0) {
-                $like = db_get1(
-                    "SELECT * FROM comment_likes WHERE user_id = ? AND comment_id = ?",
-                    [$user_id, $c['comment_id']],
-                    'main'
-                );
-                $c_liked = isset($like['comment_like_id']);
-            }
-            
+        $my_children = isset($children_by_parent[$comment_id]) ? $children_by_parent[$comment_id] : [];
+        foreach ($my_children as $c) {
+            $c_comment_id = intval($c['comment_id']);
+            $c_liked = isset($liked_comment_ids[$c_comment_id]);
             $is_c_pending = ($c['status'] === 'pending');
             $is_c_ng = ($c['status'] === 'ng');
             $can_c_delete = ($user_id > 0 && (intval($c['user_id']) === $user_id || $is_admin));
@@ -142,7 +171,7 @@ function comment_api_list()
             }
             
             $p_data['replies'][] = [
-                'comment_id' => intval($c['comment_id']),
+                'comment_id' => $c_comment_id,
                 'user_id' => intval($c['user_id']),
                 'name' => $c['name'],
                 'body' => $c_body,

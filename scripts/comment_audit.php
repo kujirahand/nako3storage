@@ -58,10 +58,20 @@ if (!function_exists('check_comment_with_gemini')) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json'
         ]);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // 接続タイムアウト 10秒
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);        // 全体タイムアウト 30秒
         
         $response = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo "[ERROR] API接続エラー: " . curl_error($ch) . "\n";
+        
+        $curl_error = curl_errno($ch);
+        $curl_error_msg = curl_error($ch);
+        
+        if (PHP_VERSION_ID < 80000 && is_resource($ch)) {
+            curl_close($ch);
+        }
+        
+        if ($curl_error) {
+            echo "[ERROR] API接続エラー: " . $curl_error_msg . "\n";
             return 'error';
         }
         
