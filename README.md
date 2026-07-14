@@ -31,8 +31,8 @@
 ```php
 <?php
 global $n3s_config;
-// 管理ユーザーのIDを配列で指定
-$n3s_config['admin_users'] = [PHP_INT_MAX];
+// 管理ユーザーのIDを配列で指定　(以下は1と3のユーザーを管理者にする例)
+$n3s_config['admin_users'] = [1, 3];
 ```
 
 ### git cloneで--recursiveを忘れた時
@@ -82,6 +82,33 @@ $n3s_config['google_oauth_redirect_uri'] = 'https://n3s.example.com/index.php?ac
 ```
 
 `n3s_config.ini.php` はサイト固有の設定ファイルであり(`.gitignore`対象)、リポジトリにはコミットされません。クライアントシークレットも含むため、第三者に共有しないよう管理してください。
+
+## コメント自動審査（Gemini API）を設定する場合
+
+作品へのコメント投稿時、いたずらやスパム、誹謗中傷などを防ぐために Gemini API を利用した自動審査バッチを設定できます。
+（設定しない場合、AI審査は行われませんが、コメントは `pending` のまま保存され、`scripts/comment_audit.php` の実行時に自動承認（公開）されます）
+1. [Google AI Studio](https://aistudio.google.com/)等で Gemini API キーを取得する。
+2. `n3s_config.ini.php` に、取得した API キーを追加する。
+
+```php
+// Gemini API の設定
+$n3s_config['gemini_api_key'] = '(取得したGemini APIキー)';
+
+// (オプション) AI審査を行わずすべて無条件で自動承認(公開)にする場合は true
+$n3s_config['comment_audit_auto_approve'] = false;
+```
+
+3. コメント審査バッチを実行するために、cron 等で定期的に（例: 1時間に1回）以下のコマンドを実行するように設定します。
+
+```sh
+php scripts/comment_audit.php
+```
+
+または、`just` コマンドが使える環境であれば以下を実行することも可能です。
+
+```sh
+just comment-audit
+```
 
 ## 安全に運用するためのTips
 

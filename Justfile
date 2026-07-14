@@ -42,3 +42,7 @@ test-filter FILTER: install
 # PHP構文チェック (AGENTS.md #13 と同等)
 lint:
     find . -path './app/fw_simple/.git' -prune -o -path './nadesiko3hub/.git' -prune -o -path './vendor' -prune -o -name '*.php' -print -exec php -l {} \;
+
+# コメント審査バッチを実行する
+comment-audit:
+    php scripts/comment_audit.php

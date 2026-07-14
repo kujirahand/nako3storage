@@ -201,6 +201,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     $a['badlink'] = n3s_getURL('about', 'bad');
     $a['mtime_nako3storage_show'] = filemtime($n3s_config['dir_resource']."/nako3storage_show.js");
     $a['mtime_nako3storage_edit'] = filemtime($n3s_config['dir_resource']."/nako3storage_edit.js");
+    $a['mtime_nako3storage_comment'] = filemtime($n3s_config['dir_resource']."/nako3storage_comment.js");
     if (!isset($a['user_id'])) {
         $a['user_id'] = 0;
     }

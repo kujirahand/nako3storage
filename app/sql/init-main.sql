@@ -42,10 +42,13 @@ CREATE TABLE comments (
   comment_id    INTEGER PRIMARY KEY,
   user_id       INTEGER DEFAULT 0,
   app_id        INTEGER DEFAULT -1,
+  parent_id     INTEGER DEFAULT 0,  /* 親コメントID（0はトップレベル） */
   name          TEXT DEFAULT '',
   body          TEXT DEFAULT '',
   ip            TEXT DEFAULT '',
   editkey       TEXT DEFAULT '',
+  status        TEXT DEFAULT 'pending', /* pending:審査待ち, approved:公開, ng:非公開(NG) */
+  fav           INTEGER DEFAULT 0,     /* いいね数 */
   ctime         INTEGER DEFAULT 0,
   mtime         INTEGER DEFAULT 0
 );
@@ -72,6 +75,14 @@ CREATE TABLE bookmarks (
   app_id        INTEGER,
   ctime         INTEGER DEFAULT 0,
   UNIQUE(user_id, app_id)
+);
+
+CREATE TABLE comment_likes (
+  comment_like_id INTEGER PRIMARY KEY,
+  user_id         INTEGER,
+  comment_id      INTEGER,
+  ctime           INTEGER DEFAULT 0,
+  UNIQUE(user_id, comment_id)
 );
 
 /*
@@ -112,3 +123,10 @@ ALTER TABLE comments ADD COLUMN user_id INTEGER DEFAULT 0
 */
 
 /* 2020/12/21 add images table (画像のアップロード機能) */
+
+CREATE TABLE IF NOT EXISTS comment_audit_cache (
+  body_hash   TEXT PRIMARY KEY,
+  result      TEXT DEFAULT '',
+  reason      TEXT DEFAULT '',
+  ctime       INTEGER DEFAULT 0
+);

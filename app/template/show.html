@@ -138,84 +138,89 @@
 </div>
 
 <!-- URLを表示 -->
-<div class="ctrl_block">
-  <h1>作品公開情報</h1>
-
-  {{ if $is_private == 1 }}
-  <div class="blogparts">
-    <span>🔒非公開の作品です。</span>
+<div id="info_accordion_container" style="margin-top: 20px; margin-bottom: 20px;">
+  <!-- アコーディオンヘッダー -->
+  <div id="info_accordion_header" style="cursor: pointer; padding: 12px 15px; background-color: #f9f9f9; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; transition: background-color 0.2s;">
+    <span style="font-weight: bold; color: #333; font-size: 1.1em; margin: 0; padding: 0;">🌐 作品公開情報</span>
+    <span id="info_accordion_icon" style="font-size: 0.9em; color: #666;">▶</span>
   </div>
-  {{ endif }}
+  
+  <!-- アコーディオンコンテンツ -->
+  <div id="info_accordion_content" style="display: none; padding: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px; background-color: #fff;">
+    {{ if $is_private == 1 }}
+    <div class="blogparts">
+      <span>🔒非公開の作品です。</span>
+    </div>
+    {{ endif }}
 
-  {{ if $is_private != 1 }}
-  <div class="blogparts">
-    <span class="memo">📍この作品のURL: </span><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
-      {{ if $app_name }}
+    {{ if $is_private != 1 }}
+    <div class="blogparts">
+      <span class="memo">📍この作品のURL: </span><br>
       <input class="info_link" type="text" onclick="this.select()"
-      value="{{$n3s_baseurl}}/show/{{$app_name}}"><br>
-      {{ endif }}
-  </div>
-  <div class="blogparts">
-    <!-- url-->
-    <span class="memo">📍アプリ(即時実行)のURL: </span><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{ $widget_url_run }}"><br>
-    <!-- url-->
-    <span class="memo">📍アプリ(実行ボタンあり)のURL: </span><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{ $widget_url }}"><br>
-    <!-- url-->
-    <span class="memo">📍ブログパーツ: </span><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{ $widget_tag }}"><br>
-    <!-- 説明 -->
-    <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
-  </div>
-  {{ endif }}
+        value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
+        {{ if $app_name }}
+        <input class="info_link" type="text" onclick="this.select()"
+        value="{{$n3s_baseurl}}/show/{{$app_name}}"><br>
+        {{ endif }}
+    </div>
+    <div class="blogparts">
+      <!-- url-->
+      <span class="memo">📍アプリ(即時実行)のURL: </span><br>
+      <input class="info_link" type="text" onclick="this.select()"
+        value="{{ $widget_url_run }}"><br>
+      <!-- url-->
+      <span class="memo">📍アプリ(実行ボタンあり)のURL: </span><br>
+      <input class="info_link" type="text" onclick="this.select()"
+        value="{{ $widget_url }}"><br>
+      <!-- url-->
+      <span class="memo">📍ブログパーツ: </span><br>
+      <input class="info_link" type="text" onclick="this.select()"
+        value="{{ $widget_tag }}"><br>
+      <!-- 説明 -->
+      <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
+    </div>
+    {{ endif }}
 
-  {{ if $is_private == 0 }}
-  <div class="blogparts">
-    <span class="memo">📍ライブラリ直リンク - 『!「***」を取込』で使うとき: </span><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}"><br>
-    <input class="info_link" type="text" onclick="this.select()"
-      value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
-  </div>
-  {{ endif }}
+    {{ if $is_private == 0 }}
+    <div class="blogparts">
+      <span class="memo">📍ライブラリ直リンク - 『!「***」を取込』で使うとき: </span><br>
+      <input class="info_link" type="text" onclick="this.select()"
+        value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}"><br>
+      <input class="info_link" type="text" onclick="this.select()"
+        value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
+    </div>
+    {{ endif }}
 
-  {{ if $is_private == 0 && ($copyright != '' && $copyright != '自分用' && $copyright != '未指定') }}
-  {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
-  <div class="blogparts">
-    <span class="memo">📍なでしこハブ (最新版の反映は1日後):</span><br>
-    <div class="memo" style="padding-left: 1em;">
-      <ur>
-        <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/blob/main/{{$app_dir}}/{{$app_id}}.nako3">ソースの確認</a></li>
-        <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/commits/main/{{$app_dir}}/{{$app_id}}.nako3">編集履歴の確認</a></li>
-      </ur>
+    {{ if $is_private == 0 && ($copyright != '' && $copyright != '自分用' && $copyright != '未指定') }}
+    {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
+    <div class="blogparts">
+      <span class="memo">📍なでしこハブ (最新版の反映は1日後):</span><br>
+      <div class="memo" style="padding-left: 1em;">
+        <ul>
+          <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/blob/main/{{$app_dir}}/{{$app_id}}.nako3">ソースの確認</a></li>
+          <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/commits/main/{{$app_dir}}/{{$app_id}}.nako3">編集履歴の確認</a></li>
+        </ul>
+      </div>
+    </div>
+    {{ endif }}
+    
+    <div class="ctrl_block" style="text-align:right; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px;">
+      <div class="memo">
+        通報数:
+        {{e: $bad = empty($bad) ? 0 : $bad; }}
+        <span id="bad">{{$bad}}</span>
+      </div>
+      <div class="memo">
+        <a href="{{$badlink}}">通報って何？</a>
+      </div>
+    {{if $app_id gt 0 && n3s_is_login()}}
+      <div style="margin-top: 8px;">
+        <button id="bad_button" class="pure-button">通報する</button>
+      </div>
+    {{endif}}
+    </div>
   </div>
-  {{ endif }}
-
-</div><!-- /ctrl_block --><!-- /URL -->
-
-<div class="ctrl_block" style="text-align:right;">
-  <div class="memo">
-    通報数:
-    {{e: $bad = empty($bad) ? 0 : $bad; }}
-    <span id="bad">{{$bad}}</span>
-  </div>
-  <div class="memo">
-    <a href="{{$badlink}}">通報って何？</a>
-  </div>
-{{if $app_id gt 0 && n3s_is_login()}}
-  <br>
-  <div>
-    <button id="bad_button" class="pure-button">通報する</button>
-  </div>
-{{endif}}
-  <div>&nbsp;</div>
-</div>
+</div><!-- /作品公開情報 -->
 
 <!-- script for ace editor -->
 {{ $import_editor | raw }}
@@ -253,5 +258,61 @@ window.addEventListener('message', function(e) {
 
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+
+<!-- コメントセクション -->
+<div class="ctrl_block" id="comment_section" style="margin-top: 30px;">
+  <h2>💬 コメント</h2>
+  
+  <!-- アコーディオンのヘッダー -->
+  <div id="comment_accordion_header" style="cursor: pointer; padding: 12px 15px; background-color: #f9f9f9; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; transition: background-color 0.2s;">
+    <span id="comment_summary_text" style="font-weight: bold; color: #333;">コメントを取得中...</span>
+    <span id="comment_accordion_icon" style="font-size: 0.9em; color: #666;">▼</span>
+  </div>
+  
+  <!-- アコーディオンのコンテンツ本体 -->
+  <div id="comment_accordion_content" style="display: none; margin-top: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px; padding: 15px; background-color: #fff;">
+    <div id="comment_info_message" style="display: none; padding: 12px; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; border-radius: 4px; margin-bottom: 15px; font-size: 0.95em; line-height: 1.5;"></div>
+    
+    <!-- 新規コメント投稿フォーム（ログイン時のみ） -->
+    {{ if n3s_is_login() }}
+    <div class="comment-form-container" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+      <h3 style="margin-top: 0; font-size: 1.1em; color: #333;">新規コメントを投稿</h3>
+      <p style="font-size: 0.8em; color: #955;">コメントは<strong>ポジティブで積極的なものだけ</strong>許可されています。AIでネガポジ判定して後ほど表示されます。</p>
+      <form id="comment_post_form" onsubmit="submitComment(event)">
+        <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
+        <input type="hidden" name="app_id" value="{{ $app_id }}">
+        <input type="hidden" name="parent_id" value="0">
+        <input type="hidden" name="editkey" value="{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}">
+        <div style="margin-bottom: 12px;">
+          <textarea id="comment_body" name="body" rows="4" style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95em; resize: vertical;" placeholder="コメントを入力してください（1000文字以内）" required></textarea>
+        </div>
+        <div style="text-align: right;">
+          <button type="submit" class="pure-button pure-button-primary">コメントを送信</button>
+        </div>
+        <br>
+      </form>
+    </div>
+    {{ else }}
+    <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; color: #666; font-size: 0.9em; text-align: center;">
+      {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#comment_section"); }}
+      <a href="index.php?action=login&back={{ $backurl }}">ログイン</a>するとコメントを投稿できます。
+    </div>
+    {{ endif }}
+    <!-- コメント投稿フォームここまで -->
+    
+    <div style="border-top: 1px solid silver; padding: 8px"></div>
+
+    <!-- コメント一覧 -->
+    <div id="comment_list_area"></div>   
+  </div>
+</div>
+
+<script>
+window.app_id = {{ $app_id }};
+window.n3s_edit_token = "{{e: echo n3s_getEditToken(); }}";
+window.n3s_is_login = {{e: echo n3s_is_login() ? 'true' : 'false'; }};
+window.n3s_editkey = "{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}";
+</script>
+<script defer src="{{e:echo n3s_getURL('nako3storage_comment.js', 'file', ['m'=>$mtime_nako3storage_comment]);}}"></script>
 
 {{ include parts_html_footer.html }}
