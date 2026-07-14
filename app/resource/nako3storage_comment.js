@@ -291,6 +291,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("edit_token", window.n3s_edit_token);
+        const params = new URLSearchParams(window.location.search);
+        const editKey = params.get("editkey");
+        if (editKey) formData.append("editkey", editKey);
         
         fetch("api.php?action=comment&mode=fav", {
             method: "POST",
