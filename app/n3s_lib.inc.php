@@ -289,6 +289,14 @@ function n3s_parseURI()
         empty($_SERVER['HTTP_HOST']) ? 'localhost' : $_SERVER['HTTP_HOST'],
         $script_dir
     );
+    // dynamically determine app_root_url if it is default or empty, and sandbox_url is not set (same-origin)
+    $app_root_url = isset($n3s_config['app_root_url']) ? trim($n3s_config['app_root_url']) : '';
+    if ($app_root_url === '' || $app_root_url === 'http://localhost/repos/nako3storage/') {
+        $sandbox_url = isset($n3s_config['sandbox_url']) ? trim($n3s_config['sandbox_url']) : '';
+        if ($sandbox_url === '') {
+            $n3s_config['app_root_url'] = rtrim($n3s_config['baseurl'], '/') . '/';
+        }
+    }
 }
 
 function n3s_get_db($type = 'main')
