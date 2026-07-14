@@ -108,15 +108,24 @@ function echo_fav()
     if (isset($bookmark['bookmark_id'])) {
         // delete
         $bookmark_id = $bookmark['bookmark_id'];
+        db_begin();
+        try {
+            // fav+bookmarkの2更新をまとめて1トランザクションにし、ロック取得回数を減らす。
+            // read-then-writeではなくfav=fav-1で原子的に減算し、同時書き込みでの更新ロストを防ぐ。
+            db_exec(
+                'UPDATE apps SET fav=fav-1 WHERE app_id=?',
+                [$app_id]
+            );
+            db_exec(
+                'DELETE FROM bookmarks WHERE bookmark_id=?',
+                [$bookmark_id]
+            );
+            db_commit();
+        } catch (Exception $e) {
+            db_rollback();
+            throw $e;
+        }
         $fav--;
-        db_exec(
-            'UPDATE apps SET fav=? WHERE app_id=?',
-            [$fav, $app_id]
-        );
-        db_exec(
-            'DELETE FROM bookmarks WHERE bookmark_id=?',
-            [$bookmark_id]
-        );
     } else {
         // 自分の作品にはお気に入り登録できない
         if ($app_user_id === intval($user_id)) {
@@ -124,16 +133,23 @@ function echo_fav()
             return;
         }
         // insert
-        $fav++;
-        db_exec(
-            'UPDATE apps SET fav=? WHERE app_id=?',
-            [$fav, $app_id]
-        );
-        db_exec(
-            'INSERT INTO bookmarks (app_id, user_id)'.
+        db_begin();
+        try {
+            db_exec(
+                'UPDATE apps SET fav=fav+1 WHERE app_id=?',
+                [$app_id]
+            );
+            db_exec(
+                'INSERT INTO bookmarks (app_id, user_id)'.
       'VALUES(?,?)',
-            [$app_id, $user_id]
-        );
+                [$app_id, $user_id]
+            );
+            db_commit();
+        } catch (Exception $e) {
+            db_rollback();
+            throw $e;
+        }
+        $fav++;
     }
     echo $fav;
 }
