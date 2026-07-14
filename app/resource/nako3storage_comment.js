@@ -56,11 +56,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const isNg = c.status === 'ng';
             
             let statusLabel = '';
-            if (isPending) {
-                statusLabel = ' <span style="color: #f39c12; font-size: 0.85em;">(現在内容を審査中…)</span>';
-            } else if (isNg) {
-                statusLabel = ' <span style="color: #d93025; font-size: 0.85em;">(AIにより却下されました)</span>';
-            }
             
             html += `<div class="comment-thread" style="margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; padding-bottom: 20px;">`;
             html += `  <div class="comment-item parent-comment">`;
@@ -76,9 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
             html += `    <div class="comment-body" style="${bodyStyle}">${escapeHTML(c.body)}</div>`;
             html += `    <div class="comment-actions" style="font-size: 0.85em; color: #777; display: flex; gap: 15px; align-items: center;">`;
             
-            if (isPending || isNg) {
-                html += `      <span style="color: #ccc;">⭐ ${c.fav}</span>`;
-            } else {
+            if (!isPending && !isNg) {
                 html += `      <button class="comment-fav-btn ${favClass}" onclick="toggleCommentFav(${c.comment_id}, this)" style="background: none; border: none; cursor: pointer; padding: 4px 8px; color: #777; display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; transition: background-color 0.2s;">`;
                 html += `        ⭐ <span class="fav-count">${c.fav}</span>`;
                 html += `      </button>`;
@@ -124,11 +117,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     const isRNg = r.status === 'ng';
                     
                     let rStatusLabel = '';
-                    if (isRPending) {
-                        rStatusLabel = ' <span style="color: #f39c12; font-size: 0.85em;">(現在内容を審査中…)</span>';
-                    } else if (isRNg) {
-                        rStatusLabel = ' <span style="color: #d93025; font-size: 0.85em;">(AIにより却下されました)</span>';
-                    }
                     
                     html += `    <div class="comment-item reply-comment" style="margin-bottom: 12px; border-bottom: 1px dashed #eee; padding-bottom: 12px;">`;
                     html += `      <div class="comment-meta" style="font-size: 0.8em; color: #666; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">`;
@@ -143,9 +131,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     html += `      <div class="comment-body" style="${rBodyStyle}">${escapeHTML(r.body)}</div>`;
                     html += `      <div class="comment-actions" style="font-size: 0.8em; color: #777; display: flex; gap: 10px; align-items: center;">`;
                     
-                    if (isRPending || isRNg) {
-                        html += `        <span style="color: #ccc;">⭐ ${r.fav}</span>`;
-                    } else {
+                    if (!isRPending && !isRNg) {
                         html += `        <button class="comment-fav-btn ${rFavClass}" onclick="toggleCommentFav(${r.comment_id}, this)" style="background: none; border: none; cursor: pointer; padding: 2px 6px; color: #777; display: inline-flex; align-items: center; gap: 4px; border-radius: 3px; transition: background-color 0.2s;">`;
                         html += `          ⭐ <span class="fav-count">${r.fav}</span>`;
                         html += `        </button>`;
