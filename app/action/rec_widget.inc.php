@@ -5,7 +5,7 @@
  * widget.html (sandbox 内) から run=0 で「実行」ボタンが押されたとき、
  * JavaScript 側が fetch でこのエンドポイントを呼び、実行回数を記録する。
  *
- * GET / POST: index.php?action=rec_widget&page=<app_id>
+ * GET: api.php?action=rec_widget&page=<app_id>
  *
  * セキュリティ:
  *  - 副作用は access_stats テーブルへの書き込みのみ。
