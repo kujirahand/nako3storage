@@ -56,6 +56,11 @@ $n3s_config = [
     // Discord
     "discord_webhook_name" => "なでしこ3貯蔵庫",
     "discord_webhook_url" => "",
+    // Google OAuth ログイン (docs/user_login_oauth_google.md)
+    "google_oauth_client_id" => "",
+    "google_oauth_client_secret" => "",
+    // 例: "https://n3s.nadesi.com/index.php?action=login&page=google_callback"
+    "google_oauth_redirect_uri" => "",
 ];
 
 // timezone

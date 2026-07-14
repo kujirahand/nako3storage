@@ -10,6 +10,11 @@ CREATE TABLE users (
   twitter_id  INTEGER DEFAULT 0,
   profile_url TEXT DEFAULT '',
   salt        TEXT DEFAULT '',
+  google_sub  TEXT DEFAULT '', /* GoogleログインのsubjectID (docs/user_login_oauth_google.md) */
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0
 );
+
+-- google_sub='' なユーザーが複数いてもUNIQUE制約に抵触しないよう部分インデックスにする
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub
+  ON users(google_sub) WHERE google_sub != '';
