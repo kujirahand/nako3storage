@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
             html += `<div class="comment-thread" style="margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; padding-bottom: 20px;">`;
             html += `  <div class="comment-item parent-comment">`;
             html += `    <div class="comment-meta" style="font-size: 0.85em; color: #666; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">`;
-            html += `      <strong style="color: #333;">👤 ${escapeHTML(c.name)}${statusLabel}</strong>`;
+            html += `      <strong style="color: #333;">👤 ${renderCommentAuthor(c)}${statusLabel}</strong>`;
             html += `      <span style="color: #999;">${timeStr}</span>`;
             html += `    </div>`;
             
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     
                     html += `    <div class="comment-item reply-comment" style="margin-bottom: 12px; border-bottom: 1px dashed #eee; padding-bottom: 12px;">`;
                     html += `      <div class="comment-meta" style="font-size: 0.8em; color: #666; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">`;
-                    html += `        <strong style="color: #444;">👤 ${escapeHTML(r.name)}${rStatusLabel}</strong>`;
+                    html += `        <strong style="color: #444;">👤 ${renderCommentAuthor(r)}${rStatusLabel}</strong>`;
                     html += `        <span style="color: #999;">${rTimeStr}</span>`;
                     html += `      </div>`;
                     
@@ -170,6 +170,15 @@ document.addEventListener("DOMContentLoaded", function() {
                   .replace(/>/g, "&gt;")
                   .replace(/"/g, "&quot;")
                   .replace(/'/g, "&#039;");
+    }
+
+    function renderCommentAuthor(comment) {
+        const name = escapeHTML(comment.name);
+        const userId = Number(comment.user_id);
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return name;
+        }
+        return `<a href="index.php?action=list&user_id=${encodeURIComponent(userId)}">${name}</a>`;
     }
     
     // アコーディオンの開閉処理
