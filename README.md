@@ -86,8 +86,7 @@ $n3s_config['google_oauth_redirect_uri'] = 'https://n3s.example.com/index.php?ac
 ## コメント自動審査（Gemini API）を設定する場合
 
 作品へのコメント投稿時、いたずらやスパム、誹謗中傷などを防ぐために Gemini API を利用した自動審査バッチを設定できます。
-（設定しない場合、AI審査はパスされ、投稿されたコメントは自動で即時公開されます）
-
+（設定しない場合、AI審査は行われませんが、コメントは `pending` のまま保存され、`scripts/comment_audit.php` の実行時に自動承認（公開）されます）
 1. [Google AI Studio](https://aistudio.google.com/)等で Gemini API キーを取得する。
 2. `n3s_config.ini.php` に、取得した API キーを追加する。
 
