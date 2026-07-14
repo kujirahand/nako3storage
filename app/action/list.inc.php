@@ -120,10 +120,12 @@ function n3s_list_get()
             'ORDER BY fav DESC LIMIT 30', []);
 
         // Nヶ月以内に更新されたアプリを取得
-        $mon = 6;
+        // mtimeはいいねでは更新されないため、fav蓄積ペースに対して閾値・期間が厳しすぎると
+        // 対象がほぼ枯渇する(#今回の不具合)。閾値と期間を緩めて母数を確保する。
+        $mon = 12;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $ranking = db_get('SELECT * FROM apps '.
-            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 2) AND (is_private = 0) AND (show_list = 1)'.
+            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 1) AND (is_private = 0) AND (show_list = 1)'.
             'ORDER BY fav DESC LIMIT 40', [$mtime]);
         // ランキング情報を得る
         $ranking_total = $ranking_all + $ranking;
