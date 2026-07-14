@@ -1,8 +1,8 @@
-# Googleアカウントによるログイン 設計ドキュメント
+# Googleアカウントによるログイン 実装仕様
 
 [Issue #227](https://github.com/kujirahand/nako3storage/issues/227) 対応。
-既存のメール/パスワード認証 ([user_login.md](user_login.md)) に加えて、Googleアカウントでのログイン（OAuth 2.0 / OpenID Connect の認可コードフロー）を実装するための設計をまとめる。
-**このドキュメントは設計段階のものであり、実装はまだ行われていない。** 実装時はここに書かれた前提を見直し、差異があれば更新すること。
+既存のメール/パスワード認証 ([user_login.md](user_login.md)) に加えて実装した、Googleアカウントでのログイン（OAuth 2.0 / OpenID Connect の認可コードフロー）の仕様をまとめる。
+コードを変更する際はここに書かれた前提を確認し、実装と差異があれば本ドキュメントを更新すること。
 
 ---
 
@@ -39,7 +39,7 @@
 
 ---
 
-## 3. 関連ファイル（新規・変更予定）
+## 3. 関連ファイル
 
 | ファイル | 変更内容 |
 |---|---|
@@ -48,7 +48,7 @@
 | `app/n3s_config.def.php` | `google_oauth_client_id` / `google_oauth_client_secret` / `google_oauth_redirect_uri` のデフォルト値（空文字）を追加。 |
 | `n3s_config.ini.php`（gitignore対象・サイト固有設定） | 実際のクライアントIDとシークレットを設定する場所。既存の `admin_users` 上書き等と同じ扱い。 |
 | `app/sql/init-users.sql` | `users` テーブルに `google_sub` カラムを追加（新規構築時）。 |
-| `app/sql/migrate-xxxx-add-google-sub.sql`（新規、仮称） | 既存DBに対する `ALTER TABLE` マイグレーション。 |
+| `app/n3s_lib.inc.php` | 既存DBに対する起動時の軽量マイグレーション `n3s_db_migrate_users()`。 |
 | `app/template/login_email.html` | 「Googleでログイン」ボタンを追加。 |
 | `docs/user_login.md` | Googleログイン追加に伴う前提の更新（本ドキュメントへのリンク、`users`テーブル定義の追記など）。 |
 
@@ -59,8 +59,8 @@
 `users` テーブルに、Googleの安定した一意識別子である `sub`（subject）を保存するカラムを追加する。
 
 ```sql
--- app/sql/init-users.sql に追記（新規構築時）
-ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT '';
+-- app/sql/init-users.sql の CREATE TABLE users 内（新規構築時）
+google_sub TEXT DEFAULT ''
 ```
 
 既存の `login_token`（未使用の予約列）や `twitter_id`（Twitter連携の名残、未実装）は意味が異なるため流用しない。`google_sub` は文字列（Googleの `sub` は数値だが将来的な形式変更に備えて文字列として扱う）。
@@ -72,7 +72,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub
   ON users(google_sub) WHERE google_sub != '';
 ```
 
-既存DBへの適用は、`init-users.sql` の実行では追いつかない（既にテーブルが存在するため）ので、別途マイグレーションSQL・適用手順（`Justfile` へのタスク追加、または起動時の簡易マイグレーションチェック）を用意する。既存のマイグレーション運用の有無を実装前に確認すること（現状 `app/sql/` にはマイグレーション用の仕組みが見当たらないため、初回導入時にどう既存本番DBへ反映するかは要検討）。
+既存DBへの適用は、起動時に `n3s_db_migrate_users()` が軽量マイグレーションとして行う。`PRAGMA table_info(users)` で `google_sub` が無いことを確認した場合のみ、`ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''` と部分UNIQUEインデックス作成を実行する。
 
 ---
 
@@ -258,8 +258,8 @@ function n3s_google_verify_id_token($id_token)
 
 ## 8. 既存コードへの影響・注意点
 
-- `n3s_web_login_trylogin()` には「`users.password` が空文字ならパスワード再設定を促す」分岐がある（[user_login.md 4.5](user_login.md) 手順5）。Google連携のみのユーザーはパスワードが常に空のため、このままだとメール/パスワードログインを試みたGoogle専用ユーザーに「パスワードの再設定」という誤った案内が出てしまう。`google_sub` が設定されているユーザーの場合は「Googleでログインしてください」という案内に出し分ける修正が必要。
-- `n3s_add_user()` はパスワードを必須引数として要求する実装になっている。Google経由の新規作成は素のパスワードを持たないため、別関数 `n3s_add_user_google()` を用意し、`password` 列は空文字・`google_sub` 列にsubを保存する形にする。
+- `n3s_web_login_trylogin()` には「`users.password` が空文字ならパスワード再設定を促す」分岐がある（[user_login.md 4.5](user_login.md) 手順5）。Google連携のみのユーザーはパスワードが常に空のため、`google_sub` が設定されているユーザーの場合は「Googleでログインしてください」という案内に出し分ける。
+- `n3s_add_user()` はパスワードを必須引数として要求する実装になっている。Google経由の新規作成は素のパスワードを持たないため、別関数 `n3s_add_user_google()` を使い、`password` 列は空文字・`google_sub` 列にsubを保存する。
 - 管理者判定 (`n3s_is_admin()`) やその他 `n3s_get_user_id()` を使う既存機能（`fav`, `save`, `upload` 等）は `user_id` にのみ依存しているため、Google経由でログインしたユーザーでも変更なく動作する。
 
 ---
@@ -277,7 +277,7 @@ function n3s_google_verify_id_token($id_token)
 
 ## 10. テスト方針
 
-既存テスト（`tests/Feature/LoginExecuteTest.php` 等）は `n3s_test_setup()` でDB・セッションを使い捨てにした上で、対象関数を直接呼び出すスタイル。Google連携部分もネットワーク呼び出し（トークン交換）を関数として分離してあるため、Pestのテストではこれらをスタブに差し替えられるようにする。例えば `$n3s_config['_google_http_client']` のような差し替え可能なコールバックを用意し、本番はcurl実装、テストはこの設定値を上書きしてダミーレスポンスを返す、という形にする（既存の `dir_sql` 等をテストで上書きする方式と同じ考え方）。
+既存テスト（`tests/Feature/LoginExecuteTest.php` 等）は `n3s_test_setup()` でDB・セッションを使い捨てにした上で、対象関数を直接呼び出すスタイル。Google連携部分もネットワーク呼び出し（トークン交換）を関数として分離してあるため、Pestのテストでは `$n3s_config['_google_http_post']` にコールバックを差し込み、本番のcurl実装を使わずにダミーレスポンスを返す。
 
 想定するテストケース:
 - `n3s_google_get_auth_url()` が正しいクエリパラメータ（`client_id`, `redirect_uri`, `scope`, `state` 等）を含むURLを生成する。
@@ -293,16 +293,16 @@ function n3s_google_verify_id_token($id_token)
 
 ---
 
-## 11. 実装チェックリスト（TODO）
+## 11. 実装状態
 
-- [ ] `app/sql/init-users.sql` に `google_sub` カラムを追加
-- [ ] 既存DB向けマイグレーションSQL・適用手順の用意
-- [ ] `app/n3s_config.def.php` に設定キーを追加
-- [ ] `n3s_lib.inc.php` にヘルパー関数群を追加（トークン交換・ID Token検証・ユーザー検索/作成/紐付け・セッション確立の共通化）
-- [ ] `login.inc.php` にディスパッチとGoogle専用処理関数を追加
-- [ ] `login_email.html` にボタン追加（設定が空なら非表示）
-- [ ] `n3s_web_login_trylogin()` のパスワード空文字分岐にGoogle専用ユーザー向けの案内を追加
-- [ ] Pestテストの追加
-- [ ] `docs/user_login.md` の更新（本ドキュメントへのリンク、テーブル定義の追記）
+- [x] `app/sql/init-users.sql` に `google_sub` カラムを追加
+- [x] 既存DB向けに `n3s_db_migrate_users()` による起動時マイグレーションを追加
+- [x] `app/n3s_config.def.php` に設定キーを追加
+- [x] `n3s_lib.inc.php` にヘルパー関数群を追加（トークン交換・ID Token検証・ユーザー検索/作成/紐付け・セッション確立の共通化）
+- [x] `login.inc.php` にディスパッチとGoogle専用処理関数を追加
+- [x] `login_email.html` にボタン追加（設定が空なら非表示）
+- [x] `n3s_web_login_trylogin()` のパスワード空文字分岐にGoogle専用ユーザー向けの案内を追加
+- [x] Pestテストの追加
+- [x] `docs/user_login.md` の更新（本ドキュメントへのリンク、テーブル定義の追記）
 - [ ] Google Cloud Console側でOAuthクライアントを作成し、リダイレクトURIを登録
 - [ ] （将来）マイページ等に「連携中のログイン方法（パスワード/Google）」を表示するUI（7.3節）

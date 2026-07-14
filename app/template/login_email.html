@@ -11,10 +11,16 @@
         {{ if $error }}
         <h3 class="login-error">{{ $error | raw }}</h3>
         {{ endif }}
+        {{ if $google_login_enabled }}
         <p class="login-hint">
             なでしこ3貯蔵庫では、Googleアカウントか独自のメールアドレスを利用してログインできます。
             本サーバーのメール送信の問題で、メールが届かないことがあるので、Googleアカウントでのログインをオススメします。
         </p>
+        {{ else }}
+        <p class="login-hint">
+            なでしこ3貯蔵庫では、登録済みのメールアドレスとパスワードを利用してログインできます。
+        </p>
+        {{ endif }}
         {{ if $google_login_enabled }}
         <div class="google-signin-wrap">
             <a class="google-signin-btn" href="index.php?action=login&page=google_login">
@@ -53,7 +59,7 @@
         </form>
         <div class="login-divider"><span>または</span></div>
         <div class="login-links">
-            <a href="index.php?action=login&page=register">メールアでユーザー登録</a>
+            <a href="index.php?action=login&page=register">メールアドレスでユーザー登録</a>
             {{ if $google_login_enabled }}
             / <a href="index.php?action=login&page=google_login">Googleアカウントで登録</a>
             {{ endif }}

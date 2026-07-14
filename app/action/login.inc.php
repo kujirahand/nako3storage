@@ -351,10 +351,10 @@ function n3s_web_login_trylogin()
     ]);
 }
 
-function n3s_web_login_execute($user_id, $password)
+function n3s_web_login_execute($email, $password)
 {
     // login
-    $ok = n3s_login($user_id, $password);
+    $ok = n3s_login($email, $password);
     if (!$ok) {
         return false;
     }
@@ -408,7 +408,7 @@ function n3s_web_login_google_callback()
     unset($_SESSION['n3s_oauth_state'], $_SESSION['n3s_oauth_state_time']);
     $state_ok = $state !== '' && $session_state !== '' && hash_equals($session_state, $state);
     if (!$state_ok || (time() - $state_time) > 60 * 10) {
-        n3s_error('セッションが切れました', "<a href='index.php?action=login'>もう一度試行してください。</a>");
+        n3s_error('セッションが切れました', "<a href='index.php?action=login'>もう一度試行してください。</a>", true);
         return;
     }
     $code = empty($_GET['code']) ? '' : $_GET['code'];

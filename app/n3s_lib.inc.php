@@ -62,6 +62,9 @@ function n3s_db_init()
 function n3s_db_migrate_users()
 {
     $columns = db_get('PRAGMA table_info(users)', [], 'users');
+    if (!is_array($columns)) {
+        return;
+    }
     foreach ($columns as $col) {
         if ($col['name'] === 'google_sub') {
             return; // 追加済み

@@ -3,8 +3,8 @@
 なでしこ3貯蔵庫 (nako3storage) のユーザー登録・ログイン・セッション管理の実装をまとめたドキュメントです。
 コードを変更する際はここに書かれた前提を確認し、実装と差異があれば本ドキュメントを更新してください。
 
-Googleアカウントを使ったログイン（[Issue #227](https://github.com/kujirahand/nako3storage/issues/227)）については設計中のため、
-別ドキュメント [user_login_oauth_google.md](user_login_oauth_google.md) にまとめています（本ドキュメントとあわせて参照してください。現時点では未実装の設計です）。
+Googleアカウントを使ったログイン（[Issue #227](https://github.com/kujirahand/nako3storage/issues/227)）については、
+別ドキュメント [user_login_oauth_google.md](user_login_oauth_google.md) に実装仕様をまとめています（本ドキュメントとあわせて参照してください）。
 
 ---
 
@@ -49,9 +49,10 @@ Googleアカウントを使ったログイン（[Issue #227](https://github.com/
 | `login_token` | UNIQUE。現状の登録/ログインフローでは未使用（將来利用のための予約列） |
 | `screen_name`, `description`, `profile_url`, `twitter_id` | プロフィール情報 |
 | `salt` | パスワードハッシュ用ソルト（ユーザー個別） |
+| `google_sub` | Googleログイン用の subject ID。未連携ユーザーは空文字 |
 | `ctime`, `mtime` | 作成・更新時刻（UNIXタイム） |
 
-> 設計中: Googleログイン対応にあたり `google_sub`（Googleの一意識別子）カラムの追加を予定しています。詳細は [user_login_oauth_google.md](user_login_oauth_google.md) を参照してください（未実装）。
+`google_sub` は新規構築時は `app/sql/init-users.sql` で作成されます。既存DBでは `n3s_db_migrate_users()` が起動時に `google_sub` カラムと部分UNIQUEインデックスを追加します。
 
 ---
 
