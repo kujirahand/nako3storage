@@ -205,6 +205,17 @@ function comment_api_add()
         n3s_api_output(false, ['msg' => 'app_idが不正です。']);
         return;
     }
+
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$app_id], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見当たりません。']);
+        return;
+    }
+    $editkey = isset($_REQUEST['editkey']) ? (string)$_REQUEST['editkey'] : '';
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品にコメントできません。']);
+        return;
+    }
     
     // 作品の存在確認と閲覧制限チェック
     $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$app_id], 'main');
@@ -302,6 +313,17 @@ function comment_api_fav()
         n3s_api_output(false, ['msg' => '対象のコメントが見つかりません。']);
         return;
     }
+
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$comment['app_id']], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見当たりません。']);
+        return;
+    }
+    $editkey = isset($_REQUEST['editkey']) ? (string)$_REQUEST['editkey'] : '';
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品のコメントを操作できません。']);
+        return;
+    }
     
     // 作品の存在確認と閲覧制限チェック
     $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$comment['app_id']], 'main');
@@ -332,7 +354,7 @@ function comment_api_fav()
                 'main'
             );
             db_exec(
-                "UPDATE comments SET fav = fav - 1 WHERE comment_id = ?",
+                "UPDATE comments SET fav = CASE WHEN fav > 0 THEN fav - 1 ELSE 0 END WHERE comment_id = ?",
                 [$comment_id],
                 'main'
             );
@@ -359,11 +381,9 @@ function comment_api_fav()
         return;
     }
     
-    $new_fav = intval($comment['fav']) + $fav_diff;
-    n3s_api_output(true, [
-        'action' => $action,
-        'fav' => $new_fav
-    ]);
+    $fav_row = db_get1("SELECT fav FROM comments WHERE comment_id = ?", [$comment_id], 'main');
+    $new_fav = $fav_row ? intval($fav_row['fav']) : 0;
+    n3s_api_output(true, ['action' => $action, 'fav' => $new_fav]);
 }
 
 function comment_api_delete()
