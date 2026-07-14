@@ -141,7 +141,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 - `users`: メール、パスワードハッシュ、パスワード再設定トークン、名前、プロフィール情報、ユーザー個別 salt など。
 
-ログインパスワードは `n3s_login_password_to_hash()` で保存されます。既存ユーザー向けに `LOGIN_HASH_SALT_DEFAULT` の後方互換処理があります。
+ログインパスワードは `n3s_password_hash()` (`password_hash()`/`PASSWORD_DEFAULT`、`hash::` プレフィックス) で保存されます。旧方式 (`n3s_login_password_to_hash()`、`def::`/`salt::` プレフィックスのSHA-256) の既存ハッシュも `n3s_password_verify()` で検証でき、ログイン成功時に `n3s_password_needs_upgrade()` の判定を経て自動で新方式へ移行されます。詳細は `docs/user_login.md` #5 参照。
 
 ### ログ DB: `data/n3s_log.sqlite`
 

@@ -111,26 +111,48 @@
 
 ## 5. パスワードハッシュの仕様
 
+新規のパスワード保存は `password_hash()` (PHP標準、`PASSWORD_DEFAULT` = 現状bcrypt) を使う。
+ストレッチングと暗号学的に安全なソルトの生成を PHP コアに任せることで、DB 漏洩時のオフライン
+総当たり攻撃への耐性を高めている。旧方式 (SHA-256 1回計算 + salt) で保存された既存ユーザーの
+ハッシュも検証でき、ログイン成功時に自動で新方式へ移行する。
+
 ```php
-function n3s_login_password_to_hash($password, $salt = '')
+// 新規パスワード保存用 (登録・パスワード再設定はすべてこちら)
+function n3s_password_hash($password)
 {
-    if ($salt === '' || $salt === null) {
-        // 後方互換: saltが未設定の既存ユーザー向け
-        $hash = hash('sha256', $password . '::' . LOGIN_HASH_SALT_DEFAULT);
-        return 'def::' . $hash;
+    return 'hash::' . password_hash($password, PASSWORD_DEFAULT);
+}
+
+// 保存済みハッシュ($stored)に対してパスワードを検証する
+function n3s_password_verify($password, $stored, $legacy_salt = '')
+{
+    if (strpos($stored, 'hash::') === 0) {
+        return password_verify($password, substr($stored, strlen('hash::')));
     }
-    // ユーザー個別のsaltを使用
-    $hash = hash('sha256', $password . '::' . $salt);
-    return 'salt::' . $hash;
+    // 後方互換: 旧方式 (def::/salt:: プレフィックスのSHA-256)
+    return $stored === n3s_login_password_to_hash($password, $legacy_salt);
 }
 ```
 
 - 保存形式はプレフィックス付き文字列:
-  - `salt::<sha256>`: ユーザー個別ソルト（`users.salt`）を使った通常パターン。新規登録・パスワード設定は必ずこちら。
-  - `def::<sha256>`: `salt` 列が空の既存ユーザー向け後方互換パターン。`n3s_lib.inc.php` 内の定数 `LOGIN_HASH_SALT_DEFAULT`（全ユーザー共通の固定ソルト）を使う。
-- ソルト生成は `n3s_generate_salt()` = `bin2hex(random_bytes(32))`（64文字の16進文字列、暗号学的乱数）。
-- 検証時 (`n3s_login()`) は DB に保存された `salt` を使って同じロジックでハッシュを再計算し、文字列一致 (`!==`) で比較する。
-- ハッシュアルゴリズムは単純な SHA-256 の1回計算であり、`password_hash()`/`bcrypt`/`Argon2` のような計算コスト調整（ストレッチング）は行っていない。DB 漏洩時のオフライン総当たり耐性は低い。
+  - `hash::<password_hash()の出力>`: 現行の標準パターン。新規登録・パスワード設定は必ずこちら。
+    ソルトは `password_hash()` の出力文字列に内包されるため、`users.salt` は使わず空文字を保存する。
+  - `salt::<sha256>`: 旧方式。ユーザー個別ソルト（`users.salt`）を使った SHA-256 1回計算。
+    既存ユーザーの検証のためだけに残っている(新規生成はしない)。
+  - `def::<sha256>`: 旧方式。`salt` 列が空の既存ユーザー向け後方互換パターン。`n3s_lib.inc.php`
+    内の定数 `LOGIN_HASH_SALT_DEFAULT`（全ユーザー共通の固定ソルト）を使う。こちらも検証専用。
+- **自動移行 (lazy rehash)**: `n3s_login()` はパスワード検証に成功すると
+  `n3s_password_needs_upgrade($stored)` を確認し、(1) 保存形式が `hash::` でない(旧方式)、または
+  (2) `hash::` 形式でも `password_needs_rehash()` が真(コストパラメータが古い)場合に、
+  `n3s_upgrade_password_hash($user_id, $password)` でその場のパスワード平文を使って
+  `hash::` 形式へ書き換える。ユーザーへ再設定を強制することなく、ログインの都度少しずつ
+  旧方式のユーザーを新方式へ移行できる。
+- 旧方式のソルト生成 `n3s_generate_salt()` = `bin2hex(random_bytes(32))`（64文字の16進文字列、
+  暗号学的乱数）は、上記の検証専用ロジックのために引き続き残っている。
+- 旧方式単体(`n3s_login_password_to_hash()`)は SHA-256 の1回計算でありストレッチングを行わない
+  ため、そのハッシュのまま残っている既存ユーザー分は、新方式に比べオフライン総当たり耐性が低い。
+  自動移行はログイン成功時にしか起きないため、長期間ログインしていない休眠ユーザーは旧方式のまま
+  残り得る。
 
 ---
 
@@ -164,7 +186,7 @@ function n3s_login_password_to_hash($password, $salt = '')
 ## 9. セキュリティ上の注意点
 
 - ブルートフォース対策は「セッション単位の失敗回数（5回）」と「IPベースの直近1時間の失敗回数（10回）」の二段構えだが、後者は現状 `REMOTE_ADDR` が空文字のときしか判定に入らない実装になっている（`login.inc.php` の `if (!$ip)` 分岐）。IP が取得できる通常環境ではこのチェックを通過してしまうため、変更を加える際はこの条件式を要確認。
-- パスワードハッシュは単純な SHA-256 + ソルトであり、ストレッチングを行う `password_hash()`/`password_verify()` への移行が課題として残っている。移行する場合は `def::` / `salt::` プレフィックスとの共存（既存ハッシュの検証経路を壊さない）を考慮すること。
+- パスワードハッシュは `password_hash()`/`password_verify()` (`PASSWORD_DEFAULT`) に移行済み。旧方式 (`def::`/`salt::` プレフィックスの単純 SHA-256 + ソルト) の既存ハッシュも検証経路は残しており、ログイン成功時に自動で新方式 (`hash::`) へ書き換える(5. 参照)。ただし自動移行はログイン成功時にしか走らないため、長期間ログインしていない休眠アカウントは旧方式のまま残る点に注意。
 - `pass_token` によるパスワード設定・再設定フローは、メールアドレスの実在確認を兼ねている。認証番号の有効期限は5分固定（`n3s_web_login_setpw()` 内の `time() - 60 * 5`）。
 - `n3s_web_login_register()` の新規ユーザーには、実際に使われないランダムなダミーパスワードがまず設定され、`pass_token` を使ったパスワード設定フローを経て初めて有効なパスワードが設定される。ダミーパスワードのハッシュがそのまま残っている間はログイン不可（4.5 の手順5で弾かれる）。
 - `n3s_api_login()` / `n3s_api_logout()` は常に失敗を返し、API 経由のログイン・ログアウトはできない（Web セッションのみ）。

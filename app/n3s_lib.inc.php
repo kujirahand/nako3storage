@@ -280,6 +280,8 @@ function n3s_generate_salt()
     return bin2hex(random_bytes(32));
 }
 
+// 旧方式 (SHA-256 + salt、1回計算のみ) のハッシュ生成。
+// 後方互換の検証専用。新規のパスワード保存には n3s_password_hash() を使うこと。
 function n3s_login_password_to_hash($password, $salt = '')
 {
     if ($salt === '' || $salt === null) {
@@ -292,13 +294,53 @@ function n3s_login_password_to_hash($password, $salt = '')
     return 'salt::' . $hash;
 }
 
+// パスワードの新規保存用ハッシュ。password_hash() (PASSWORD_DEFAULT、現状bcrypt) を使い、
+// ストレッチングと強固なソルトを自動的に適用する。ソルトはハッシュ文字列に内包されるため
+// users.salt は不要 ('' を保存する)。'hash::' プレフィックスで旧方式 (def::/salt::) と区別する。
+function n3s_password_hash($password)
+{
+    return 'hash::' . password_hash($password, PASSWORD_DEFAULT);
+}
+
+// 保存済みハッシュ($stored)に対してパスワードを検証する。
+// 'hash::' プレフィックスなら password_verify()、それ以外は旧方式の単純比較にフォールバックする。
+function n3s_password_verify($password, $stored, $legacy_salt = '')
+{
+    if (strpos($stored, 'hash::') === 0) {
+        return password_verify($password, substr($stored, strlen('hash::')));
+    }
+    // 後方互換: 旧方式 (def::/salt:: プレフィックスのSHA-256)
+    return $stored === n3s_login_password_to_hash($password, $legacy_salt);
+}
+
+// 保存済みハッシュが旧方式、またはコストパラメータが古いpassword_hash()形式なら
+// 再ハッシュが必要と判定する。ログイン成功時に呼び、必要ならその場で移行する。
+function n3s_password_needs_upgrade($stored)
+{
+    if (strpos($stored, 'hash::') !== 0) {
+        return true; // 旧方式 (def::/salt::)
+    }
+    return password_needs_rehash(substr($stored, strlen('hash::')), PASSWORD_DEFAULT);
+}
+
+// ログイン成功時、現在のパスワード平文で保存ハッシュを password_hash() 形式へ更新する
+// (旧方式ユーザーの段階的な移行、およびコストパラメータ変更時の再ハッシュ)。
+function n3s_upgrade_password_hash($user_id, $password)
+{
+    $hash = n3s_password_hash($password);
+    db_exec(
+        'UPDATE users SET password=?, salt=? WHERE user_id=?',
+        [$hash, '', $user_id],
+        'users'
+    );
+}
+
 function n3s_add_user($email, $password, $name)
 {
-    $salt = n3s_generate_salt();
-    $hash = n3s_login_password_to_hash($password, $salt);
+    $hash = n3s_password_hash($password);
     $user_id = db_insert(
         'INSERT INTO users (email, password, name, salt) VALUES (?,?,?,?)',
-        [$email, $hash, $name, $salt],
+        [$email, $hash, $name, ''],
         'users'
     );
     return $user_id;
@@ -320,9 +362,13 @@ function n3s_login($email, $password)
         return false;
     }
     $salt = isset($user['salt']) ? $user['salt'] : '';
-    $hash = n3s_login_password_to_hash($password, $salt);
-    if ($user['password'] !== $hash) {
+    $stored = $user['password'];
+    if (!n3s_password_verify($password, $stored, $salt)) {
         return false;
+    }
+    // 旧方式のハッシュ、またはコストパラメータが古い場合は password_hash() 形式へ移行する
+    if (n3s_password_needs_upgrade($stored)) {
+        n3s_upgrade_password_hash($user_id, $password);
     }
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user_id;

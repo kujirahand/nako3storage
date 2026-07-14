@@ -231,11 +231,10 @@ __EOS__;
             $error = 'パスワードは8文字以上で入力してください。';
         }
         if ($error == '') {
-            $salt = n3s_generate_salt();
-            $hash = n3s_login_password_to_hash($password, $salt);
+            $hash = n3s_password_hash($password);
             db_exec(
                 'UPDATE users SET password=?, salt=?, pass_token="", mtime=? WHERE user_id=?',
-                [$hash, $salt, time(), $user_id],
+                [$hash, '', time(), $user_id],
                 'users'
             );
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
