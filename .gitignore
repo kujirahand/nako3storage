@@ -7,6 +7,8 @@ data_astorage/*
 n3s_config.ini.php
 app/composer.lock
 app/vendor/*
+/vendor/*
+/composer.phar
 cache/*
 cache-cdn/*
 book/*

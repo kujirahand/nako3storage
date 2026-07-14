@@ -1,0 +1,23 @@
+{
+    "name": "kujirahand/nako3storage",
+    "type": "project",
+    "authors": [
+        {
+            "name": "kujirahand",
+            "email": "web@kujirahand.com"
+        }
+    ],
+    "require-dev": {
+        "pestphp/pest": "^4.7"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
