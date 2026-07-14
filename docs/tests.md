@@ -118,41 +118,6 @@ php vendor/bin/pest
 - **ログイン攻撃のブロック (IPブロック)**
   IPチェック用の条件 (1時間以内に10回以上のログイン失敗がある場合) をテスト環境で模倣するには、テスト用DBに対して `log` スキーマ上の `ip_check` レコードを事前にインサートして準備する必要があるなどの理由から。
 
-### 既知の不具合を固定化しているテスト
-
-実装を読む中で見つかった、ドキュメント (`docs/user_login.md`) 通りには動いていない・意図と異なると
-思われる挙動を、いくつかテストとして固定化しています。**いずれも未修正です。** 修正する場合は
-該当テストの期待値も合わせて更新してください。
-
-- **`REMOTE_ADDR` が空のとき ip_check の参照先DBを取り違える**
-  (`tests/Feature/TryLoginTest.php`)
-  `docs/user_login.md` #9 にある通り、ブルートフォース検出は `REMOTE_ADDR` が空のときだけ動く実装
-  ですが、実際のクエリ (`app/action/login.inc.php` の `db_get('SELECT count(*) FROM ip_check ...')`)
-  は `dbname` 引数を省略しており、既定の `main` DB を参照してしまいます。`ip_check` テーブルは
-  `log` DB にしか無いため、この分岐を通ると `PDOException` で落ちます。
-  `tests/bootstrap.php` は通常運用を模して `REMOTE_ADDR` にダミー値を設定しているため、他のテストは
-  このバグを踏みません。該当テストだけ明示的に `REMOTE_ADDR` を unset して再現・固定化しています。
-
-- **CSRFトークンのキャッシュがキーごとに分かれていない**
-  (`tests/Unit/CsrfTokenTest.php`)
-  `n3s_getEditToken($key, $update=true)` は生成済みトークンを `$n3s_config['edit_token']` という
-  単一の変数にキャッシュしており、`$key` ごとには分かれていません。同一リクエスト内で異なる `$key`
-  (例: `'default'` の次に `'setpw'`) を呼ぶと、2回目は新規発行がスキップされて1回目のトークンが
-  再利用され、かつ `$_SESSION["n3s_edit_token_setpw"]` は書き込まれません。
-
-- **`n3s_get_user_name()` がユーザー名ではなく常に0を返す**
-  (`tests/Unit/LoginSessionTest.php`)
-  `$_SESSION['name']` を `(int)` キャストして返しているため、数字始まりでない通常の名前は
-  必ず `int(0)` になります。`n3s_lib.inc.php` 内で `$a['author'] = n3s_get_user_name();` として
-  投稿の著者名に使われている箇所があり、ログインユーザー名が入るべき場所が0になってしまいます。
-
-- **未登録メールアドレスへのログイン試行は失敗回数のカウント対象外**
-  (`tests/Feature/TryLoginTest.php`)
-  `n3s_web_login_trylogin()` の失敗カウント・`ip_check` への記録は、`n3s_get_user_id_by_email()`
-  が実在ユーザーを返した場合 (`$user_id > 0`) の分岐内でのみ行われます。存在しないメールアドレスへの
-  試行は、セッションの失敗回数にもIPログにも一切残りません。ブルートフォース対策やメールアドレスの
-  在否推測しやすさに関わる、仕様として明文化されていない挙動です。
-
 ---
 
 ## 6. 実行結果の目安
