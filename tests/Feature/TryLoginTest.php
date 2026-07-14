@@ -57,6 +57,39 @@ test('存在しないメールアドレスではログインできない', funct
     expect(n3s_is_login())->toBeFalse();
 });
 
+test('存在しないメールアドレスでは失敗回数のカウントもip_checkへの記録もされない (既知の非対称性)', function () {
+    // 実在メールアドレスへのパスワード誤りだけがセッションの失敗カウントと
+    // ip_check への記録の対象になっており (n3s_get_user_id_by_email() の結果が
+    // $user_id > 0 の分岐内でのみ処理される)、未登録メールアドレスへの試行は
+    // 完全に素通りする。ブルートフォース対策・メールアドレス在否の推測しやすさに
+    // 関わる挙動なので、現状の仕様として固定化しておく。
+    n3s_test_trylogin_post('nobody2@example.com', 'whatever');
+
+    n3s_test_capture(fn () => n3s_web_login_trylogin());
+
+    expect($_SESSION)->not->toHaveKey('n3s_trylogin_count');
+
+    $count = db_get1('SELECT count(*) AS c FROM ip_check', [], 'log');
+    expect((int) $count['c'])->toBe(0);
+});
+
+test('パスワード誤りを繰り返すと失敗回数が1件ずつ積み上がる (5回未満)', function () {
+    n3s_add_user('try5@example.com', 'right-password', '試行五郎');
+
+    foreach ([1, 2, 3, 4] as $expectedCount) {
+        n3s_test_trylogin_post('try5@example.com', 'wrong-password');
+        $out = n3s_test_capture(fn () => n3s_web_login_trylogin());
+
+        expect($_SESSION['n3s_trylogin_count'])->toBe($expectedCount)
+            ->and($out)->toContain("メールアドレスかパスワードが間違っています。#{$expectedCount}");
+    }
+
+    expect(n3s_is_login())->toBeFalse();
+
+    $count = db_get1('SELECT count(*) AS c FROM ip_check WHERE memo=?', ['try5@example.com'], 'log');
+    expect((int) $count['c'])->toBe(4);
+});
+
 test('REMOTE_ADDRが空のときはip_checkの参照先DBを取り違えて例外になる (既知の不具合)', function () {
     // docs/user_login.md #9 が指摘する通り、REMOTE_ADDRが空文字のときだけ
     // ブルートフォース検出のカウントクエリが走る。しかし app/action/login.inc.php の

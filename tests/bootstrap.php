@@ -41,6 +41,13 @@ function n3s_test_setup(array $config_overrides = []): string
     $n3s_config['admin_users'] = [1];
     $n3s_config['news_at_login'] = '';
     unset($n3s_config['edit_token']);
+    // $n3s_config['page'] / ['action'] は本番では n3s_parseURI() が毎リクエスト
+    // $_GET から作り直すが、テストでは n3s_parseURI() を呼ばないため、
+    // 前のテストが (n3s_get_config('page', ...) を使う経路のために) 直接
+    // $n3s_config['page'] をセットしていると次のテストへ残ってしまう。
+    // ここで明示的にリセットし、テスト間の汚染を防ぐ。
+    unset($n3s_config['page']);
+    unset($n3s_config['mode']);
 
     foreach ($config_overrides as $key => $value) {
         $n3s_config[$key] = $value;

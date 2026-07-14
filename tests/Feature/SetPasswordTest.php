@@ -90,3 +90,26 @@ test('新パスワードと確認用が一致しないとエラーになりDBは
     $row = db_get1('SELECT password FROM users WHERE user_id=?', [$user_id], 'users');
     expect($row['password'])->toBe($original);
 });
+
+test('n3s_web_login() 経由 (page=setpw, 引数なし呼び出し) でも $_REQUEST の email で動作する', function () {
+    // register()/forgot() は n3s_web_login_setpw($email) と引数付きで呼ぶが、
+    // ルーター (n3s_web_login()) 経由の page=setpw は引数なしで呼ぶため、
+    // 関数内部の「$email が空なら $_REQUEST['email'] にフォールバックする」分岐を通る。
+    // これまでのテストは常に $email を明示的に渡していたため、この経路は未検証だった。
+    $user_id = n3s_add_user('setpw4@example.com', 'password1', '設定四郎');
+    $token = n3s_test_send_pass_token($user_id, 'setpw4@example.com');
+    [$pass1, $pass2] = explode('-', $token);
+
+    global $n3s_config;
+    $n3s_config['page'] = 'setpw';
+    $csrf = n3s_getEditToken('setpw', false);
+    $_REQUEST['email'] = 'setpw4@example.com'; // $_POST ではなく $_REQUEST 側に用意する
+    $_POST['pass1'] = $pass1;
+    $_POST['pass2'] = $pass2;
+    $_POST['token'] = $csrf;
+
+    $out = n3s_test_capture(fn () => n3s_web_login());
+
+    expect($out)->toContain('パスワードの設定')
+        ->and($out)->not->toContain('メール情報が失われました');
+});
