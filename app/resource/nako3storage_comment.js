@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // コメント一覧を読み込んで描画する関数
     function loadComments() {
-        fetch("api.php?action=comment&mode=list&app_id=" + appId)
+        fetch("api.php?action=comment&mode=list&app_id=" + appId + "&editkey=" + encodeURIComponent(window.n3s_editkey || ""))
             .then(res => res.json())
             .then(data => {
                 if (data.result) {
@@ -291,6 +291,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("edit_token", window.n3s_edit_token);
+        formData.append("editkey", window.n3s_editkey || "");
         
         fetch("api.php?action=comment&mode=fav", {
             method: "POST",
@@ -321,6 +322,7 @@ document.addEventListener("DOMContentLoaded", function() {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
+        formData.append("editkey", window.n3s_editkey || "");
         
         fetch("api.php?action=comment&mode=add", {
             method: "POST",
@@ -354,6 +356,7 @@ document.addEventListener("DOMContentLoaded", function() {
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
+        formData.append("editkey", window.n3s_editkey || "");
         
         fetch("api.php?action=comment&mode=add", {
             method: "POST",
@@ -391,6 +394,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const formData = new FormData();
         formData.append("comment_id", commentId);
         formData.append("edit_token", window.n3s_edit_token);
+        formData.append("editkey", window.n3s_editkey || "");
         
         fetch("api.php?action=comment&mode=delete", {
             method: "POST",

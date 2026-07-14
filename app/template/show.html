@@ -310,6 +310,7 @@ window.addEventListener('message', function(e) {
 window.app_id = {{ $app_id }};
 window.n3s_edit_token = "{{e: echo n3s_getEditToken(); }}";
 window.n3s_is_login = {{e: echo n3s_is_login() ? 'true' : 'false'; }};
+window.n3s_editkey = "{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}";
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_comment.js', 'file', ['m'=>$mtime_nako3storage_comment]);}}"></script>
 

@@ -47,6 +47,18 @@ function comment_api_list()
         return;
     }
     
+    // 作品の存在確認と閲覧制限チェック
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$app_id], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見つかりません。']);
+        return;
+    }
+    $editkey = empty($_GET['editkey']) ? '' : $_GET['editkey'];
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品の閲覧権限がありません。']);
+        return;
+    }
+    
     // 1. 親コメント (parent_id = 0, status IN ('approved', 'pending', 'ng')) を、スレッド全体のいいね合計でソートして取得
     $parents = db_get(
         "SELECT c.*, 
@@ -165,6 +177,18 @@ function comment_api_add()
         return;
     }
     
+    // 作品の存在確認と閲覧制限チェック
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$app_id], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見つかりません。']);
+        return;
+    }
+    $editkey = empty($_POST['editkey']) ? '' : $_POST['editkey'];
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品の閲覧権限がありません。']);
+        return;
+    }
+    
     if ($body === '') {
         n3s_api_output(false, ['msg' => 'コメント内容が空です。']);
         return;
@@ -250,6 +274,18 @@ function comment_api_fav()
         return;
     }
     
+    // 作品の存在確認と閲覧制限チェック
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$comment['app_id']], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見つかりません。']);
+        return;
+    }
+    $editkey = empty($_POST['editkey']) ? '' : $_POST['editkey'];
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品の閲覧権限がありません。']);
+        return;
+    }
+    
     $user_id = n3s_get_user_id();
     
     $like = db_get1(
@@ -324,6 +360,18 @@ function comment_api_delete()
     
     if (!$comment) {
         n3s_api_output(false, ['msg' => '対象のコメントが見つかりません。']);
+        return;
+    }
+    
+    // 作品の存在確認と閲覧制限チェック
+    $app = db_get1("SELECT * FROM apps WHERE app_id = ?", [$comment['app_id']], 'main');
+    if (!$app) {
+        n3s_api_output(false, ['msg' => '作品が見つかりません。']);
+        return;
+    }
+    $editkey = empty($_POST['editkey']) ? '' : $_POST['editkey'];
+    if (!n3s_private_access_allowed($app, $editkey)) {
+        n3s_api_output(false, ['msg' => 'この作品の閲覧権限がありません。']);
         return;
     }
     
