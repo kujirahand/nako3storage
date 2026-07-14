@@ -91,7 +91,8 @@ if (!function_exists('check_comment_with_gemini')) {
             }
         }
         
-        echo "[WARNING] API応答が解析できませんでした。応答:\n" . $response . "\n";
+        $snippet = substr($response, 0, 500);
+        echo "[WARNING] API応答が解析できませんでした。応答(先頭500文字):\n" . $snippet . "\n";
         return 'error';
     }
 }
