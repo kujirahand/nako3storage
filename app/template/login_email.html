@@ -35,8 +35,14 @@
         </div>
     </div>
     <br>
+    {{ if $google_login_enabled }}
     <div class="info_box">
-        <a href="index.php?action=login&page=register">ユーザーの新規登録</a> / 
+        <a class="pure-button" href="index.php?action=login&page=google_login">Googleでログイン</a>
+    </div>
+    <br>
+    {{ endif }}
+    <div class="info_box">
+        <a href="index.php?action=login&page=register">ユーザーの新規登録</a> /
         <a href="index.php?action=login&page=forgot">パスワードを忘れた場合</a>
     </div>
     <br>

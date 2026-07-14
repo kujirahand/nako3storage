@@ -33,6 +33,12 @@ function n3s_web_login()
     } else if ($page == 'trylogin') { // trylogin
         n3s_web_login_trylogin();
         return;
+    } else if ($page == 'google_login') { // Googleログイン開始
+        n3s_web_login_google_start();
+        return;
+    } else if ($page == 'google_callback') { // Googleログインのコールバック
+        n3s_web_login_google_callback();
+        return;
     } else {
         n3s_web_login_trylogin();
         return;
@@ -285,16 +291,27 @@ function n3s_web_login_trylogin()
                     'users'
                 );
                 if ($user && ($user['password'] == '' || $user['password'] == null)) {
-                    $error = 'お手数おかけしますが、セキュリティ強化のため、パスワードの再設定が必要です。より長いパスワードを再設定してください。<br>'.
-                        '<a style="font-size:1.5" href="index.php?action=login&page=forgot">→こちらのリンクからパスワードを再設定</a>してください。<br>'.
-                        '<br>'.
-                        'なお、パスワードの再設定は、登録されているメールアドレス宛に送られる認証番号を入力するだけで完了します。簡単ですので、よろしくお願いします。'.
-                        '<br><hr>';
+                    if (!empty($user['google_sub'])) {
+                        // Googleログイン専用ユーザー (docs/user_login_oauth_google.md #8, #7.3)
+                        $error = 'このアカウントはGoogleアカウントでログインするアカウントとして登録されています。<br>'.
+                            '下の「Googleでログイン」ボタンからログインしてください。<br>'.
+                            '<br>'.
+                            'パスワードでのログインも使いたい場合は、'.
+                            '<a href="index.php?action=login&page=forgot">こちらからパスワードを設定</a>してください。'.
+                            '<br><hr>';
+                    } else {
+                        $error = 'お手数おかけしますが、セキュリティ強化のため、パスワードの再設定が必要です。より長いパスワードを再設定してください。<br>'.
+                            '<a style="font-size:1.5" href="index.php?action=login&page=forgot">→こちらのリンクからパスワードを再設定</a>してください。<br>'.
+                            '<br>'.
+                            'なお、パスワードの再設定は、登録されているメールアドレス宛に送られる認証番号を入力するだけで完了します。簡単ですので、よろしくお願いします。'.
+                            '<br><hr>';
+                    }
                     $token = n3s_getEditToken();
                     n3s_template_fw('login_email.html', [
                         'email' => $email,
                         'error' => $error,
                         'token' => $token,
+                        'google_login_enabled' => n3s_google_login_enabled(),
                     ]);
                     return;
                 }
@@ -330,6 +347,7 @@ function n3s_web_login_trylogin()
         'error' => $error,
         'token' => $token,
         'news_at_login' => n3s_get_config('news_at_login', ''),
+        'google_login_enabled' => n3s_google_login_enabled(),
     ]);
 }
 
@@ -340,14 +358,88 @@ function n3s_web_login_execute($user_id, $password)
     if (!$ok) {
         return false;
     }
-    // redirect
+    n3s_web_login_redirect_after_login();
+    return true;
+}
+
+// ログイン確定後、back URL(なければマイページ)へリダイレクトする
+// (パスワードログイン・Googleログイン共通)
+function n3s_web_login_redirect_after_login()
+{
     $backurl = n3s_getBackURL();
     if ($backurl == '') {
-        $mypage = n3s_getURL('my', 'mypage');
-        $backurl = $mypage;
+        $backurl = n3s_getURL('my', 'mypage');
     }
     header('location:' . $backurl);
-    return true;
+}
+
+function n3s_google_login_enabled()
+{
+    return n3s_get_config('google_oauth_client_id', '') !== '';
+}
+
+// ------------------------------------------------------------
+// Googleログイン (docs/user_login_oauth_google.md)
+// ------------------------------------------------------------
+
+function n3s_web_login_google_start()
+{
+    if (!n3s_google_login_enabled()) {
+        n3s_error('設定エラー', 'Googleログインは現在利用できません。');
+        return;
+    }
+    $state = bin2hex(random_bytes(16));
+    $_SESSION['n3s_oauth_state'] = $state;
+    $_SESSION['n3s_oauth_state_time'] = time();
+    header('location:' . n3s_google_get_auth_url($state));
+}
+
+function n3s_web_login_google_callback()
+{
+    if (!empty($_GET['error'])) {
+        n3s_log("error={$_GET['error']}", "login_google", 1);
+        n3s_error('ログインの中止', 'Googleログインがキャンセルされました。');
+        return;
+    }
+    // stateの検証 (CSRF対策)。使い捨てにするため検証前にセッションから取り出す
+    $state = empty($_GET['state']) ? '' : $_GET['state'];
+    $session_state = isset($_SESSION['n3s_oauth_state']) ? $_SESSION['n3s_oauth_state'] : '';
+    $state_time = isset($_SESSION['n3s_oauth_state_time']) ? $_SESSION['n3s_oauth_state_time'] : 0;
+    unset($_SESSION['n3s_oauth_state'], $_SESSION['n3s_oauth_state_time']);
+    $state_ok = $state !== '' && $session_state !== '' && hash_equals($session_state, $state);
+    if (!$state_ok || (time() - $state_time) > 60 * 10) {
+        n3s_error('セッションが切れました', "<a href='index.php?action=login'>もう一度試行してください。</a>");
+        return;
+    }
+    $code = empty($_GET['code']) ? '' : $_GET['code'];
+    if ($code === '') {
+        n3s_error('ログイン失敗', 'Googleからの応答が不正です。');
+        return;
+    }
+    // 認可コード→トークン交換
+    $token = n3s_google_exchange_code($code);
+    if ($token === false || empty($token['id_token'])) {
+        n3s_log("token exchange failed", "login_google", 1);
+        n3s_error('ログイン失敗', 'Googleとの通信に失敗しました。時間をおいて再度お試しください。');
+        return;
+    }
+    // ID Tokenのclaims検証
+    $claims = n3s_google_verify_id_token($token['id_token']);
+    if ($claims === false) {
+        n3s_log("id_token invalid", "login_google", 1);
+        n3s_error('ログイン失敗', 'Googleアカウントの情報を確認できませんでした。');
+        return;
+    }
+    // ユーザーの検索・作成・紐付け
+    $user = n3s_google_find_or_create_user($claims);
+    if ($user === false) {
+        n3s_error('ログイン失敗', 'アカウントの作成に失敗しました。');
+        return;
+    }
+    n3s_login_session_start($user);
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    n3s_log("{$user['email']},sub={$claims['sub']},ip={$ip},name={$user['name']}", "login_google", 1);
+    n3s_web_login_redirect_after_login();
 }
 
 function iget($info, $key, $def = '')

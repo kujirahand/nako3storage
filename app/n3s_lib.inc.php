@@ -42,6 +42,8 @@ function n3s_db_init()
         $dir_sql . '/init-users.sql',
         'users'
     );
+    // 既存DB(init-users.sqlが実行済み)向けの軽量マイグレーション
+    n3s_db_migrate_users();
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -52,6 +54,26 @@ function n3s_db_init()
       'material');
     $f = $n3s_config["file_db_material"];
     */
+}
+
+// init-users.sql 作成後の既存DBに google_sub カラムが無ければ追加する
+// (docs/user_login_oauth_google.md #4)。init-users.sql はテーブル新規作成時にしか
+// 実行されないため、既にDBファイルが存在するサイトに対してはここで追従させる。
+function n3s_db_migrate_users()
+{
+    $columns = db_get('PRAGMA table_info(users)', [], 'users');
+    foreach ($columns as $col) {
+        if ($col['name'] === 'google_sub') {
+            return; // 追加済み
+        }
+    }
+    db_exec("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''", [], 'users');
+    db_exec(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ' .
+            "ON users(google_sub) WHERE google_sub != ''",
+        [],
+        'users'
+    );
 }
 
 /**
@@ -346,6 +368,16 @@ function n3s_add_user($email, $password, $name)
     return $user_id;
 }
 
+// ログイン成功確定時のセッション設定 (パスワードログイン・Googleログイン共通)
+function n3s_login_session_start($user)
+{
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $user['user_id'];
+    $_SESSION['name'] = $user['name'];
+    $_SESSION['screen_name'] = $user['name'];
+    $_SESSION['profile_url'] = '';
+}
+
 function n3s_login($email, $password)
 {
     $user_id = n3s_get_user_id_by_email($email);
@@ -370,15 +402,170 @@ function n3s_login($email, $password)
     if (n3s_password_needs_upgrade($stored)) {
         n3s_upgrade_password_hash($user_id, $password);
     }
-    $_SESSION['n3s_login'] = true;
-    $_SESSION['user_id'] = $user_id;
-    $_SESSION['name'] = $name = $user['name'];
-    $_SESSION['screen_name'] = $user['name'];
-    $_SESSION['profile_url'] = '';
+    n3s_login_session_start($user);
     // log
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-    n3s_log("$email,ip={$ip},name={$name}", "login", 1);
+    n3s_log("$email,ip={$ip},name={$user['name']}", "login", 1);
     return true;
+}
+
+// --------------------------------------------------------
+// Google OAuth ログイン (docs/user_login_oauth_google.md)
+// --------------------------------------------------------
+
+function n3s_get_user_id_by_google_sub($sub)
+{
+    if ($sub === '' || $sub === null) {
+        return 0;
+    }
+    $row = db_get1(
+        'SELECT user_id FROM users WHERE google_sub=?',
+        [$sub],
+        'users'
+    );
+    if ($row === false || $row === null) {
+        return 0;
+    }
+    return $row['user_id'];
+}
+
+// Google経由の新規ユーザー作成。パスワードは空文字のまま
+// (パスワードログインは使わせず、後から「パスワードを忘れた場合」フローで設定可能)
+function n3s_add_user_google($email, $name, $sub)
+{
+    $user_id = db_insert(
+        'INSERT INTO users (email, password, name, salt, google_sub) VALUES (?,?,?,?,?)',
+        [$email, '', $name, '', $sub],
+        'users'
+    );
+    return $user_id;
+}
+
+// 既存ユーザーにGoogleアカウントを紐付ける (パスワードログインとの併用が可能になる)
+function n3s_link_google_account($user_id, $sub)
+{
+    db_exec(
+        'UPDATE users SET google_sub=? WHERE user_id=?',
+        [$sub, $user_id],
+        'users'
+    );
+}
+
+// Googleの認可エンドポイントURLを組み立てる
+function n3s_google_get_auth_url($state)
+{
+    $params = [
+        'client_id' => n3s_get_config('google_oauth_client_id', ''),
+        'redirect_uri' => n3s_get_config('google_oauth_redirect_uri', ''),
+        'response_type' => 'code',
+        'scope' => 'openid email profile',
+        'state' => $state,
+        'access_type' => 'online',
+        'prompt' => 'select_account',
+    ];
+    return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
+}
+
+// application/x-www-form-urlencoded なPOSTを行う(トークン交換専用)。
+// テストでは $n3s_config['_google_http_post'] にcallable(callable($url, $params): array|false)を
+// 差し込むことで、実際のネットワーク呼び出しを行わずに検証できる。
+function n3s_google_http_post($url, $params)
+{
+    $override = n3s_get_config('_google_http_post', null);
+    if (is_callable($override)) {
+        return call_user_func($override, $url, $params);
+    }
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query($params),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+    ]);
+    $body = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($body === false || $http_code !== 200) {
+        return false;
+    }
+    $data = json_decode($body, true);
+    return is_array($data) ? $data : false;
+}
+
+// 認可コードをGoogleのトークンエンドポイントでアクセストークン/ID Tokenに交換する
+function n3s_google_exchange_code($code)
+{
+    $params = [
+        'code' => $code,
+        'client_id' => n3s_get_config('google_oauth_client_id', ''),
+        'client_secret' => n3s_get_config('google_oauth_client_secret', ''),
+        'redirect_uri' => n3s_get_config('google_oauth_redirect_uri', ''),
+        'grant_type' => 'authorization_code',
+    ];
+    return n3s_google_http_post('https://oauth2.googleapis.com/token', $params);
+}
+
+// ID Token(JWT)のclaimsを検証して返す。失敗時はfalse。
+// このID Tokenはサーバー間の直接通信(client_secretで認証済みのHTTPS接続)で
+// 受け取ったものであり、ブラウザ経由の改ざん経路を通っていないため、
+// 署名検証(JWKS取得)は行わずclaimsの妥当性チェックのみ行う
+// (docs/user_login_oauth_google.md #7.2 手順4 参照)。
+function n3s_google_verify_id_token($id_token)
+{
+    $parts = explode('.', (string) $id_token);
+    if (count($parts) !== 3) {
+        return false;
+    }
+    $payload_json = base64_decode(strtr($parts[1], '-_', '+/'));
+    $payload = $payload_json === false ? null : json_decode($payload_json, true);
+    if (!is_array($payload)) {
+        return false;
+    }
+    $client_id = n3s_get_config('google_oauth_client_id', '');
+    if ($client_id === '' || ($payload['aud'] ?? '') !== $client_id) {
+        return false;
+    }
+    if (!in_array($payload['iss'] ?? '', ['https://accounts.google.com', 'accounts.google.com'], true)) {
+        return false;
+    }
+    if (($payload['exp'] ?? 0) < time()) {
+        return false;
+    }
+    $email_verified = $payload['email_verified'] ?? false;
+    if ($email_verified !== true && $email_verified !== 'true') {
+        return false;
+    }
+    if (empty($payload['sub']) || empty($payload['email'])) {
+        return false;
+    }
+    return $payload;
+}
+
+// 検証済みclaims(sub/email/name)から、ログイン対象ユーザーの行を検索・作成・紐付けする。
+// 優先順位: google_sub一致 → email一致(アカウントリンク) → 新規作成
+// (docs/user_login_oauth_google.md #7.2 手順5, #7.3)
+function n3s_google_find_or_create_user($claims)
+{
+    $sub = $claims['sub'];
+    $email = $claims['email'];
+    $name = empty($claims['name']) ? $email : $claims['name'];
+
+    $user_id = n3s_get_user_id_by_google_sub($sub);
+    if ($user_id > 0) {
+        return db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
+    }
+
+    $user_id = n3s_get_user_id_by_email($email);
+    if ($user_id > 0) {
+        n3s_link_google_account($user_id, $sub);
+        return db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
+    }
+
+    $user_id = n3s_add_user_google($email, $name, $sub);
+    if ($user_id <= 0) {
+        return false;
+    }
+    return db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
 }
 
 function n3s_getAPIToken()

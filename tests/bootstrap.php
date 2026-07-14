@@ -49,6 +49,12 @@ function n3s_test_setup(array $config_overrides = []): string
     // ここで明示的にリセットし、テスト間の汚染を防ぐ。
     unset($n3s_config['page']);
     unset($n3s_config['mode']);
+    // Google OAuth関連もテスト間で汚染されないようリセットする
+    // (docs/user_login_oauth_google.md)
+    $n3s_config['google_oauth_client_id'] = '';
+    $n3s_config['google_oauth_client_secret'] = '';
+    $n3s_config['google_oauth_redirect_uri'] = '';
+    unset($n3s_config['_google_http_post']);
 
     foreach ($config_overrides as $key => $value) {
         $n3s_config[$key] = $value;
