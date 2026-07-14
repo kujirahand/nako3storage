@@ -4,6 +4,7 @@ header('X-Frame-Options: SAMEORIGIN');
 define('MAX_MYPAGE_FAV_DEF', 5);
 define('MAX_MYPAGE_APP', 20);
 define('MAX_MYPAGE_MATERIALS', 20);
+define('MAX_MYPAGE_COMMENTS', 10);
 
 // no api login
 function n3s_api_mypage()
@@ -99,6 +100,21 @@ function n3s_web_mypage()
             $bookmarks[] = $a;
         }
     }
+    // 最近コメントが付いた投稿一覧を取得(自分の投稿への他人からのコメントのみ)
+    $recent_comments = [];
+    if ($page == 0) {
+        $rows = db_get(
+            'SELECT c.comment_id, c.app_id, c.name, c.body, c.ctime, a.title AS app_title ' .
+                'FROM comments c JOIN apps a ON c.app_id = a.app_id ' .
+                "WHERE a.user_id=? AND c.status='approved' AND c.user_id!=? " .
+                'ORDER BY c.ctime DESC LIMIT ?',
+            [$user_id, $user_id, MAX_MYPAGE_COMMENTS]
+        );
+        foreach ($rows as $r) {
+            $r['link'] = n3s_getURL($r['app_id'], 'show') . '#comment_section';
+            $recent_comments[] = $r;
+        }
+    }
     // ユーザー情報
     n3s_template_fw('mypage.html', [
         'user_id' => $user_id,
@@ -108,12 +124,16 @@ function n3s_web_mypage()
         'user' => $user,
         'url_images' => n3s_get_config('url_images', '/images'),
         'bookmarks' => $bookmarks,
+        'recent_comments' => $recent_comments,
         'link_all_fav' => $link_all_fav,
         'link_next_page' => $link_next_page,
         'link_mypage' => $link_mypage,
         'link_userinfo' => $link_userinfo,
         'link_del_account' => $link_del_account,
         'page' => $page,
+        // 'page' は n3s_template_fw() 内で $n3s_config['page'](ルーティング用の値)に
+        // 上書きされてしまうため、テンプレートの条件分岐には専用のキーを使う。
+        'is_mypage_top' => ($page == 0),
         'link_material' => $link_materil,
         'link_logout' => $logout_url,
     ]);
