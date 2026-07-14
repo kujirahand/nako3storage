@@ -457,3 +457,18 @@ ul.devblock span.lbl {
 .option_box {
   border:1px dotted silver; padding: 8px; margin: 8px;
 }
+
+/* Comment Section Styles */
+.fav-active {
+  color: #ff9800 !important;
+  font-weight: bold;
+}
+.comment-fav-btn:hover {
+  opacity: 0.8;
+  background-color: #f0f0f0 !important;
+}
+.reply-comment:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}

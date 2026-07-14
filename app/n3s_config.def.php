@@ -55,6 +55,7 @@ $n3s_config = [
     "nadesiko3hub_dir" => "$root/nadesiko3hub",
     // NG Words
     "ng_words" => ["NGワードのテスト"],
+    // -----------------------------------------------------
     // Discord
     "discord_webhook_name" => "なでしこ3貯蔵庫",
     "discord_webhook_url" => "",
@@ -62,11 +63,17 @@ $n3s_config = [
     // 既定はfalse(従来通り --insecure 付き)。サーバー証明書の検証環境が整っている場合は
     // n3s_config.ini.php で true にすることを推奨。
     "webhook_secure" => true,
+    // -----------------------------------------------------
     // Google OAuth ログイン (docs/user_login_oauth_google.md)
     "google_oauth_client_id" => "",
     "google_oauth_client_secret" => "",
     // 例: "https://n3s.nadesi.com/index.php?action=login&page=google_callback"
     "google_oauth_redirect_uri" => "",
+    // -----------------------------------------------------
+    // Gemini APIキー (コメント審査用)
+    "gemini_api_key" => "",
+    // コメント審査の自動承認モード (true: 審査をスキップして自動承認、false: 審査を行う)
+    "comment_audit_auto_approve" => false,
 ];
 
 // timezone

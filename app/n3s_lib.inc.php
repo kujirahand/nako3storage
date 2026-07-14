@@ -44,6 +44,7 @@ function n3s_db_init()
     );
     // 既存DB(init-users.sqlが実行済み)向けの軽量マイグレーション
     n3s_db_migrate_users();
+    n3s_db_migrate_comments();
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -77,6 +78,49 @@ function n3s_db_migrate_users()
         [],
         'users'
     );
+}
+
+// init-main.sql 作成後の既存DBにコメント関連のカラムやテーブルが無ければ追加する
+function n3s_db_migrate_comments()
+{
+    // 1. comments テーブルに parent_id, status, fav がなければ追加する
+    $columns = db_get('PRAGMA table_info(comments)', [], 'main');
+    if (is_array($columns)) {
+        $has_parent_id = false;
+        $has_status = false;
+        $has_fav = false;
+        foreach ($columns as $col) {
+            if ($col['name'] === 'parent_id') { $has_parent_id = true; }
+            if ($col['name'] === 'status') { $has_status = true; }
+            if ($col['name'] === 'fav') { $has_fav = true; }
+        }
+        if (!$has_parent_id) {
+            db_exec("ALTER TABLE comments ADD COLUMN parent_id INTEGER DEFAULT 0", [], 'main');
+        }
+        if (!$has_status) {
+            db_exec("ALTER TABLE comments ADD COLUMN status TEXT DEFAULT 'pending'", [], 'main');
+        }
+        if (!$has_fav) {
+            db_exec("ALTER TABLE comments ADD COLUMN fav INTEGER DEFAULT 0", [], 'main');
+        }
+    }
+
+    // 2. comment_likes テーブルがなければ作成する
+    db_exec("CREATE TABLE IF NOT EXISTS comment_likes (
+      comment_like_id INTEGER PRIMARY KEY,
+      user_id         INTEGER,
+      comment_id      INTEGER,
+      ctime           INTEGER DEFAULT 0,
+      UNIQUE(user_id, comment_id)
+    )", [], 'main');
+
+    // 3. comment_audit_cache テーブルがなければ作成する
+    db_exec("CREATE TABLE IF NOT EXISTS comment_audit_cache (
+      body_hash   TEXT PRIMARY KEY,
+      result      TEXT DEFAULT '',
+      reason      TEXT DEFAULT '',
+      ctime       INTEGER DEFAULT 0
+    )", [], 'main');
 }
 
 /**

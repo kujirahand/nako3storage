@@ -251,6 +251,8 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 テンプレートエンジンは `app/fw_simple/fw_template_engine.lib.php` です。
 
+- `{{ $page_title }}` のように、`n3s_template_fw()` に渡した `$params`(および `$n3s_config`)のキーがそのままテンプレート変数として使える。
+- 記法や挙動の正確な仕様は `app/fw_simple/fw_template_engine.lib.php` の実装を一次情報源として確認すること。以下は概要。
 - テンプレートソースは `app/template/`。
 - コンパイル済みキャッシュは `cache/`。
 - 描画は `n3s_template_fw($template_name, $params)`。
