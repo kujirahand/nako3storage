@@ -270,9 +270,9 @@ function n3s_mypage_mode_del_account($user_id)
         $title = '(削除されました)';
         $memo = 'この作品はユーザー退会により削除されました。';
         $author = '(退会ユーザー)';
-        $tag = 'w_noname'; // リストに表示しないようにする
+        $tag = 'w_noname'; // widgetでタイトルを隠す(一覧の非掲載は show_list=0 で行う #202)
         db_exec(
-            'UPDATE apps SET title=?, author=?, memo=?, email=?, tag=? WHERE user_id=?',
+            'UPDATE apps SET title=?, author=?, memo=?, email=?, tag=?, show_list=0 WHERE user_id=?',
             [$title, $author, $memo, $email, $tag, $user_id]
         );
         // ログアウト

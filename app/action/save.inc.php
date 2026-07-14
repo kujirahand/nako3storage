@@ -165,6 +165,10 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     $a['url'] = isset($a['url']) ? $a['url'] : '';
     $a['nakotype'] = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';
     $a['tag'] = isset($a['tag']) ? $a['tag'] : '';
+    // 一覧掲載フラグ (#202)。1=掲載, 0=非掲載, -1=未指定(フォーム外や旧クライアントからのPOST)
+    $a['show_list'] = array_key_exists('show_list', $a)
+        ? ((intval($a['show_list']) !== 0) ? 1 : 0)
+        : -1;
     $a['memo'] = isset($a['memo']) ? $a['memo'] : '';
     $a['body'] = isset($a['body']) ? $a['body'] : '';
     $a['version'] = isset($a['version']) ? $a['version'] : NAKO_DEFAULT_VERSION;
@@ -229,6 +233,36 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     if (intval($a['user_id']) == 0 && intval($a['is_private']) == 2) {
         throw new Exception("ログインしていない場合、限定公開は選べません。");
     }
+}
+
+// タグ(カンマ区切り)に w_noname が含まれるか (#202)
+function n3s_tag_has_w_noname($tag)
+{
+    foreach (explode(',', strval($tag)) as $t) {
+        if (trim($t) === 'w_noname') {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 保存時の show_list を決定する (#202)
+// $a: n3s_action_save_check_param() 正規化済みの入力 (show_list: 1|0|-1)
+// $b: 更新対象の既存レコード (新規投稿なら [])
+function n3s_save_decide_show_list($a, $b)
+{
+    // 後方互換: タグに w_noname が含まれるなら常に非掲載
+    if (n3s_tag_has_w_noname($a['tag'])) {
+        return 0;
+    }
+    if ($a['show_list'] === 0 || $a['show_list'] === 1) {
+        return $a['show_list']; // フォームからの明示指定
+    }
+    // 未指定(旧クライアント等): 更新なら既存値を維持、新規なら掲載
+    if (is_array($b) && isset($b['show_list'])) {
+        return intval($b['show_list']);
+    }
+    return 1;
 }
 
 // save
@@ -361,6 +395,9 @@ function n3s_action_save_data_raw($data, $agent)
     }
     // ------------------------------------------------------------------
     */
+    // 一覧掲載フラグを確定する (#202)
+    // $b は app_name 重複チェックでも代入されるため、更新時に引き直した行だけを渡す
+    $a['show_list'] = n3s_save_decide_show_list($a, ($app_id > 0) ? $b : []);
     // 新規投稿の場合
     if ($app_id == 0) {
         return n3s_saveNewProgram($a);

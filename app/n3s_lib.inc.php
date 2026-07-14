@@ -45,6 +45,7 @@ function n3s_db_init()
     // 既存DB(init-users.sqlが実行済み)向けの軽量マイグレーション
     n3s_db_migrate_users();
     n3s_db_migrate_comments();
+    n3s_db_migrate_apps(); // 一覧掲載フラグ show_list (Issue #202)
     n3s_db_migrate_access_stats(); // アクセス統計テーブル (Issue #217)
 
     // v0.7未満で利用(過去のDB参照のため) #80
@@ -122,6 +123,24 @@ function n3s_db_migrate_comments()
       reason      TEXT DEFAULT '',
       ctime       INTEGER DEFAULT 0
     )", [], 'main');
+}
+
+// init-main.sql 作成後の既存DBに show_list カラムが無ければ追加する (Issue #202)。
+// 従来 w_noname タグで表現していた「一覧非掲載」をカラム追加時に一度だけ引き継ぐ。
+// 2回目以降はカラム存在チェックで早期リターンするため、バックフィルが再実行されることはない。
+function n3s_db_migrate_apps()
+{
+    $columns = db_get('PRAGMA table_info(apps)', [], 'main');
+    if (!is_array($columns)) {
+        return;
+    }
+    foreach ($columns as $col) {
+        if ($col['name'] === 'show_list') {
+            return; // 追加済み
+        }
+    }
+    db_exec("ALTER TABLE apps ADD COLUMN show_list INTEGER DEFAULT 1", [], 'main');
+    db_exec("UPDATE apps SET show_list=0 WHERE tag LIKE '%w_noname%'", [], 'main');
 }
 
 // log DB に access_stats テーブルが無ければ作成する (Issue #217)
@@ -857,6 +876,8 @@ function n3s_updateProgram($data)
     $a["mtime"] = time(); // 確実に毎回アップデートする (#158)
     $a['body'] = trim($a['body']);
     $a['prog_hash'] = hash('sha256', $a['body']);
+    // 一覧掲載フラグ。0以外(未設定含む)は掲載扱いに倒す (#202)
+    $a['show_list'] = (isset($a['show_list']) && intval($a['show_list']) === 0) ? 0 : 1;
     // update info
     $sql = <<< EOS
         UPDATE apps SET
@@ -874,6 +895,7 @@ function n3s_updateProgram($data)
             editkey=:editkey,
             nakotype=:nakotype,
             tag=:tag,
+            show_list=:show_list,
             prog_hash=:prog_hash,
             ref_id=:ref_id, 
             ip=:ip,
@@ -904,6 +926,7 @@ EOS;
         ":copyright"  => $a['copyright'],
         ":nakotype"   => $a['nakotype'],
         ":tag"        => $a['tag'],
+        ":show_list"  => $a['show_list'],
         ":prog_hash"  => $a['prog_hash']
     ]);
     // update body
@@ -936,9 +959,9 @@ function n3s_discord_webhook($a)
     $app_key = "$app_id";
     $memo = $a['memo'];
     $is_prvate = $a['is_private'];
-    $tag = $a['tag'];
-    // 公開設定の時のみ通知を行う
-    if ($is_prvate !== 0 || $tag == 'w_noname') {
+    $show_list = intval(isset($a['show_list']) ? $a['show_list'] : 1);
+    // 公開設定かつ一覧掲載の時のみ通知を行う (#202)
+    if ($is_prvate !== 0 || $show_list === 0) {
         return;
     }
     // -------------------------------------------

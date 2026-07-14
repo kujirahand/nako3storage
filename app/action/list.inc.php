@@ -39,7 +39,7 @@ function n3s_list_get()
     // オプションを確認して条件などを設定
     // --------------------------------------------------------
     // list (app_id for list pager)
-    $wheres = array('tag != "w_noname"');
+    $wheres = array('show_list = 1'); // 一覧掲載フラグ (#202)
     $where_params = []; // $wheres の "?" に対応する値を、出現順に積んでいく
     $statements = [];
     // check nofilter parameters
@@ -116,14 +116,14 @@ function n3s_list_get()
     if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0 && $offset == 0) {
         // 全期間を取得
         $ranking_all = db_get('SELECT * FROM apps '.
-            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (tag != "w_noname")'.
+            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (show_list = 1)'.
             'ORDER BY fav DESC LIMIT 30', []);
 
         // Nヶ月以内に更新されたアプリを取得
         $mon = 6;
         $mtime = time() - (60 * 60 * 24 * 30 * $mon);
         $ranking = db_get('SELECT * FROM apps '.
-            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 2) AND (is_private = 0) AND (tag != "w_noname")'.
+            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 2) AND (is_private = 0) AND (show_list = 1)'.
             'ORDER BY fav DESC LIMIT 40', [$mtime]);
         // ランキング情報を得る
         $ranking_total = $ranking_all + $ranking;

@@ -125,6 +125,16 @@
           </select>
         </label>
       </p>
+      <p>
+        <label>
+          <!-- checkbox未チェック時もPOSTに値が届くように、同名のhiddenで先に0を送る (#202) -->
+          <input type="hidden" name="show_list" value="0" />
+          {{e $show_list_checked = ($show_list != 0) ? 'checked' : ''; }}
+          <input id="show_list" name="show_list" type="checkbox" value="1" {{$show_list_checked}} />
+          作品一覧に掲載する
+          <span class="info">チェックを外すと作品一覧・ランキング・検索結果に表示されません。(URLを知っている人は閲覧できます)</span>
+        </label>
+      </p>
       {{ if !n3s_is_login() }}
       <p id="editkey_options" style="display: none;">
         <label>編集キー (任意):
@@ -157,7 +167,9 @@
             <span class="info">タグ(ゲーム,ツールなど)をカンマで区切って指定。</span><br />
             <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
             <!--
-            (↑ヒント) この欄に「w_noname」と書くと作品一覧に非掲載し実行画面のタイトルも隠します。
+            (↑ヒント) この欄に「w_noname」と書くと実行画面のタイトルを隠します。
+            作品一覧への掲載可否は上の「作品一覧に掲載する」チェックボックスで指定します。
+            (w_nonameを書いた場合も自動的に一覧非掲載になります #202)
             -->
           </label>
         </p>
@@ -293,6 +305,8 @@ function checkSubmit() {
   tag.value = tag.value.replace(/[\s\#]+/g, '')
   if (tag.value.indexOf('w_noname') >= 0) {
     tag.value = 'w_noname' // このタグは特別で排他的
+    const sl = document.getElementById('show_list')
+    if (sl) { sl.checked = false } // w_nonameは一覧非掲載を意味する (#202)
   }
   if (tag.value.length > 64) {
     alert('タグが長すぎます。64文字以内にしてください。')

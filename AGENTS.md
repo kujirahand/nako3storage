@@ -192,6 +192,13 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 `n3s_check_private()` は Web/API の表示前に公開範囲を判定します。表示・API・ウィジェット関連を変更する時は必ず確認してください。
 
+一覧掲載 (`is_private` とは別軸。詳細は `docs/show_list.md` #202):
+
+- `apps.show_list = 1`: 作品一覧・ランキング・検索に掲載 (デフォルト)。
+- `apps.show_list = 0`: 非掲載 (URLを知っていれば閲覧可)。投稿フォームのチェックボックス、またはタグに `w_noname` を含めると 0 になる (`n3s_save_decide_show_list()`)。
+- 既存DBへは `n3s_db_migrate_apps()` (`app/n3s_lib.inc.php`) が起動時にカラム追加と `w_noname` バックフィルを自動実行する。
+- `w_noname` タグ自体は widget (実行画面) のタイトル秘匿用として引き続き使われる。
+
 ---
 
 ## 8. アップロードと画像配信
