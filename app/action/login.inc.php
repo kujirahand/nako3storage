@@ -180,7 +180,7 @@ function n3s_web_login_setpw($email = '')
     if ($email == '') {
         $retry = n3s_getURL('forgot', 'login');
         n3s_error('パスワードの設定失敗', "メール情報が失われました。<a href='$retry'>手順をやり直してください</a>。", TRUE);
-        exit;
+        return;
     }
     if ($pass1 == '' || $pass2 == '' || $post_token == '') {
         $email_ = htmlspecialchars($email, ENT_QUOTES);
@@ -197,11 +197,11 @@ function n3s_web_login_setpw($email = '')
 </div>
 __EOS__;
         n3s_info('認証番号の入力', $body, TRUE);
-        exit;
+        return;
     }
     if ($token != $post_token) {
         n3s_error('セッションが切れました', "<a href='$url'>もう一度試行してください。</a>");
-        exit;
+        return;
     }
     // check pass token
     // get user info
@@ -214,7 +214,7 @@ __EOS__;
         $retry = n3s_getURL('setpw', 'login', ['email' => $email]);
         n3s_log("[forgot] email={$email},error=パスワードの設定失敗/認証番号の入力ミス", "info");
         n3s_error('登録失敗', "改めてメールに書かれている登録番号を確認して入力してください。<a href='$retry'>やり直す</a>", true);
-        exit;
+        return;
     }
     $user_id = $row['user_id'];
     // パスワードのチェック
@@ -239,7 +239,7 @@ __EOS__;
             );
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
             n3s_info('パスワードを設定しました', '<a href="index.php?action=login">ログインしてください。</a>', true);
-            exit;
+            return;
         }
     }
     n3s_template_fw('login_setpw.html', [
@@ -257,13 +257,13 @@ function n3s_web_login_trylogin()
     $email = empty($_POST['email']) ? '' : $_POST['email'];
     $password = empty($_POST['password']) ? '' : $_POST['password'];
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-    if (!$ip) {
+    if ($ip != '') {
         // ログイン攻撃を検出する (1時間以内に10回以上のログイン失敗があれば拒否する)
-        $r = db_get('SELECT count(*) FROM ip_check WHERE key=0 AND mtime>? AND ip=?', [time() - 60 * 60, $ip]);
+        $r = db_get1('SELECT count(*) FROM ip_check WHERE key=0 AND ctime>? AND ip=?', [time() - 60 * 60, $ip], 'log');
         if ($r && $r['count(*)'] > 10) {
             n3s_log("ip={$ip},email={$email},error=ログイン失敗が多すぎる", "trylogin");
             n3s_error('ログインの拒否', 'ログイン失敗が多すぎます。しばらく時間をおいてからログインしてください。');
-            exit;
+            return;
         }
     }
     if ($email != '' && $password != '') {
@@ -275,6 +275,8 @@ function n3s_web_login_trylogin()
             $email = trim($email);
             $password = trim($password);
             $user_id = n3s_get_user_id_by_email($email);
+            $isOK = false;
+
             if ($user_id > 0) {
                 // ユーザーのパスワードが空の場合をチェック
                 $user = db_get1(
@@ -294,31 +296,31 @@ function n3s_web_login_trylogin()
                         'error' => $error,
                         'token' => $token,
                     ]);
-                    exit;
-                }
-                $isOK = n3s_web_login_execute($email, $password);
-                if ($isOK) {
                     return;
                 }
-                // ip_check に記録するので、ここには記録しない
-                // n3s_log("email={$email},error=パスワードの間違い", "trylogin");
-                // ログイン失敗した回数を確認
-                $errCount = isset($_SESSION['n3s_trylogin_count']) ? $_SESSION['n3s_trylogin_count'] : 0;
-                if ($errCount >= 5) {
-                    unset($_SESSION['n3s_trylogin_count']);
-                    n3s_error(
-                        'ログイン失敗',
-                        "ログインに5回以上失敗しました。しばらく時間をおいてから再度お試しください。" .
-                            "あるいは、<a href='index.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。",
-                        true
-                    );
-                    exit;
-                }
-                $errCount++;
-                $_SESSION['n3s_trylogin_count'] = $errCount;
-                $error = "メールアドレスかパスワードが間違っています。#{$errCount}";
-                db_exec("INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)", [0, $ip, $email, time()], 'log');
+                $isOK = n3s_web_login_execute($email, $password);
             }
+
+            if ($isOK) {
+                return;
+            }
+
+            // ログイン失敗時の共通処理
+            $errCount = isset($_SESSION['n3s_trylogin_count']) ? $_SESSION['n3s_trylogin_count'] : 0;
+            if ($errCount >= 5) {
+                unset($_SESSION['n3s_trylogin_count']);
+                n3s_error(
+                    'ログイン失敗',
+                    "ログインに5回以上失敗しました。しばらく時間をおいてから再度お試しください。" .
+                        "あるいは、<a href='index.php?action=login&page=forgot'>こちらのパスワード再設定</a>を試してください。",
+                    true
+                );
+                return;
+            }
+            $errCount++;
+            $_SESSION['n3s_trylogin_count'] = $errCount;
+            $error = "メールアドレスかパスワードが間違っています。#{$errCount}";
+            db_exec("INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)", [0, $ip, $email, time()], 'log');
         }
     }
     $token = n3s_getEditToken();

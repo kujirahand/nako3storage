@@ -40,7 +40,8 @@ function n3s_test_setup(array $config_overrides = []): string
     $n3s_config['baseurl'] = 'http://localhost';
     $n3s_config['admin_users'] = [1];
     $n3s_config['news_at_login'] = '';
-    unset($n3s_config['edit_token']);
+    unset($n3s_config['edit_token']); // 旧実装の名残。新実装は '_edit_token_cache' を使う
+    unset($n3s_config['_edit_token_cache']);
     // $n3s_config['page'] / ['action'] は本番では n3s_parseURI() が毎リクエスト
     // $_GET から作り直すが、テストでは n3s_parseURI() を呼ばないため、
     // 前のテストが (n3s_get_config('page', ...) を使う経路のために) 直接

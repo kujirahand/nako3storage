@@ -113,3 +113,25 @@ test('n3s_web_login() 経由 (page=setpw, 引数なし呼び出し) でも $_REQ
     expect($out)->toContain('パスワードの設定')
         ->and($out)->not->toContain('メール情報が失われました');
 });
+
+test('新パスワードを正しく入力するとパスワードが更新され、完了画面が表示される', function () {
+    $user_id = n3s_add_user('setpw5@example.com', 'password1', '設定五郎');
+    $token = n3s_test_send_pass_token($user_id, 'setpw5@example.com');
+    [$pass1, $pass2] = explode('-', $token);
+
+    $csrf = n3s_getEditToken('setpw', false);
+    $_POST['email'] = 'setpw5@example.com';
+    $_POST['pass1'] = $pass1;
+    $_POST['pass2'] = $pass2;
+    $_POST['token'] = $csrf;
+    $_POST['password'] = 'newpassword123';
+    $_POST['password2'] = 'newpassword123';
+
+    $out = n3s_test_capture(fn () => n3s_web_login_setpw($_POST['email']));
+
+    expect($out)->toContain('パスワードを設定しました');
+
+    $row = db_get1('SELECT password FROM users WHERE user_id=?', [$user_id], 'users');
+    expect($row['password'])->toStartWith('hash::');
+    expect(n3s_password_verify('newpassword123', $row['password']))->toBeTrue();
+});

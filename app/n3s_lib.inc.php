@@ -227,9 +227,9 @@ function n3s_get_user_name()
         return '?';
     }
     if (isset($_SESSION['name'])) {
-        return (int) ($_SESSION['name']);
+        return (string)$_SESSION['name'];
     }
-    return 0;
+    return '';
 }
 
 function n3s_get_login_info()
@@ -391,17 +391,26 @@ function n3s_getEditToken($key = 'default', $update = true)
 {
     global $n3s_config;
     $sname = "n3s_edit_token_$key";
+    // キーごとのリクエスト内キャッシュ。
+    // 注意: $n3s_config['edit_token'] という「素の」キーには保存しないこと。
+    // n3s_template_fw() は $n3s_config + $params でテンプレート変数をマージするため、
+    // ここに値を置くと save.html/upload.html などが明示的に渡している
+    // 'edit_token' パラメータを ($n3s_config 側が優先されて) 上書きしてしまう。
+    if (!isset($n3s_config['_edit_token_cache']) || !is_array($n3s_config['_edit_token_cache'])) {
+        $n3s_config['_edit_token_cache'] = [];
+    }
     if ($update === false) {
         if (isset($_SESSION[$sname])) {
-            $n3s_config['edit_token'] = $_SESSION[$sname];
-            return $n3s_config['edit_token'];
+            $n3s_config['_edit_token_cache'][$key] = $_SESSION[$sname];
+            return $n3s_config['_edit_token_cache'][$key];
         }
     }
-    if (! isset($n3s_config['edit_token'])) {
-        $t = $n3s_config['edit_token'] = bin2hex(random_bytes(32));
+    if (!isset($n3s_config['_edit_token_cache'][$key])) {
+        $t = bin2hex(random_bytes(32));
+        $n3s_config['_edit_token_cache'][$key] = $t;
         $_SESSION[$sname] = $t;
     }
-    return $n3s_config['edit_token'];
+    return $n3s_config['_edit_token_cache'][$key];
 }
 
 function n3s_checkEditToken($key = 'default')

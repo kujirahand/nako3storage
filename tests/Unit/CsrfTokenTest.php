@@ -49,17 +49,11 @@ test('n3s_checkEditToken はセッションにトークンが無ければfalse',
     expect(n3s_checkEditToken('default'))->toBeFalse();
 });
 
-test('異なるキーで連続して発行すると、後発行分がセッションに保存されない (既知の不具合)', function () {
-    // n3s_getEditToken() は $update=true のとき、トークンのキャッシュを
-    // $n3s_config['edit_token'] という単一の変数に持っている(キーごとに
-    // 分かれていない)。そのため同一リクエスト内で異なる $key を渡して連続で
-    // 呼び出すと、2回目以降は既にキャッシュがあるとみなされて新規発行がスキップされ、
-    // $_SESSION["n3s_edit_token_<2回目以降のkey>"] が一切書き込まれない。
-    // 例えば login → register → setpw と複数のフォームを続けて発行するようなケースで
-    // 想定外のトークン共有・未設定が起きうる。現状の挙動として固定化しておく。
+test('異なるキーで連続して発行すると、個別のトークンが生成されセッションに保存される', function () {
     $defaultToken = n3s_getEditToken('default');
     $setpwToken = n3s_getEditToken('setpw');
 
-    expect($setpwToken)->toBe($defaultToken) // 新規発行されず、defaultのキャッシュを使い回す
-        ->and($_SESSION)->not->toHaveKey('n3s_edit_token_setpw');
+    expect($setpwToken)->not->toBe($defaultToken)
+        ->and($_SESSION['n3s_edit_token_default'])->toBe($defaultToken)
+        ->and($_SESSION['n3s_edit_token_setpw'])->toBe($setpwToken);
 });

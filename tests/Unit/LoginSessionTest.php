@@ -213,15 +213,9 @@ test('n3s_get_user_name はログイン前は "?" を返す', function () {
     expect(n3s_get_user_name())->toBe('?');
 });
 
-test('n3s_get_user_name はログイン後、名前ではなく常に0を返す (既知の不具合)', function () {
-    // n3s_get_user_name() は $_SESSION['name'] を (int) キャストして返しており、
-    // 数字始まりでない名前(通常のユーザー名)は必ず int(0) になってしまう。
-    // n3s_lib.inc.php 内で `$a['author'] = n3s_get_user_name();` として投稿の
-    // 著者名に使われている箇所があり、本来ログインユーザー名が入るべき場所が
-    // 0になってしまう実装バグ。修正はせず、現状の挙動として固定化しておく。
+test('n3s_get_user_name はログイン後、名前を正しく返す', function () {
     n3s_add_user('username@example.com', 'password1', '名前太郎');
     n3s_login('username@example.com', 'password1');
 
-    expect(n3s_get_user_name())->toBe(0)
-        ->and(n3s_get_user_name())->not->toBe('名前太郎');
+    expect(n3s_get_user_name())->toBe('名前太郎');
 });
