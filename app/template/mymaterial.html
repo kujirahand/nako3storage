@@ -1,61 +1,67 @@
 {{ include parts_html_header.html }}
 
-<div class="linkblock">
-  [<a href="{{ $link_mypage }}">私のアプリ</a>]
-  [<a href="{{ $link_material }}">私の素材</a>]
-  [<a href="{{ $link_all_fav }}">お気に入り</a>]
-</div>
-
-<div class="showblock">
-    <h1>
-        {{$user_id}}: {{$name}} さんのマイページ(素材一覧)
-        {{if n3s_is_admin()}}(管理者){{endif}}
-    </h1>
-    <!-- button -->
-    <div>
-      <p style="padding: 4px;">
-        <a href="index.php?action=upload" class="pure-button">🔼 ファイルのアップロード</a>
-      </p>
-    </div>
-</div>
-
-<div class="showblock">
-  <h1><a name="sozai">私の素材一覧</a></h1>
-  <!-- list -->
-  <div>
-    {{ if !$images }}
-      まだ素材をアップロードしていません。
-    {{ else }}
-      <!-- files -->
-      <table>
-        <tr><td>ID</td><td>ファイル名</td></tr>
-        {{ for $images as $i }}
-        <tr>
-          <td>
-            <a href='index.php?action=upload&mode=show&image_id={{$i.image_id}}' class="pure-button">{{$i.image_id}}</a>
-          </td>
-          <td>
-            {{$i.title}} - 
-            <span class="memo">{{$i.mtime | date2}}</span>
-          </td>
-        </tr>
-        {{ endfor }}
-      </table>
-      {{if $link_next_page != ''}}
-        <div style="padding:6px;">
-          <a href="{{$link_next_page}}" class="pure-button">← 次へ</a>
-        </div>
-      {{endif}}
+<main class="n3s-mypage-page n3s-material-page">
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a href="{{ $link_mypage }}">私の作品</a>
+    <a class="is-current" href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a href="{{ $link_userinfo }}">プロフィール設定</a>
+    {{ if n3s_is_admin() }}
+    <a href="{{e: echo n3s_getURL('', 'admin') }}">管理者ページ</a>
     {{ endif }}
-  </div>
-  <!-- /list -->
-<div><!-- /.showblock -->
+  </nav>
 
-<div><br/></div>
-<div class="linkblock">
-  [<a href="{{ $link_mypage }}">私のアプリ</a>]
-  [<a href="{{ $link_material }}">私の素材</a>]
-  [<a href="{{ $link_all_fav }}">お気に入り</a>]
-</div>
+  <header class="n3s-mypage-profile">
+    <img class="n3s-mypage-profile-image" src="{{ $user.profile_url_large }}" width="160" height="160" alt="{{ $name }}のプロフィール画像">
+    <div class="n3s-mypage-profile-main">
+      <p class="n3s-mypage-user-id">USER #{{$user_id}}</p>
+      <h1>{{$name}} さんの素材</h1>
+      {{if n3s_is_admin()}}<span class="n3s-mypage-admin">管理者</span>{{endif}}
+    </div>
+    <div class="n3s-mypage-profile-actions">
+      <a href="index.php?action=upload" class="pure-button pure-button-primary">ファイルをアップロード</a>
+      <a href="{{ $link_mypage }}" class="pure-button">マイページへ戻る</a>
+    </div>
+  </header>
+
+  <section class="n3s-mypage-section n3s-material-section">
+    <div class="n3s-mypage-section-head">
+      <h2 id="materials">素材一覧</h2>
+      <a href="index.php?action=upload">新しい素材を追加</a>
+    </div>
+    {{ if !$images }}
+      <p class="n3s-mypage-empty">まだ素材をアップロードしていません。</p>
+    {{ else }}
+      <div class="n3s-material-list">
+      {{ for $images as $i }}
+        <article class="n3s-material-row">
+          <a class="n3s-material-preview" href="{{$i.info_url}}" aria-label="{{$i.title}}の詳細">
+            {{if $i.is_image}}
+            <img src="{{$i.preview_url}}" width="72" height="72" alt="">
+            {{else}}
+            <span>{{$i.extension}}</span>
+            {{endif}}
+          </a>
+          <div class="n3s-material-main">
+            <h3><a href="{{$i.info_url}}">{{$i.title}}</a></h3>
+            <p><span>#{{$i.image_id}}</span><span>{{$i.filename}}</span><time>{{$i.mtime | date2}}</time><span>{{$i.copyright}}</span></p>
+          </div>
+          <div class="n3s-material-actions">
+            <a class="pure-button" href="{{$i.info_url}}">詳細</a>
+          </div>
+        </article>
+      {{ endfor }}
+      </div>
+      <nav class="n3s-mypage-pagination" aria-label="素材一覧のページ移動">
+      {{if $link_prev_page != ''}}
+        <a href="{{$link_prev_page}}" class="pure-button">前へ</a>
+      {{endif}}
+      {{if $link_next_page != ''}}
+        <a href="{{$link_next_page}}" class="pure-button">次へ</a>
+      {{endif}}
+      </nav>
+    {{ endif }}
+  </section>
+</main>
 
 {{ include parts_html_footer.html }}

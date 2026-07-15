@@ -220,14 +220,11 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     }
     if ($a['user_id'] > 0) {
         // ユーザー情報を取得
-        $user = db_get1(
-            "SELECT * FROM users WHERE user_id=?", 
-            [$a['user_id']],
-            "users");
-        $a['profile_url'] = $user['profile_url'];
-        $a['screen_name'] = $user['screen_name'];
+        $user = n3s_getUserInfo($a['user_id']);
+        $a['profile_url'] = $user ? $user['profile_url'] : n3s_get_user_default_image_url();
+        $a['screen_name'] = $user ? $user['screen_name'] : '';
     } else {
-        $a['profile_url'] = 'skin/def/user-icon.png';
+        $a['profile_url'] = n3s_get_user_default_image_url();
         $a['screen_name'] = '';
     }
     $a['my_user_id'] = $my_user_id;

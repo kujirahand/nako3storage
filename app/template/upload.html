@@ -1,101 +1,95 @@
 {{ include parts_html_header.html }}
 
+<main class="n3s-mypage-page n3s-upload-page">
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a href="{{ $link_mypage }}">私の作品</a>
+    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a href="{{ $link_userinfo }}">プロフィール設定</a>
+  </nav>
 
-<style>
-  input[type=radio] {
-    width:2em;
-  }
-</style>
-<div class="saveform">
-  <p>画像/音声/テキストのアップロード(最大5MB):</p>
-  <div>
-    <form enctype="multipart/form-data"
-      action="{{$baseurl}}/index.php?action=upload&mode=go"
-      method="POST" class="pure-form"
-      onsubmit="return checkForm();">
-      <!-- MAX_FILE_SIZE は、必ず "file" input フィールドより前に。3MBを指定。 -->
-      <input type="hidden" name="MAX_FILE_SIZE" value="5242880" />
-      <div style="padding:6px">
-        <input id="userfile" name="userfile" type="file" class="pure-button" />
+  <header class="n3s-upload-header">
+    <div>
+      <p class="n3s-upload-eyebrow">MATERIALS</p>
+      <h1>素材をアップロード</h1>
+    </div>
+    <a class="pure-button" href="index.php?action=upload&amp;mode=list">素材一覧を見る</a>
+  </header>
+
+  <section class="n3s-mypage-section n3s-upload-section">
+    <form enctype="multipart/form-data" action="{{$baseurl}}/index.php?action=upload&amp;mode=go" method="POST" class="pure-form pure-form-stacked n3s-upload-form" onsubmit="return checkForm();">
+      <input type="hidden" name="MAX_FILE_SIZE" value="{{ $max_file_size }}">
+      <input type="hidden" name="edit_token" value="{{$edit_token}}">
+
+      <div class="n3s-upload-field">
+        <label for="userfile">ファイル</label>
+        <input id="userfile" name="userfile" type="file" required>
+        <p>最大{{$max_file_size_mb}}MB。画像、音声、テキストなどに対応しています。</p>
       </div>
-      <div>
-        <label>
-          タイトル:<br>
-          <input type="text" name="title">
-        </label><br><br>
-        <label>
-          著作権の確認:<br>
-          <input type="checkbox" name="copyright" id="copyright" value="ok">
-            このファイルは著作権的に問題のないファイルです。そして、<a href="index.php?action=kiyaku" target="new">利用規約</a>に同意します。
-        </label><br><br>
-        <label>
-          著作権の種類:<br>
-          <input type="radio" name="copyright_type" value="CC0" checked="checked">
-          パブリックドメイン(CC0)
-          <a target="new" href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja">(説明)</a>
-        </label><br>
-        <label>
-          <input type="radio" name="copyright_type" value="CC-BY">CC BY(著作権表示すれば誰でも使えます)
-          <a target="new" href="https://creativecommons.org/licenses/by/4.0/deed.ja">(説明)</a>
-        </label><br>
-        <label>
-          <input type="radio" name="copyright_type" value="SELF">
-          自分専用 (他人の使用を認めません)
-          <span class="info">(※<a href="index.php?action=upload&mode=list" target="_blank">素材一覧</a>に表示されず<a href="https://nadesi.com/v3/doc/go.php?4801" target="_blank">他人から利用され辛く</a>なります。)</span>
-        </label><br><br>
-        <div style="padding: 1em; border: 1px solid silver;">
-          <div style="font-weight: bold;">任意項目:</div><br>
-          <label>
-            どのアプリで使いますか? (app_idが分かれば入力 - 後から変更できません):<br>
-            <input type="number" name="app_id" value="0">
-          </label><br><br>
-          <label>
-            ファイル名 (英数と_-.のみ / 拡張子まで指定 / app_idごとに重複不可):<br>
-            <input type="text" name="image_name" value="">
-          </label>
+
+      <div class="n3s-upload-field">
+        <label for="title">タイトル</label>
+        <input id="title" type="text" name="title">
+      </div>
+
+      <fieldset class="n3s-upload-terms">
+        <legend>規約同意</legend>
+        <label class="n3s-upload-check"><input type="checkbox" name="copyright" id="copyright" value="ok"> このファイルは著作権上問題がなく、<a href="index.php?action=kiyaku" target="new">利用規約</a>に同意します。</label>
+      </fieldset>
+
+      <fieldset class="n3s-upload-license">
+        <legend>ライセンス選択</legend>
+        <div class="n3s-upload-radio-list">
+          <label><input type="radio" name="copyright_type" value="CC0" checked> パブリックドメイン (CC0)</label>
+          <label><input type="radio" name="copyright_type" value="CC-BY"> CC BY (著作権表示が必要)</label>
+          <label><input type="radio" name="copyright_type" value="SELF"> 自分専用</label>
         </div>
-      </div>
-      <div style="padding:6px;">
-        <input type="hidden" name="edit_token" value="{{$edit_token}}" />
-        <input type="submit" value="ファイルを送信" class="pure-button-primary pure-button" />
+      </fieldset>
+
+      <fieldset class="n3s-upload-optional">
+        <legend>アプリ内で使う場合</legend>
+        <div class="n3s-upload-field">
+          <label for="app_id">アプリID</label>
+          <input id="app_id" type="number" name="app_id" value="0" min="0">
+        </div>
+        <div class="n3s-upload-field">
+          <label for="image_name">ファイル名</label>
+          <input id="image_name" type="text" name="image_name" value="">
+          <p>英数字、`_`、`-`、`.`のみ。拡張子まで指定します。</p>
+        </div>
+      </fieldset>
+
+      <div class="n3s-upload-actions">
+        <button type="submit" class="pure-button pure-button-primary">ファイルを送信</button>
+        <a class="pure-button" href="{{ $link_material }}">私の素材を管理</a>
       </div>
     </form>
-  </div>
-</div>
-<div class="showblock" style="border-top:1px dotted silver;">
-  <a class="pure-button" 
-    href="index.php?action=upload&mode=list">素材の一覧を見る</a>
-</div>
+  </section>
+</main>
 
 <script>
   function checkForm() {
-    const MAX_FILE_SIZE = {{ $max_file_size }};
+    const maxFileSize = {{ $max_file_size }}
     const userfile = document.getElementById('userfile')
-    if (!userfile.files || userfile.files.length == 0) {
+    if (!userfile.files || userfile.files.length === 0) {
       alert('ファイルを指定してください')
       return false
     }
     const file = userfile.files[0]
-    // 拡張子のチェック
-    const fname = file.name.toLowerCase()
-    if (!fname.match(/\.({{ $supported_type }})$/)) {
-      alert('アップロードできるのは、{{ $supported_type }}のみです。')
+    if (!file.name.toLowerCase().match(/\.({{ $supported_type }})$/)) {
+      alert('アップロードできるファイル形式ではありません。')
       return false
     }
-    // ファイルサイズのチェック
-    if (file.size > MAX_FILE_SIZE) {
-      alert('ファイルサイズが大きすぎます。リサイズして小さくしてください。')
+    if (file.size > maxFileSize) {
+      alert('ファイルサイズが上限を超えています。')
       return false
     }
-    // 著作権のチェック
-    const copyright = document.getElementById('copyright')
-    if (!copyright.checked) {
-      alert('著作権と利用規約の同意の欄にチェックを入れてください。')
+    if (!document.getElementById('copyright').checked) {
+      alert('著作権と利用規約の同意にチェックを入れてください。')
       return false
     }
     return true
- }
+  }
 </script>
-
 
 {{ include parts_html_footer.html }}

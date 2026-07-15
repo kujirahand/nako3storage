@@ -55,6 +55,7 @@
       <span>
         {{if $user_id gt 0}}
           <a href="index.php?action=list&user_id={{$user_id}}">
+            <img class="n3s-user-image" src="{{ $profile_url }}" width="32" height="32" alt="">
             ⭐ {{ $author | check_nanasi }} 作
           </a>
         {{else}}

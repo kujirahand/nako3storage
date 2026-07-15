@@ -9,6 +9,7 @@ CREATE TABLE users (
   description TEXT DEFAULT '',
   twitter_id  INTEGER DEFAULT 0,
   profile_url TEXT DEFAULT '',
+  image_id    INTEGER DEFAULT 0, /* プロフィール画像(imagesテーブルのimage_id) */
   salt        TEXT DEFAULT '',
   google_sub  TEXT DEFAULT '', /* GoogleログインのsubjectID (docs/user_login_oauth_google.md) */
   ctime       INTEGER DEFAULT 0,

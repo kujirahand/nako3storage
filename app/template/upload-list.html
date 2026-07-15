@@ -1,40 +1,52 @@
 {{ include parts_html_header.html }}
 
-{{ if $images }}
-<div class="showblock">
-  <h1>素材の一覧</h1>
-  <p>他人の素材を利用する際はライセンスに注意してください。</p>
-  <ul>
-  {{ for $images as $i }}
-    {{ if $i.copyright != 'SELF'}}
-    <li>
-      <a href="{{$i.info_url}}">『{{$i.title}}』 : {{$i.copyright_name}}<br>
-      {{ if $i['is_image'] }}
-        <img src="{{$i.image_url}}" width="200">
-      {{ else }}
-        <img src="img/sozai.png" width="200">
+<main class="n3s-mypage-page n3s-upload-page">
+  {{if n3s_is_login()}}
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a href="{{ $link_mypage }}">私の作品</a>
+    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a href="{{ $link_userinfo }}">プロフィール設定</a>
+  </nav>
+  {{endif}}
+
+  <header class="n3s-upload-header">
+    <div>
+      <p class="n3s-upload-eyebrow">MATERIALS</p>
+      <h1>素材一覧</h1>
+    </div>
+    {{if n3s_is_login()}}<a class="pure-button pure-button-primary" href="index.php?action=upload">素材をアップロード</a>{{endif}}
+  </header>
+
+  <section class="n3s-mypage-section n3s-upload-section">
+    {{ if $images }}
+    <div class="n3s-upload-list">
+      {{ for $images as $i }}
+      {{ if $i.copyright != 'SELF'}}
+      <article class="n3s-upload-list-row">
+        <a class="n3s-upload-list-preview" href="{{$i.info_url}}" aria-label="{{$i.title}}の詳細">
+          {{if $i.is_image}}
+          <img src="{{$i.image_url}}" width="72" height="72" alt="">
+          {{else}}
+          <span>{{$i.file_extension}}</span>
+          {{endif}}
+        </a>
+        <div class="n3s-upload-list-main">
+          <h2><a href="{{$i.info_url}}">{{$i.title}}</a></h2>
+          <p><span>{{$i.copyright_name}}</span><span>#{{$i.image_id}}</span></p>
+        </div>
+        <a class="pure-button" href="{{$i.info_url}}">詳細</a>
+      </article>
       {{ endif }}
-      </a>
-    </li>
+      {{ endfor }}
+    </div>
+    <nav class="n3s-mypage-pagination" aria-label="素材一覧のページ移動">
+      <a href="{{$next_url}}" class="pure-button">次へ</a>
+    </nav>
+    {{ else }}
+    <p class="n3s-mypage-empty">公開素材はまだありません。</p>
     {{ endif }}
-  {{ endfor }}
-  </ul>
-</div>
-
-<div class="showblock">
-  <a href="{{$next_url}}" class="pure-button">次へ</a>
-</div>
-{{ else }}
-<div class="showblock">
-  <h1>画像はまだアップロードされていません。</h1>
-</div>
-{{ endif }}
-
-{{ if n3s_is_login() }}
-<div class="showblock" style="border-top: 1px dotted silver;">
-  <a href="index.php?action=upload" class="pure-button">アップロード</a>
-</div>
-{{ endif }}
-
+  </section>
+</main>
 
 {{ include parts_html_footer.html }}

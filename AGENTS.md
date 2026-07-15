@@ -143,7 +143,9 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 初期化 SQL は `app/sql/init-users.sql`。
 
-- `users`: メール、パスワードハッシュ、パスワード再設定トークン、名前、プロフィール情報、ユーザー個別 salt など。
+- `users`: メール、パスワードハッシュ、パスワード再設定トークン、名前、プロフィール情報、プロフィール画像の `image_id`、ユーザー個別 salt など。
+
+プロフィール画像は `users.image_id` で `images` の自分専用素材を参照する。元画像は500x500px、表示用サムネイルは32x32pxのJPEGとして、GDで中央切り抜き保存する。未設定時の表示は `user_default_image_url`（既定値: `https://n3s.nadesi.com/image.php?f=726.png`）を使う。
 
 ログインパスワードは `n3s_password_hash()` (`password_hash()`/`PASSWORD_DEFAULT`、`hash::` プレフィックス) で保存されます。旧方式 (`n3s_login_password_to_hash()`、`def::`/`salt::` プレフィックスのSHA-256) の既存ハッシュも `n3s_password_verify()` で検証でき、ログイン成功時に `n3s_password_needs_upgrade()` の判定を経て自動で新方式へ移行されます。詳細は `docs/user_login.md` #5 参照。
 

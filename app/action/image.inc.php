@@ -12,6 +12,7 @@ function n3s_api_image()
     $image_name = empty($_GET['image_name']) ? '' : $_GET['image_name'];
     $app_id = empty($_GET['app_id']) ? 0 : intval($_GET['app_id']);
     $token = empty($_GET['t']) ? '' : $_GET['t'];
+    $thumbnail_size = empty($_GET['s']) ? 0 : intval($_GET['s']);
     if ($image_name != '') {
         // app_idとimage_nameから探す
         $im = db_get1('SELECT * FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
@@ -42,7 +43,11 @@ function n3s_api_image()
             exit;
         }
     }
-    $path = n3s_getImageFile($id, $ext, FALSE, $token);
+    if ($thumbnail_size === 32 && $ext === 'jpg') {
+        $path = n3s_getImageThumbnailFile($id, 32, FALSE, $token);
+    } else {
+        $path = n3s_getImageFile($id, $ext, FALSE, $token);
+    }
     // check path
     if (! file_exists($path)) {
         header("HTTP/1.0 404 Not Found");

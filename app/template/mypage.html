@@ -1,130 +1,130 @@
 {{ include parts_html_header.html }}
 
-<div class="linkblock">
-  [<a href="{{ $link_mypage }}">私のアプリ</a>]
-  [<a href="{{ $link_material }}">私の素材</a>]
-  [<a href="{{ $link_all_fav }}">お気に入り</a>]
-  [<a href="{{ $link_userinfo }}">設定変更</a>]
-  {{ if n3s_is_admin() }}
-  [<a href="{{e: echo n3s_getURL('', 'admin') }}">管理者ページ</a>]
-  {{ endif }}
-</div>
-
-<div class="showblock">
-    <h1>
-        {{$user_id}}: {{$name}} さんのマイページ
-        {{if n3s_is_admin()}}(管理者){{endif}}
-    </h1>
-</div>
-
-{{ if $is_mypage_top }}
-<div class="showblock">
-  <h3><a name="comments">最近コメントが付いた投稿</a></h3>
-  <div class='favblock'>
-    {{ if !$recent_comments }}
-      最近ついたコメントはありません。
-    {{ else }}
-      <ul>
-      {{ for $recent_comments as $i }}
-      <li>
-        <a href="{{$i.link}}">{{$i.app_title | check_mudai}}</a>
-        に「{{$i.name | check_nanasi}}」さんから: {{$i.body | trim50}}
-        <span class="memo">{{$i.ctime | datetime}}</span>
-      </li>
-      {{ endfor }}
-      </ul>
+<main class="n3s-mypage-page">
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a class="is-current" href="{{ $link_mypage }}">私の作品</a>
+    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a href="{{ $link_userinfo }}">プロフィール設定</a>
+    {{ if n3s_is_admin() }}
+    <a href="{{e: echo n3s_getURL('', 'admin') }}">管理者ページ</a>
     {{ endif }}
-  </div>
-</div>
+  </nav>
 
-<div class="showblock">
-  <h3><a name="fav">最近のお気に入り</a></h3>
-  <div class='favblock'>
-    {{ if !$bookmarks }}
-      まだお気に入りをつけていません。
-    {{ else }}
-      <ul>
-      {{ for $bookmarks as $i }}
-      <li>
-        <a href="id.php?{{$i.app_id}}">{{$i.title}} by {{$i.author}}</a>
-      </li>
-      {{ endfor }}
-      <li><a href="{{ $link_all_fav }}">→全部見る</a> | <a href="index.php?action=mypage">→少なく</a></li>
-      </ul>
-    {{ endif }}
-  </div>
-</div>
-{{ endif }}
-
-<div class="showblock">
-  <h3><a name="apps">投稿したアプリの一覧</a></h3>
-  {{if $apps }}
-    <div style="padding:0.5em">
-      <table style="border:none;">
-        <tr style="background-color:#f0f0f0; border-bottom: 1px solid silver;">
-          <td style="text-align:center;">編集</td>
-          <td style="text-align:center;">公開</td>
-          <td style="text-align:center;">🌱作品名</td>
-        </tr>
-        {{for $apps as $r}}
-        <tr>
-          <td>
-            <!-- button -->
-            <a href="index.php?action=edit&page={{$r.app_id}}" class="pure-button" style="width:5em;">{{$r.app_id}}</a>
-          </td>
-          <td style="text-align:center;">
-            {{if $r.is_private == 0}}
-            <span class="public">公開中</span>
-            {{else}}
-              {{if $r.is_private == 1}}
-              <span class="private">🔒非公開</span>
-              {{else}}
-              <span class="private">🔒限定</span>
-              {{endif}}
-            {{endif}}
-          </td>
-          <td>
-            <!-- title -->
-            <a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a>
-            <!-- date -->
-            <span class="memo">{{$r.mtime | date2}}</span>
-            <!-- fav -->
-            {{$r.fav | star}}
-          </td>
-        </tr>
-        {{endfor}}
-      </table>
-      {{if $link_next_page != ''}}
-        <div style="padding:6px;">
-          <a href="{{$link_next_page}}" class="pure-button">← 次へ</a>
-        </div>
+  <header class="n3s-mypage-profile">
+    <img class="n3s-mypage-profile-image" src="{{ $user.profile_url_large }}" width="160" height="160" alt="{{ $name }}のプロフィール画像">
+    <div class="n3s-mypage-profile-main">
+      <p class="n3s-mypage-user-id">USER #{{$user_id}}</p>
+      <h1>{{$name}} さんのマイページ</h1>
+      {{if $user.description}}
+      <p class="n3s-mypage-description">{{$user.description}}</p>
       {{endif}}
+      {{if n3s_is_admin()}}<span class="n3s-mypage-admin">管理者</span>{{endif}}
     </div>
-  {{else}}
-    <div>ありません。</div>
-  {{endif}}
-</div>
+    <div class="n3s-mypage-profile-actions">
+      <a class="pure-button pure-button-primary" href="index.php?page=new&amp;action=edit">新しい作品を投稿</a>
+      <a class="pure-button" href="{{ $link_userinfo }}">プロフィールを編集</a>
+    </div>
+  </header>
 
-<div class="mypage_box">
-  <h3>管理機能</h3>
-  <div>
-    <ul>
-      <li><a href="{{ $link_userinfo }}">ユーザー情報の変更</a></li>
-      <li><a href="{{ $link_material }}">私の素材/素材の管理</a></li>
-      <li><a href="{{ $link_mypage }}">アプリの管理</a></li>
-      <li><a href="{{ $link_all_fav }}">お気に入りの管理</a></li>
-      <li><a href="{{ $link_del_account }}">貯蔵庫から退会</a></li>
-      <li><a href="{{ $link_logout }}">ログアウト</a></li>
-    </ul>
+  {{ if $is_mypage_top }}
+  <div class="n3s-mypage-activity-grid">
+    <section class="n3s-mypage-section">
+      <div class="n3s-mypage-section-head">
+        <h2 id="comments">最近のコメント</h2>
+      </div>
+      {{ if !$recent_comments }}
+      <p class="n3s-mypage-empty">最近ついたコメントはありません。</p>
+      {{ else }}
+      <ol class="n3s-mypage-activity-list">
+        {{ for $recent_comments as $i }}
+        <li>
+          <a class="n3s-mypage-activity-title" href="{{$i.link}}">{{$i.app_title | check_mudai}}</a>
+          <p>「{{$i.name | check_nanasi}}」さんから: {{$i.body | trim50}}</p>
+          <time>{{$i.ctime | datetime}}</time>
+        </li>
+        {{ endfor }}
+      </ol>
+      {{ endif }}
+    </section>
+
+    <section class="n3s-mypage-section">
+      <div class="n3s-mypage-section-head">
+        <h2 id="fav">最近のお気に入り</h2>
+        <a href="{{ $link_all_fav }}">すべて見る</a>
+      </div>
+      {{ if !$bookmarks }}
+      <p class="n3s-mypage-empty">まだお気に入りをつけていません。</p>
+      {{ else }}
+      <ol class="n3s-mypage-activity-list n3s-mypage-favorite-list">
+        {{ for $bookmarks as $i }}
+        <li>
+          <a class="n3s-mypage-activity-title" href="id.php?{{$i.app_id}}">{{$i.title | check_mudai}}</a>
+          <p>{{$i.author | check_nanasi}} 作</p>
+        </li>
+        {{ endfor }}
+      </ol>
+      {{ endif }}
+    </section>
   </div>
-</div><!-- /.showblock -->
+  {{ endif }}
 
-<div class="linkblock">
-  [<a href="{{ $link_mypage }}">私のアプリ</a>]
-  [<a href="{{ $link_material }}">私の素材</a>]
-  [<a href="{{ $link_all_fav }}">お気に入り</a>]
-  [<a href="{{ $link_userinfo }}">設定変更</a>]
-</div>
+  <section class="n3s-mypage-section n3s-mypage-apps">
+    <div class="n3s-mypage-section-head">
+      <h2 id="apps">投稿した作品</h2>
+      <a href="index.php?page=new&amp;action=edit">新しい作品を投稿</a>
+    </div>
+    {{if $apps }}
+    <div class="n3s-mypage-app-list">
+      {{for $apps as $r}}
+      <article class="n3s-mypage-app-row">
+        <div class="n3s-mypage-app-status">
+          {{if $r.is_private == 0}}
+          <span class="is-public">公開中</span>
+          {{else}}
+            {{if $r.is_private == 1}}
+            <span class="is-private">非公開</span>
+            {{else}}
+            <span class="is-limited">限定公開</span>
+            {{endif}}
+          {{endif}}
+        </div>
+        <div class="n3s-mypage-app-main">
+          <h3><a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a></h3>
+          <p><span>#{{$r.app_id}}</span><time>{{$r.mtime | date2}}</time><span>{{$r.fav | star}}</span></p>
+        </div>
+        <div class="n3s-mypage-app-actions">
+          <a class="pure-button" href="id.php?{{$r.app_id}}">表示</a>
+          <a class="pure-button" href="index.php?action=edit&amp;page={{$r.app_id}}">編集</a>
+        </div>
+      </article>
+      {{endfor}}
+    </div>
+    <nav class="n3s-mypage-pagination" aria-label="作品一覧のページ移動">
+      {{if $link_prev_page}}
+      <a class="pure-button" href="{{$link_prev_page}}">前へ</a>
+      {{endif}}
+      {{if $link_next_page}}
+      <a class="pure-button" href="{{$link_next_page}}">次へ</a>
+      {{endif}}
+    </nav>
+    {{else}}
+    <p class="n3s-mypage-empty">投稿した作品はありません。</p>
+    {{endif}}
+  </section>
 
+  <section class="n3s-mypage-section n3s-mypage-management">
+    <div class="n3s-mypage-section-head">
+      <h2>アカウントと管理</h2>
+    </div>
+    <div class="n3s-mypage-management-links">
+      <a href="{{ $link_userinfo }}"><strong>プロフィール設定</strong><span>名前・紹介・画像を変更</span></a>
+      <a href="{{ $link_material }}"><strong>素材の管理</strong><span>画像やファイルを確認</span></a>
+      <a href="{{ $link_all_fav }}"><strong>お気に入り</strong><span>保存した作品を確認</span></a>
+      <a href="{{ $link_logout }}"><strong>ログアウト</strong><span>現在のセッションを終了</span></a>
+      <a class="is-danger" href="{{ $link_del_account }}"><strong>退会</strong><span>アカウントを削除</span></a>
+    </div>
+  </section>
+</main>
 
 {{ include parts_html_footer.html }}

@@ -49,7 +49,12 @@ function n3s_web_upload()
     n3s_template_fw('upload.html', [
         "edit_token" => n3s_getEditToken(),
         "max_file_size" => n3s_get_config('size_upload_max', MAX_FILE_SIZE_DEFAULT),
+        "max_file_size_mb" => ceil(n3s_get_config('size_upload_max', MAX_FILE_SIZE_DEFAULT) / (1024 * 1024)),
         "supported_type" => $supported_type,
+        'link_mypage' => n3s_getURL('all', 'mypage'),
+        'link_material' => n3s_getURL('all', 'mypage', ['mode' => 'material']),
+        'link_all_fav' => n3s_getURL('all', 'mypage', ['fav' => 'all']),
+        'link_userinfo' => n3s_getURL(n3s_get_user_id(), 'userinfo'),
     ]);
 }
 
@@ -282,6 +287,12 @@ function show_image()
         'can_edit' => $can_edit,
         'acc_token' => $n3s_acc_token,
         'link_user' => n3s_getURL($user_id, 'list', ['user_id' => $user_id]),
+        'is_preview_image' => preg_match('/\.(jpe?g|png|gif|webp)$/i', $filename) === 1,
+        'file_extension' => strtoupper(pathinfo($filename, PATHINFO_EXTENSION)),
+        'link_mypage' => n3s_getURL('all', 'mypage'),
+        'link_material' => n3s_getURL('all', 'mypage', ['mode' => 'material']),
+        'link_all_fav' => n3s_getURL('all', 'mypage', ['fav' => 'all']),
+        'link_userinfo' => n3s_getURL(n3s_get_user_id(), 'userinfo'),
     ]);
 }
 
@@ -371,11 +382,12 @@ function list_image()
         $max_id = $i['image_id'] - 1;
         $fname = $i['filename'];
         $is_image = false;
-        if (preg_match('/\.(jpg|jpeg|png|gif|svg)$/', $fname)) {
+        if (preg_match('/\.(jpe?g|png|gif|webp)$/i', $fname)) {
             $is_image = true;
         }
         $i['is_image'] = $is_image;
-        $i['image_url'] = "image.php?f={$fname}";
+        $i['image_url'] = $is_image ? n3s_cover_url_from_image_row($i) : '';
+        $i['file_extension'] = strtoupper(pathinfo($fname, PATHINFO_EXTENSION));
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id' => $i['image_id'], 'mode' => 'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
@@ -383,5 +395,9 @@ function list_image()
     n3s_template_fw('upload-list.html', [
         'images' => $images,
         'next_url' => $next_url,
+        'link_mypage' => n3s_getURL('all', 'mypage'),
+        'link_material' => n3s_getURL('all', 'mypage', ['mode' => 'material']),
+        'link_all_fav' => n3s_getURL('all', 'mypage', ['fav' => 'all']),
+        'link_userinfo' => n3s_getURL(n3s_get_user_id(), 'userinfo'),
     ]);
 }

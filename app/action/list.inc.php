@@ -188,6 +188,10 @@ function n3s_list_get()
     n3s_list_setCoverURL($list2);
     n3s_list_setCoverURL($ranking);
     n3s_list_setCoverURL($ranking_all);
+    n3s_list_setUserProfileURL($list);
+    n3s_list_setUserProfileURL($list2);
+    n3s_list_setUserProfileURL($ranking);
+    n3s_list_setUserProfileURL($ranking_all);
     n3s_list_setTagLink($list);
     n3s_list_setTagLink($list2);
     n3s_list_setTagLink($ranking);
@@ -216,6 +220,36 @@ function n3s_list_get()
     ];
 }
 
+function n3s_list_setUserProfileURL(&$list)
+{
+    $user_ids = [];
+    foreach ($list as $row) {
+        $user_id = intval(isset($row['user_id']) ? $row['user_id'] : 0);
+        if ($user_id > 0) {
+            $user_ids[$user_id] = true;
+        }
+    }
+    $users = [];
+    if ($user_ids) {
+        $ids = array_keys($user_ids);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $rows = db_get(
+            "SELECT user_id,image_id,profile_url FROM users WHERE user_id IN ($placeholders)",
+            $ids,
+            'users'
+        );
+        foreach ($rows as $row) {
+            $users[intval($row['user_id'])] = $row;
+        }
+    }
+    foreach ($list as &$row) {
+        $user_id = intval(isset($row['user_id']) ? $row['user_id'] : 0);
+        $row['profile_url'] = isset($users[$user_id])
+            ? n3s_get_user_image_url($users[$user_id])
+            : n3s_get_user_default_image_url();
+    }
+}
+
 function n3s_list_setCardHTML(&$list)
 {
     foreach ($list as &$r) {
@@ -230,6 +264,7 @@ function n3s_list_setCardHTML(&$list)
         $date = t_date2($r['mtime']);
         $cover_url = htmlspecialchars($r['cover_url'], ENT_QUOTES);
         $icon = htmlspecialchars($r['icon'], ENT_QUOTES);
+        $profile_url = htmlspecialchars($r['profile_url'], ENT_QUOTES);
         $fav = intval($r['fav']);
         $bad = intval($r['bad']);
         $user_id = intval($r['user_id']);
@@ -250,6 +285,7 @@ function n3s_list_setCardHTML(&$list)
   <div class="n3s-app-card-body">
     <div class="n3s-app-card-head">
       <img class="n3s-app-icon" src="{$icon}" alt="">
+      <img class="n3s-user-image" src="{$profile_url}" width="32" height="32" alt="">
       <div class="n3s-app-meta">
         {$author_html}
         <span class="n3s-app-date">{$date}</span>

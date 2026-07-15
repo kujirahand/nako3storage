@@ -13,6 +13,7 @@ $n3s_config = [
     "page_title" => N3S_APP_TITLE,
     "top_message" => "",
     "admin_users" => [1],
+    "user_default_image_url" => "https://n3s.nadesi.com/image.php?f=726.png",
     "admin_email" => "", // 管理者のメルアドを書いてください
     "mail_from" => "", // メールの送信元情報の指定
     "admin_contact_link" => "(Please set admin_contact_link in config file.)",

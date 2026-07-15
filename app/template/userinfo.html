@@ -1,37 +1,85 @@
 {{ include parts_html_header.html }}
 
-<div class="showblock">
-    <h1>{{ $name }} の情報</h1>
-    <div class="info_box">
-        <h3>{{ $error }}</h3>
-        <div>
-            <form class="pure-form pure-form-stacked" action="index.php?action=userinfo&mode=update&page={{ $user_id }}" method="POST">
-                {{ if $is_self }}
-                <label for="name">お名前(10文字以内)</label>
-                <input type="text" name="name" id="name" placeholder="お名前" value="{{ $name }}" required>
-                <!-- メールの変更は認証が必要になるため今後対応する
-                <label for="email">メールアドレス</label>
-                <input type="email" name="email" id="email" placeholder="メールアドレス" value="{{ $email }}" required>
-                -->
-                <label for="desc">一言プロフィール</label>
-                <input type="text" name="description" id="desc" value="{{ $description }}" placeholder="" style="width:90%;">
-                <input type="submit" class="pure-button pure-button-primary" value="修正">
-                <div style="border: 1px solid silver; padding: 0.4em; border: 8px;">
-                    なお、上記ボタンを押すと情報が更新されます。
-                </div>
-                {{ else }}
-                <div>お名前:<br>{{ $name }}</div><br>
-                <div>一言プロフィール:<br>{{ $description }}</div>
-                {{ endif }}
-            </form>
-        </div>
-    </div><br>
-    {{ if $is_self }}
-    <div class="info_box">
-        <a class="pure-button" href="index.php?action=login&page=forgot">パスワードの変更</a>
+<main class="n3s-mypage-page n3s-userinfo-page">
+  {{if $is_self}}
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a href="{{ $link_mypage }}">私の作品</a>
+    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a class="is-current" href="{{ $link_userinfo }}">プロフィール設定</a>
+    {{ if n3s_is_admin() }}
+    <a href="{{e: echo n3s_getURL('', 'admin') }}">管理者ページ</a>
+    {{ endif }}
+  </nav>
+  {{endif}}
+
+  <header class="n3s-mypage-profile n3s-userinfo-profile">
+    <img class="n3s-mypage-profile-image" src="{{ $profile_url }}" width="160" height="160" alt="{{ $name }}のプロフィール画像">
+    <div class="n3s-mypage-profile-main">
+      <p class="n3s-mypage-user-id">USER #{{$user_id}}</p>
+      {{if $is_self}}
+      <h1>プロフィール設定</h1>
+      {{else}}
+      <h1>{{$name}} さんのプロフィール</h1>
+      {{endif}}
+      {{if n3s_is_admin()}}<span class="n3s-mypage-admin">管理者</span>{{endif}}
     </div>
-    {{ endif; }}
-</div>
+    {{if $is_self}}
+    <div class="n3s-mypage-profile-actions">
+      <a class="pure-button" href="{{ $link_mypage }}">マイページへ戻る</a>
+    </div>
+    {{endif}}
+  </header>
+
+  {{if $is_self}}
+  <section class="n3s-mypage-section n3s-userinfo-section">
+    <div class="n3s-mypage-section-head">
+      <h2>基本情報</h2>
+    </div>
+    {{if $error}}
+    <p class="n3s-userinfo-message" role="status">{{$error}}</p>
+    {{endif}}
+    <form class="pure-form pure-form-stacked n3s-userinfo-form" action="index.php?action=userinfo&amp;mode=update&amp;page={{ $user_id }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="edit_token" value="{{ $edit_token }}">
+
+      <div class="n3s-userinfo-field">
+        <label for="name">お名前</label>
+        <input type="text" name="name" id="name" value="{{ $name }}" maxlength="12" required>
+        <p>12文字以内</p>
+      </div>
+
+      <div class="n3s-userinfo-field">
+        <label for="desc">一言プロフィール</label>
+        <input type="text" name="description" id="desc" value="{{ $description }}" required>
+      </div>
+
+      <fieldset class="n3s-userinfo-image-field">
+        <legend>プロフィール画像</legend>
+        <input type="file" name="user_image" id="user_image" accept="image/jpeg,image/png,image/gif,image/webp">
+        <p>JPEG・PNG・GIF・WebP。中央を基準に500×500pxへ整えます。</p>
+        {{ if $image_id gt 0 }}
+        <label class="n3s-userinfo-check"><input type="checkbox" name="user_image_delete" value="1"> 現在のプロフィール画像を削除する</label>
+        {{ endif }}
+      </fieldset>
+
+      <div class="n3s-userinfo-actions">
+        <button type="submit" class="pure-button pure-button-primary">変更を保存</button>
+        <a class="pure-button" href="index.php?action=login&amp;page=forgot">パスワードを変更</a>
+      </div>
+    </form>
+  </section>
+  {{else}}
+  <section class="n3s-mypage-section n3s-userinfo-section">
+    <div class="n3s-mypage-section-head">
+      <h2>プロフィール</h2>
+    </div>
+    <dl class="n3s-userinfo-details">
+      <div><dt>お名前</dt><dd>{{$name}}</dd></div>
+      <div><dt>一言プロフィール</dt><dd>{{$description}}</dd></div>
+    </dl>
+  </section>
+  {{endif}}
+</main>
 
 
 {{ include parts_html_footer.html }}

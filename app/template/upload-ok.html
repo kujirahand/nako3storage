@@ -1,103 +1,63 @@
 {{ include parts_html_header.html }}
 
-<style>
-.upload-item {
-  padding-left: 1em;
-}
-.upload-item tr {
-  height: 2em;
-}
-.upload-item th {
-  text-align: right;
-  border-bottom: 1px solid silver;
-}
-.upload-item td {
-  padding-left: 1em;
-  text-align: left;
-  border-bottom: 1px solid silver;
-}
-.upload-item-image {
-  padding: 1em;
-}
-</style>
+<main class="n3s-mypage-page n3s-upload-page">
+  {{if n3s_is_login()}}
+  <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
+    <a href="{{ $link_mypage }}">私の作品</a>
+    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_all_fav }}">お気に入り</a>
+    <a href="{{ $link_userinfo }}">プロフィール設定</a>
+  </nav>
+  {{endif}}
 
-<div class="saveform">
-  <h1>{{$msg}} ({{ $image_id }})</h1>
-  <p>以下のURLをコピーしてプログラムでご利用ください。</p>
-  <div class="upload-item">
-    <table>
-      <tr>
-        <th>絶対URL</th>
-        <td>
-          <input type="text" onclick="this.select()" value="{{ $image_url }}">
-        </td>
-      </td>
-      {{ if $image_name_url !== '' }}
-      <tr>
-        <th>ファイル名のURL</th>
-        <td>
-          <input type="text" onclick="this.select()" value="{{ $image_name_url }}">
-        </td>
+  <header class="n3s-upload-header">
+    <div>
+      <p class="n3s-upload-eyebrow">MATERIAL #{{$image_id}}</p>
+      <h1>{{$title}}</h1>
+    </div>
+    <a class="pure-button" href="index.php?action=upload">新しい素材を追加</a>
+  </header>
+
+  <section class="n3s-mypage-section n3s-upload-section">
+    <div class="n3s-upload-detail-grid">
+      <div class="n3s-upload-preview">
+        {{if $is_preview_image}}
+        <a href="{{ $image_url }}"><img src="{{ $image_url }}" alt="{{$title}}"></a>
+        {{else}}
+        <span>{{$file_extension}}</span>
+        {{endif}}
+      </div>
+      <dl class="n3s-upload-details">
+        <div><dt>提供者</dt><dd><a target="new" href="{{$link_user}}">{{$user.name}}</a></dd></div>
+        <div><dt>ライセンス</dt><dd>{{$copyright}}</dd></div>
+        {{ if $image_name !== '' }}
+        <div><dt>ファイル名</dt><dd>{{$image_name}}</dd></div>
+        <div><dt>アプリ</dt><dd><a href="id.php?{{ $app_id }}">app_id: {{ $app_id }}</a></dd></div>
         {{ endif }}
-      </td>
-      <tr>
-        <th>提供者</th>
-        <td>
-          <a target="new" href="{{$link_user}}">{{$user.name}}</a></td>
-      </td>
-      <tr>
-        <th>ライセンス</th>
-        <td>{{ $copyright }}</td>
-      </td>
-      <tr>
-        <th>タイトル</th>
-        <td>{{ $title }}</td>
-      </td>
-      {{ if $image_name !== '' }}
-      <tr>
-        <th>ファイル名</th>
-        <td>{{ $image_name }}</td>
-      </td>
-      <tr>
-        <th>アプリ</th>
-        <td><a href="id.php?{{ $app_id }}">app_id: {{ $app_id }}</a></td>
-      </td>
-      {{ endif }}
-    </table>
-  </div>
-  <div class="upload-item-image">
-    <a href="{{ $image_url }}">
-      {{ if (preg_match('/\.(jpg|jpeg|png|gif)$/', $image_url)) }}
-        <img src="{{ $image_url }}" width="400">
-      {{ else }}
-        {{ $image_url }}
-      {{ endif }}
-    </a>
-  </div>
-</div>
+      </dl>
+    </div>
 
-{{ if n3s_is_login() && $can_edit }}
-<div class="saveform">
-  <h1>ファイルの管理</h1>
-  <div style="border:1px dotted silver;">
-    <form action="index.php?action=upload&mode=delete" method="POST">
-      <input type="hidden" name="image_id" value={{$image_id}} />
-      <input type="hidden" name="acc_token" value={{$acc_token}} />
-      <label id="really">
-        本当にファイル削除しますか？:<br>
-        <input id="really" type="checkbox" name="really" value="delete"> 削除する
-      </label><br>
-      <input type="submit" value="ファイルを削除" class="pure-button">
+    <div class="n3s-upload-url-list">
+      <label for="material_url">絶対URL</label>
+      <input id="material_url" type="text" readonly onclick="this.select()" value="{{ $image_url }}">
+      {{ if $image_name_url !== '' }}
+      <label for="material_name_url">ファイル名のURL</label>
+      <input id="material_name_url" type="text" readonly onclick="this.select()" value="{{ $image_name_url }}">
+      {{ endif }}
+    </div>
+  </section>
+
+  {{ if n3s_is_login() && $can_edit }}
+  <section class="n3s-mypage-section n3s-upload-section n3s-upload-danger-zone">
+    <div class="n3s-mypage-section-head"><h2>素材の削除</h2></div>
+    <form action="index.php?action=upload&amp;mode=delete" method="POST" class="n3s-upload-delete-form">
+      <input type="hidden" name="image_id" value="{{$image_id}}">
+      <input type="hidden" name="acc_token" value="{{$acc_token}}">
+      <label class="n3s-upload-check"><input type="checkbox" name="really" value="delete"> この素材を削除する</label>
+      <button type="submit" class="pure-button">素材を削除</button>
     </form>
-  </div>
-</div>
-{{ endif }}
-
-<div class="saveform">
-  <a href="index.php?action=upload" class="pure-button">ファイルをアップロード</a>
-</div>
-<div class="saveform">
-  <a href="index.php?action=upload&mode=list" class="pure-button">素材の一覧を見る</a>
-</div>
+  </section>
+  {{ endif }}
+</main>
 
 {{ include parts_html_footer.html }}

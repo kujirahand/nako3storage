@@ -95,3 +95,26 @@ test('n3s_getImageFile がトークンの有無に応じて正しいファイル
     $path_token = n3s_getImageFile(15, 'png', false, 'mytoken123');
     expect($path_token)->toBe('/tmp/images/000/15-mytoken123.png');
 });
+
+test('プロフィール画像の32pxサムネイルと未指定時のURLを取得できること', function () {
+    global $n3s_config;
+    $n3s_config['dir_images'] = '/tmp/images';
+
+    expect(n3s_getImageThumbnailFile(15, 32, false, 'mytoken123'))
+        ->toBe('/tmp/images/000/15-mytoken123-32.jpg')
+        ->and(n3s_get_user_image_url(['image_id' => 0, 'profile_url' => '']))
+        ->toBe('https://n3s.nadesi.com/image.php?f=726.png');
+});
+
+test('プロフィール画像のURLはアプリのbaseurlから生成されること', function () {
+    n3s_set_config('baseurl', 'http://example.test/nako3storage');
+    $image_id = db_insert(
+        'INSERT INTO images (title,user_id,copyright,app_id,image_name,token,filename,ctime,mtime) VALUES (?,?,?,?,?,?,?,?,?)',
+        ['プロフィール画像', 1, 'SELF', 0, '', 'profiletoken', '99.jpg', time(), time()]
+    );
+
+    expect(n3s_get_user_image_url(['image_id' => $image_id]))
+        ->toBe('http://example.test/nako3storage/image.php?f=99.jpg&s=32&t=profiletoken')
+        ->and(n3s_get_user_image_url(['image_id' => $image_id], 0))
+        ->toBe('http://example.test/nako3storage/image.php?f=99.jpg&t=profiletoken');
+});

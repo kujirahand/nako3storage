@@ -33,9 +33,14 @@ function n3s_web_mypage()
         header('location:' . $url);
         exit;
     }
-    // ユーザー情報を取得
-    $user = n3s_get_login_info();
-    $user_id = $user['user_id'];
+    // ユーザー情報はDBから取得し、プロフィール画像の変更を即時反映する
+    $login_user = n3s_get_login_info();
+    $user_id = $login_user['user_id'];
+    $user = n3s_getUserInfo($user_id);
+    if (!$user) {
+        n3s_error('ユーザー情報を取得できません', 'もう一度ログインしてください。');
+        return;
+    }
     // リンクページ
     $page = empty($_GET['page']) ? 0 : intval($_GET['page']);
     $offset = MAX_MYPAGE_APP * $page;
@@ -53,11 +58,30 @@ function n3s_web_mypage()
     // 素材ページ
     if ($mode == 'material') {
         // 素材一覧
+        $material_offset = MAX_MYPAGE_MATERIALS * $page;
         $images = db_get(
             'SELECT * FROM images WHERE user_id=? ORDER BY image_id DESC ' .
                 ' LIMIT ? OFFSET ?',
-            [$user_id, MAX_MYPAGE_MATERIALS, $offset]
+            [$user_id, MAX_MYPAGE_MATERIALS, $material_offset]
         );
+        foreach ($images as &$image) {
+            $filename = isset($image['filename']) ? $image['filename'] : '';
+            $extension = strtoupper(pathinfo($filename, PATHINFO_EXTENSION));
+            $image['extension'] = ($extension !== '') ? $extension : 'FILE';
+            $image['is_image'] = preg_match('/\.(jpe?g|png|gif|webp)$/i', $filename) === 1;
+            $image['preview_url'] = $image['is_image'] ? n3s_cover_url_from_image_row($image) : '';
+            $image['info_url'] = n3s_getURL('', 'upload', [
+                'mode' => 'show',
+                'image_id' => intval($image['image_id']),
+            ]);
+        }
+        unset($image);
+        if (count($images) < MAX_MYPAGE_MATERIALS) {
+            $link_next_material_page = '';
+        }
+        $link_prev_material_page = ($page > 0)
+            ? n3s_getURL($page - 1, 'mypage', ['mode' => 'material'])
+            : '';
         n3s_template_fw('mymaterial.html', [
             'user_id' => $user_id,
             'name' => $user['name'],
@@ -67,6 +91,7 @@ function n3s_web_mypage()
             'url_images' => n3s_get_config('url_images', '/images'),
             'link_all_fav' => $link_all_fav,
             'link_next_page' => $link_next_material_page,
+            'link_prev_page' => $link_prev_material_page,
             'link_mypage' => $link_mypage,
             'link_material' => $link_materil,
             'link_userinfo' => $link_userinfo,
@@ -82,6 +107,10 @@ function n3s_web_mypage()
 
     // 作品一覧を取得
     $apps = db_get('SELECT * FROM apps WHERE user_id=? ORDER BY app_id DESC LIMIT ? OFFSET ?', [$user_id, MAX_MYPAGE_APP, $offset]);
+    if (count($apps) < MAX_MYPAGE_APP) {
+        $link_next_page = '';
+    }
+    $link_prev_page = ($page > 0) ? n3s_getURL($page - 1, 'mypage') : '';
     // お気に入り一覧を取得
     $fav_limit = empty($_GET['fav']) ? MAX_MYPAGE_FAV_DEF : (($_GET['fav'] == 'all') ? 1000 : MAX_MYPAGE_FAV_DEF);
     $bookmark_ids = db_get(
@@ -127,6 +156,7 @@ function n3s_web_mypage()
         'recent_comments' => $recent_comments,
         'link_all_fav' => $link_all_fav,
         'link_next_page' => $link_next_page,
+        'link_prev_page' => $link_prev_page,
         'link_mypage' => $link_mypage,
         'link_userinfo' => $link_userinfo,
         'link_del_account' => $link_del_account,

@@ -68,12 +68,16 @@ function n3s_db_migrate_users()
     if (!is_array($columns)) {
         return;
     }
+    $names = [];
     foreach ($columns as $col) {
-        if ($col['name'] === 'google_sub') {
-            return; // 追加済み
-        }
+        $names[$col['name']] = true;
     }
-    db_exec("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''", [], 'users');
+    if (!isset($names['google_sub'])) {
+        db_exec("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''", [], 'users');
+    }
+    if (!isset($names['image_id'])) {
+        db_exec('ALTER TABLE users ADD COLUMN image_id INTEGER DEFAULT 0', [], 'users');
+    }
     db_exec(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ' .
             "ON users(google_sub) WHERE google_sub != ''",
@@ -416,14 +420,14 @@ function n3s_get_login_info()
             'user_id' => 0,
             'name' => '?',
             'screen_name' => '?',
-            'profile_url' => 'skin/def/user-icon.png',
+            'profile_url' => n3s_get_user_default_image_url(),
         ];
     }
     return [
         'user_id' => $_SESSION['user_id'] ?? 0,
         'name' => $_SESSION['name'] ?? '?',
         'screen_name' => $_SESSION['screen_name'] ?? '?',
-        'profile_url' => $_SESSION['profile_url'] ?? 'skin/def/user-icon.png',
+        'profile_url' => $_SESSION['profile_url'] ?? n3s_get_user_default_image_url(),
     ];
 }
 
@@ -530,7 +534,7 @@ function n3s_login_session_start($user)
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['name'] = $user['name'];
     $_SESSION['screen_name'] = $user['name'];
-    $_SESSION['profile_url'] = '';
+    $_SESSION['profile_url'] = n3s_get_user_image_url($user);
 }
 
 function n3s_login($email, $password)
@@ -861,26 +865,25 @@ function n3s_gd_load_image($path, $type)
     return false;
 }
 
-function n3s_gd_cover_resize($srcPath, $destPath, $w, $h)
+function n3s_gd_resize_center_crop($srcPath, $destPath, $w, $h, $image_label)
 {
     $info = @getimagesize($srcPath);
     if (!$info || !isset($info[0], $info[1], $info[2])) {
-        throw new Exception('扉絵として使える画像ファイルではありません。');
+        throw new Exception("{$image_label}として使える画像ファイルではありません。");
     }
     $srcW = intval($info[0]);
     $srcH = intval($info[1]);
     $type = intval($info[2]);
     if ($srcW <= 0 || $srcH <= 0 || !n3s_cover_image_type_supported($type)) {
-        throw new Exception('扉絵は JPEG/PNG/GIF/WebP の画像を指定してください。');
+        throw new Exception("{$image_label}は JPEG/PNG/GIF/WebP の画像を指定してください。");
     }
     $src = n3s_gd_load_image($srcPath, $type);
     if (!$src) {
-        throw new Exception('扉絵画像を読み込めませんでした。');
+        throw new Exception("{$image_label}を読み込めませんでした。");
     }
     $dst = imagecreatetruecolor($w, $h);
     if (!$dst) {
-        imagedestroy($src);
-        throw new Exception('扉絵画像を作成できませんでした。');
+        throw new Exception("{$image_label}を作成できませんでした。");
     }
     $white = imagecolorallocate($dst, 255, 255, 255);
     imagefill($dst, 0, 0, $white);
@@ -891,12 +894,106 @@ function n3s_gd_cover_resize($srcPath, $destPath, $w, $h)
     $dstY = (int)floor(($h - $scaledH) / 2);
     $ok = imagecopyresampled($dst, $src, $dstX, $dstY, 0, 0, $scaledW, $scaledH, $srcW, $srcH);
     if (!$ok || !imagejpeg($dst, $destPath, 90)) {
-        imagedestroy($src);
-        imagedestroy($dst);
-        throw new Exception('扉絵画像の保存に失敗しました。');
+        throw new Exception("{$image_label}の保存に失敗しました。");
     }
-    imagedestroy($src);
-    imagedestroy($dst);
+}
+
+function n3s_gd_cover_resize($srcPath, $destPath, $w, $h)
+{
+    n3s_gd_resize_center_crop($srcPath, $destPath, $w, $h, '扉絵画像');
+}
+
+function n3s_getImageThumbnailFile($id, $size, $create = false, $token = '')
+{
+    $dir = n3s_getImageDir($id);
+    if ($create && !file_exists($dir) && !mkdir($dir, 0755, true)) {
+        throw new Exception("Failed to create directory: $dir");
+    }
+    $suffix = $token ? "-{$token}" : '';
+    return $dir . "/{$id}{$suffix}-{$size}.jpg";
+}
+
+function n3s_get_user_default_image_url()
+{
+    return n3s_get_config('user_default_image_url', 'https://n3s.nadesi.com/image.php?f=726.png');
+}
+
+function n3s_get_user_image_url($user, $size = 32)
+{
+    $image_id = intval(isset($user['image_id']) ? $user['image_id'] : 0);
+    if ($image_id > 0) {
+        $image = db_get1('SELECT image_id,filename,token FROM images WHERE image_id=? LIMIT 1', [$image_id]);
+        if ($image && !empty($image['filename'])) {
+            $baseurl = rtrim(n3s_get_config('baseurl', '.'), '/');
+            $url = $baseurl . '/image.php?f=' . rawurlencode($image['filename']);
+            if (intval($size) === 32) {
+                $url .= '&s=32';
+            }
+            if (!empty($image['token'])) {
+                $url .= '&t=' . rawurlencode($image['token']);
+            }
+            return $url;
+        }
+    }
+    return n3s_get_user_default_image_url();
+}
+
+function n3s_save_user_image($user_id, $file)
+{
+    if (!extension_loaded('gd')) {
+        throw new Exception('プロフィール画像機能には GD 拡張が必要です。');
+    }
+    $user_id = intval($user_id);
+    if ($user_id <= 0) {
+        throw new Exception('プロフィール画像を設定するにはログインが必要です。');
+    }
+    if (!$file || !isset($file['error']) || intval($file['error']) === UPLOAD_ERR_NO_FILE) {
+        return 0;
+    }
+    if (intval($file['error']) !== UPLOAD_ERR_OK) {
+        throw new Exception('プロフィール画像のアップロードに失敗しました。');
+    }
+    $size_upload_max = n3s_get_config('size_upload_max', 1024 * 1024 * 7);
+    if (intval($file['size']) > $size_upload_max) {
+        $mb = floor($size_upload_max / (1024 * 1024));
+        throw new Exception("プロフィール画像のファイルサイズが最大の{$mb}MBを超えています。");
+    }
+    $tmp_name = isset($file['tmp_name']) ? $file['tmp_name'] : '';
+    $info = @getimagesize($tmp_name);
+    if (!$info || !isset($info[2]) || !n3s_cover_image_type_supported(intval($info[2]))) {
+        throw new Exception('プロフィール画像は JPEG/PNG/GIF/WebP の画像を指定してください。');
+    }
+    $user = db_get1('SELECT name FROM users WHERE user_id=? LIMIT 1', [$user_id], 'users');
+    if (!$user) {
+        throw new Exception('プロフィール画像を設定するユーザーが見つかりません。');
+    }
+    $title = mb_substr('プロフィール画像: ' . $user['name'], 0, 512);
+    $token = bin2hex(random_bytes(8));
+    $image_id = 0;
+    $path = '';
+    $thumbnail_path = '';
+    db_exec('begin');
+    try {
+        $now = time();
+        $image_id = db_insert(
+            'INSERT INTO images (title,user_id,copyright,app_id,image_name,token,ctime,mtime)VALUES(?,?,?,?,?,?,?,?)',
+            [$title, $user_id, 'SELF', 0, '', $token, $now, $now]
+        );
+        $filename = "{$image_id}.jpg";
+        $path = n3s_getImageFile($image_id, '.jpg', true, $token);
+        $thumbnail_path = n3s_getImageThumbnailFile($image_id, 32, true, $token);
+        db_exec('UPDATE images SET filename=? WHERE image_id=?', [$filename, $image_id]);
+        n3s_gd_resize_center_crop($tmp_name, $path, 500, 500, 'プロフィール画像');
+        n3s_gd_resize_center_crop($tmp_name, $thumbnail_path, 32, 32, 'プロフィール画像');
+        db_exec('UPDATE users SET image_id=?, mtime=? WHERE user_id=?', [$image_id, $now, $user_id], 'users');
+        db_exec('commit');
+    } catch (Exception $e) {
+        db_exec('rollback');
+        if ($path !== '' && file_exists($path)) { @unlink($path); }
+        if ($thumbnail_path !== '' && file_exists($thumbnail_path)) { @unlink($thumbnail_path); }
+        throw $e;
+    }
+    return $image_id;
 }
 
 function n3s_save_cover_image($app_id, $user_id, $file)
@@ -1427,6 +1524,10 @@ function n3s_warn($msg)
 function n3s_getUserInfo($user_id)
 {
     $user = db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
+    if ($user) {
+        $user['profile_url'] = n3s_get_user_image_url($user);
+        $user['profile_url_large'] = n3s_get_user_image_url($user, 0);
+    }
     return $user;
 }
 
