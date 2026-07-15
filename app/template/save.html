@@ -1,140 +1,156 @@
 {{ include parts_html_header.html }}
 
-<div class="saveform">
-  
-  <h1>
-    {{if $app_id gt 0}}
-      (id: {{$app_id}}) プログラムの編集
-    {{else}}
-      新規プログラムの保存
-    {{endif}}
-  </h1>
+<main class="n3s-mypage-page n3s-save-page">
+  <nav class="n3s-mypage-nav" aria-label="保存ページのナビゲーション">
+    <a href="index.php">トップ</a>
+    {{ if n3s_is_login() }}
+    <a target="_blank" rel="noopener" href="index.php?action=mypage">マイページ</a>
+    <a target="_blank" rel="noopener" href="index.php?action=mypage&amp;mode=material">素材</a>
+    {{ endif }}
+    <a href="index.php?action=edit&amp;page={{$app_id}}">プログラム編集</a>
+    <a class="is-current" href="#save-form">投稿内容</a>
+  </nav>
+
+  <header class="n3s-save-header">
+    <div>
+      <p class="n3s-save-eyebrow">投稿内容</p>
+      <h1>
+        {{if $app_id gt 0}}
+        プログラムを編集
+        {{else}}
+        新規プログラムを保存
+        {{endif}}
+      </h1>
+      {{if $app_id gt 0}}<p class="n3s-save-subtitle">作品 ID: {{$app_id}}</p>{{endif}}
+    </div>
+  </header>
 
   {{ if !n3s_is_login() }}
-    <div class="info_box" style="margin:1em;">
-      <p><b>現在ログインしていません。</b></p>
-      <p>ログインすると次の特典があるのでオススメです。
-        <ul>
-          <li>自分の投稿をまとめて管理できる</li>
-          <li>画像など素材のアップロードが可能</li>
-          <li>なでしこのプログラム以外も保存できる/li>
-          <li>ライブラリとして投稿できる</li>
-          <li>限定公開や非公開の投稿ができる</li>
-          <li>編集キーを覚えておく必要がない</li>
-        </ul>
-      </p>
-      <p id="login_link" style="display:none">
-        <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">
-          ログインする</a>&nbsp;&nbsp;&nbsp;
-        <a href="{{e:echo n3s_getURL('register','login')}}">
-          新規登録</a>
-      </p>
-      <p>
-        ↑からログインすると、既にユーザー登録している方は、このページに戻ってきます。<br />
-        なお、ユーザー登録に必要なのは、<b>メールアドレスだけ</b>です。
-      </p>
+  <section class="n3s-save-notice" aria-labelledby="save-login-title">
+    <div>
+      <h2 id="save-login-title">ログインしていません</h2>
+      <p>ログインすると、投稿の管理、素材のアップロード、非公開・限定公開、ライブラリ投稿を利用できます。</p>
     </div>
+    <div id="login_link" class="n3s-save-login-actions" style="display:none">
+      <a href="{{e:echo n3s_getURL('my','login')}}" class="pure-button pure-button-primary">ログイン</a>
+      <a href="{{e:echo n3s_getURL('register','login')}}" class="pure-button">新規登録</a>
+    </div>
+  </section>
   {{ endif }}
 
   {{ if $load_src == 'yes' }}
-  <p class="info">※タイトルなど補足情報を入力して画面最下部にある「保存」ボタンを押してください。</p>
+  <p class="n3s-save-restore-note">タイトルなどの投稿情報を入力してから保存してください。</p>
   {{ endif }}
 
-  <form method="POST" enctype="multipart/form-data"
+  <form id="save-form" class="n3s-save-form" method="POST" enctype="multipart/form-data"
     onsubmit="return checkSubmit()"
-    action="index.php?action=save&page={{$app_id}}&mode=edit">
-    <div id="program_options" class="option_box">
-      <p>
-        <label>プログラム本体(30文字以上):<br />
-        <textarea id="body" name="body" style="background-color: #f0f0f0;">{{ $body }}</textarea>
-        </label>
-      </p>
-      <p id="canvas_options">
-        <a name="canvas_config"><label>Canvasの設定:</a><br />
-          &nbsp;&nbsp;幅:<input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" style="width:4em;"> x
-          高:<input id="canvas_h" name="canvas_h" value="{{ $canvas_h }}" style="width:4em;">
-          <a href="#canvas_config" onclick='setCanvas0x0()' class="pure-button">←使わない</a>
-        </label>
-      </p>
-      <p id="format_options">
-        <label>プログラムの形式:<br />
+    action="index.php?action=save&amp;page={{$app_id}}&amp;mode=edit">
+
+    <section id="program_options" class="n3s-save-section" aria-labelledby="save-program-title">
+      <div class="n3s-save-section-head">
+        <p class="n3s-save-section-label">プログラム</p>
+        <h2 id="save-program-title">プログラム本体</h2>
+      </div>
+      <label class="n3s-save-field n3s-save-code-field" for="body">
+        <span>プログラム本体 (30文字以上)</span>
+        <textarea id="body" name="body">{{ $body }}</textarea>
+      </label>
+      <div class="n3s-save-program-settings">
+        <div id="canvas_options" class="n3s-save-inline-field">
+          <span>Canvas</span>
+          <label>幅 <input id="canvas_w" name="canvas_w" value="{{ $canvas_w }}" inputmode="numeric"></label>
+          <span aria-hidden="true">x</span>
+          <label>高さ <input id="canvas_h" name="canvas_h" value="{{ $canvas_h }}" inputmode="numeric"></label>
+          <button type="button" onclick="setCanvas0x0()" class="pure-button">使わない</button>
+        </div>
+        <label id="format_options" class="n3s-save-field n3s-save-setting-row" for="nakotype">
+          <span>プログラムの形式</span>
           <select id="nakotype" name="nakotype">
-            <option value="wnako"{{ $nakotype == 'wnako' ? ' selected' : '' }}>なでしこ(Web版)</option>
-            <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>なでしこ(cnako:コマンドライン版)</option>
+            <option value="wnako"{{ $nakotype == 'wnako' ? ' selected' : '' }}>なでしこ (Web版)</option>
+            <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>なでしこ (cnako)</option>
             <option value="js"{{ $nakotype == 'js' ? ' selected' : '' }}>JavaScript</option>
-            <option value="json"{{ $nakotype == 'json' ? ' selected' : '' }}>JSON形式(データ)</option>
-            <option value="csv"{{ $nakotype == 'csv' ? ' selected' : '' }}>CSV形式(データ)</option>
-            <option value="text"{{ $nakotype == 'text' ? ' selected' : '' }}>テキスト形式(text)</option>
-            <option value="sh"{{ $nakotype == 'sh' ? ' selected' : '' }}>シェル(sh)</option>
-            <option value="bat"{{ $nakotype == 'bat' ? ' selected' : '' }}>バッチファイル(bat)</option>
+            <option value="json"{{ $nakotype == 'json' ? ' selected' : '' }}>JSON形式</option>
+            <option value="csv"{{ $nakotype == 'csv' ? ' selected' : '' }}>CSV形式</option>
+            <option value="text"{{ $nakotype == 'text' ? ' selected' : '' }}>テキスト形式</option>
+            <option value="sh"{{ $nakotype == 'sh' ? ' selected' : '' }}>シェル</option>
+            <option value="bat"{{ $nakotype == 'bat' ? ' selected' : '' }}>バッチファイル</option>
             <option value="html"{{ $nakotype == 'html' ? ' selected' : '' }}>HTML形式</option>
           </select>
         </label>
-      </p><!-- end of #format_options -->
-    </div>
-    <div id="main_options" class="option_box">
-      <!-- 制作者 -->
-      {{if n3s_is_login() }}
-      <input id="author" name="author" type="hidden" value='{{$author}}' />
-      {{else}}
-      <p>
-        <label>制作者名(必須):<br />
-        <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前" />
+      </div>
+    </section>
+
+    <section id="main_options" class="n3s-save-section" aria-labelledby="save-details-title">
+      <div class="n3s-save-section-head">
+        <p class="n3s-save-section-label">投稿情報</p>
+        <h2 id="save-details-title">作品の詳細</h2>
+      </div>
+
+      <div class="n3s-save-fields">
+        {{if n3s_is_login() }}
+        <input id="author" name="author" type="hidden" value="{{$author}}">
+        {{else}}
+        <label class="n3s-save-field" for="author">
+          <span>制作者名 (必須)</span>
+          <input id="author" name="author" value="{{$author}}" placeholder="制作者の名前">
         </label>
-      </p>
-      {{endif}}
-      <!-- タイトルの入力 -->
-      <p>
-        <label>タイトル (5文字以上):<br />
-          <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off" />
+        {{endif}}
+        <label class="n3s-save-field" for="title">
+          <span>タイトル (5文字以上)</span>
+          <input id="title" name="title" value="{{$title}}" placeholder="タイトル" autocomplete="off">
         </label>
-      </p>
-      <p>
-        <label>プログラムの説明 (10文字以上):<br />
-          <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off" />
+        <label class="n3s-save-field n3s-save-field-wide" for="memo">
+          <span>プログラムの説明 (10文字以上)</span>
+          <input id="memo" name="memo" value="{{$memo}}" placeholder="説明" autocomplete="off">
         </label>
-      </p>
-      <div class="cover_image_option">
-        <label>扉絵(カバー画像):</label><br />
+      </div>
+
+      <div class="cover_image_option n3s-save-cover">
+        <div class="n3s-save-cover-head">
+          <div>
+            <p class="n3s-save-section-label">扉絵</p>
+            <h3>カバー画像</h3>
+          </div>
+          {{ if n3s_is_login() }}<p>600 x 240px に中央切り抜きで登録されます。</p>{{ endif }}
+        </div>
         {{ if n3s_is_login() }}
           {{ if $image_id gt 0 }}
           <div class="cover_image_preview">
-            <img src="{{$cover_url}}" alt="現在の扉絵" />
+            <img src="{{$cover_url}}" alt="現在の扉絵">
           </div>
           <label class="cover_delete_label">
-            <input id="cover_delete" type="checkbox" name="cover_delete" value="1" />
-            扉絵を削除する
+            <input id="cover_delete" type="checkbox" name="cover_delete" value="1">
+            扉絵を削除または差し替える
           </label>
           <div id="cover_image_file_wrap" style="display:none;">
-            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp" />
+            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp">
           </div>
           {{ else }}
           <div id="cover_image_file_wrap">
-            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp" />
+            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp">
           </div>
           {{ endif }}
-          <div class="info">600x240px にリサイズ・中央切り抜きされます。自分専用素材として登録されます。</div>
         {{ else }}
-          <div class="info">扉絵の設定にはログインが必要です。</div>
+          <p class="n3s-save-muted">扉絵の設定にはログインが必要です。</p>
         {{ endif }}
       </div>
-      <p>
-        <label>関連URL (任意):<br />
-          <input id="url" name="url" value="{{$url}}" placeholder="関連URL" />
+
+      <div class="n3s-save-fields n3s-save-fields-publication">
+        <label class="n3s-save-field n3s-save-field-wide" for="url">
+          <span>関連URL (任意)</span>
+          <input id="url" name="url" value="{{$url}}" placeholder="関連URL">
         </label>
-      </p>
-      <!-- ライセンスの指定 -->
-      <p>
-        <label>ライセンスの指定 (<a href="https://nadesi.com/v3/doc/go.php?4802" target="_blank">詳しい説明→</a>):</label><br />
-        <select id="copyright" name="copyright">
-          {{ for $copyright_list as $key => $val }}
-          {{e: $sel = ($key == $copyright) ? 'selected' : ''; }}
-          <option value="{{$key}}" {{$sel}}>{{ $key }} - {{e: echo $copyright_desc[$key] }}</option>
-          {{ endfor }}
-        </select>
-      </p>
-      <p>
-        <label>公開設定:<br />
+        <label class="n3s-save-field" for="copyright">
+          <span>ライセンス <a href="https://nadesi.com/v3/doc/go.php?4802" target="_blank" rel="noopener">説明</a></span>
+          <select id="copyright" name="copyright">
+            {{ for $copyright_list as $key => $val }}
+            {{e: $sel = ($key == $copyright) ? 'selected' : ''; }}
+            <option value="{{$key}}" {{$sel}}>{{ $key }} - {{e: echo $copyright_desc[$key] }}</option>
+            {{ endfor }}
+          </select>
+        </label>
+        <label class="n3s-save-field" for="is_private">
+          <span>公開設定</span>
           {{e $is_private0 = ($is_private == 0) ? 'selected="selected"' : ''; }}
           {{e $is_private1 = ($is_private == 1) ? 'selected="selected"' : ''; }}
           {{e $is_private2 = ($is_private == 2) ? 'selected="selected"' : ''; }}
@@ -148,141 +164,132 @@
             {{endif}}
           </select>
         </label>
-      </p>
-      <p>
-        <label>
-          <!-- checkbox未チェック時もPOSTに値が届くように、同名のhiddenで先に0を送る (#202) -->
-          <input type="hidden" name="show_list" value="0" />
-          {{e $show_list_checked = ($show_list != 0) ? 'checked' : ''; }}
-          <input id="show_list" name="show_list" type="checkbox" value="1" {{$show_list_checked}} />
-          作品一覧に掲載する
-          <span class="info">チェックを外すと作品一覧・ランキング・検索結果に表示されません。(URLを知っている人は閲覧できます)</span>
-        </label>
-      </p>
-      {{ if !n3s_is_login() }}
-      <p id="editkey_options">
-        <label>編集キー (任意):
-          <span class="info">プログラムの限定公開(あるいは編集)に使うキーです。<strong>忘れないように</strong>してください。</span>
-          <br />
-          <input id="editkey" name="editkey" type="password" value="" />
-        </label>
-      </p><!-- end of #editkey_options -->
-      {{ else }}
-      <p id="editkey_options" style="display: none;">
-        <label>限定公開キー (任意):
-          <span class="info">限定公開キーを指定すると、投稿を保護できます。</span>
-          <br />
-          <input id="editkey" name="editkey" type="text" value="{{$editkey}}" placeholder="限定公開キー" />
-        </label>
-      </p><!-- end of #editkey_options -->
-      {{ endif }}
-    </div><!-- end of #main_options -->
-
-    <div class="option_box">
-      <div id="save_options_button">
-        <a class="pure-button" onclick='show_save_options(true)'>保存オプションを表示 ≫</a>
       </div>
-      <div id="save_options" style="display:none; border-left:4px solid silver; padding-left:1em;">
-        <p>
-          <a class="pure-button" onclick='show_save_options(false)'>≪ 保存オプションを隠す</a>
-        </p>
-        <p>
-          <label>タグ(省略可):
-            <span class="info">タグ(ゲーム,ツールなど)をカンマで区切って指定。</span><br />
-            <input id="tag" name="tag" type="text" value="{{ $tag }}" /><br />
-            <!--
-            (↑ヒント) この欄に「w_noname」と書くと実行画面のタイトルを隠します。
-            作品一覧への掲載可否は上の「作品一覧に掲載する」チェックボックスで指定します。
-            (w_nonameを書いた場合も自動的に一覧非掲載になります #202)
-            -->
+
+      <label class="n3s-save-check" for="show_list">
+        <input type="hidden" name="show_list" value="0">
+        {{e $show_list_checked = ($show_list != 0) ? 'checked' : ''; }}
+        <input id="show_list" name="show_list" type="checkbox" value="1" {{$show_list_checked}}>
+        <span>作品一覧に掲載する <small>外すと一覧・ランキング・検索結果には表示されません。</small></span>
+      </label>
+
+      {{ if !n3s_is_login() }}
+      <label id="editkey_options" class="n3s-save-field n3s-save-key-field" for="editkey">
+        <span>編集キー (任意)</span>
+        <input id="editkey" name="editkey" type="password" value="">
+        <small>後で編集する際に必要です。忘れないように保管してください。</small>
+      </label>
+      {{ else }}
+      <label id="editkey_options" class="n3s-save-field n3s-save-key-field" for="editkey" style="display:none;">
+        <span>限定公開キー (任意)</span>
+        <input id="editkey" name="editkey" type="text" value="{{$editkey}}" placeholder="限定公開キー">
+        <small>限定公開の作品を共有するときに使います。</small>
+      </label>
+      {{ endif }}
+    </section>
+
+    <section class="n3s-save-section n3s-save-advanced-section">
+      <button
+        id="save_options_button"
+        class="pure-button n3s-save-advanced-trigger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="save_options"
+        onclick="show_save_options(true)">詳細オプションを表示</button>
+
+      <div id="save_options" class="n3s-save-advanced n3s-save-advanced-panel" hidden>
+        <div class="n3s-save-advanced-head">
+          <div>
+            <p class="n3s-save-section-label">詳細設定</p>
+            <h2>投稿オプション</h2>
+          </div>
+          <button type="button" class="pure-button" onclick="show_save_options(false)">閉じる</button>
+        </div>
+        <div class="n3s-save-fields">
+          <label class="n3s-save-field" for="tag">
+            <span>タグ (任意)</span>
+            <input id="tag" name="tag" type="text" value="{{ $tag }}">
+            <small>ゲーム、ツールなどをカンマで区切って指定します。</small>
           </label>
-        </p>
-        <p>
-          <label>利用なでしこバージョン:
-            <span class="info">通常は変更の必要はありません。</span>
-            <br />
-            <input id="version" name="version" type="text" value="{{$version}}" />
+          <label class="n3s-save-field n3s-save-setting-row" for="version">
+            <span>利用なでしこバージョン</span>
+            <input id="version" name="version" type="text" value="{{$version}}">
           </label>
-        </p>
-        <p>
           {{if $user_id gt 0}}
-          <label>ライブラリ名<span style="color:red;">(普通の投稿は空にしてください。)</span>:
-            <span class="info">
-              他の人に使ってもらいたい<b>ライブラリの場合のみ</b>入力してください。
-              ここに名前を設定すると外部プログラムから取り込む時に分かりやすくなります。
-              名前には、英数字・アンダーバー・ハイフンが使えます。大文字と小文字を区別します。
-              (※なおライブラリでない場合には管理者が設定を変更する場合もあります。)
-            </span><br />
-            <input id="app_name" name="app_name" type="text" value="{{ $app_name }}" />
+          <label class="n3s-save-field n3s-save-field-wide" for="app_name">
+            <span>ライブラリ名</span>
+            <input id="app_name" name="app_name" type="text" value="{{ $app_name }}">
+            <small>ライブラリとして公開する場合だけ指定します。英数字、アンダーバー、ハイフンを使用できます。</small>
           </label>
           {{else}}
-          <input id="app_name" name="app_name" type="hidden" value="{{ $app_name }}" />
-          ※ログインするとライブラリとして投稿できます。
+          <input id="app_name" name="app_name" type="hidden" value="{{ $app_name }}">
           {{endif}}
-        </p>
-      </div><!-- #save_options -->
+        </div>
+      </div>
+    </section>
 
+    <section class="n3s-save-terms">
+      <label class="n3s-save-check" for="agree">
+        <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}>
+        <span>利用規約に同意する</span>
+      </label>
+      <a class="n3s-save-terms-link" target="_blank" rel="noopener" href="index.php?action=kiyaku">（利用規約を見る）</a>
+    </section>
+
+    <div class="n3s-save-actions">
+      <p class="n3s-save-submit-note">保存すると、投稿内容と選択した公開設定が反映されます。</p>
+      <input name="mode" type="hidden" value="edit">
+      <input name="ref_id" type="hidden" value="{{$ref_id}}">
+      <input name="edit_token" type="hidden" value="{{$edit_token}}">
+      <input class="pure-button pure-button-primary" type="submit" value="保存する">
+      <a href="index.php?action=edit&amp;page={{$app_id}}" class="pure-button">編集に戻る</a>
     </div>
-    <div class="option_box">
-      <p>
-        <label>利用規約:<br />
-          <input id="agree" name="agree" type="checkbox" value="yes" {{ $agree }}/>同意する
-          <span class="info">必ず<a target="new" href="index.php?action=kiyaku">利用規約[→]</a>に同意してください。</span>
-        </label>
-      </p>
-    </div>
-    <p>
-      <!-- ■■■ 保存ボタン ■■■ -->
-      <input name="mode" type="hidden" value="edit" />
-      <input name="ref_id" type="hidden" value="{{$ref_id}}" />
-      <input name="edit_token" type="hidden" value="{{$edit_token}}" />
-      <input class="pure-button pure-button-primary" type="submit" value="保存" />
-    </p>
   </form>
-  <br>
+
   {{if $user_id gt 0 || n3s_is_admin() }}
-  <br><br><br><br><br><br>
-  <div class="ctrl_block option_box">
-    <h2>プログラムの削除</h2>
-    <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=delete">
-      <div>チェックをつけて削除ボタンを押してください。</div>
-      <div>
-        <label>
-          <input name="yesno" type="checkbox" value='yes' />
-          完全に削除する
-        </label>
-      </div>
-      <input name="edit_token" type="hidden" value="{{$edit_token}}" />
-      <input name="ref_id" type="hidden" value="{{$ref_id}}" />
-      <div>
-        <input class="pure-button" type="submit" value="プログラムを削除">
-      </div>
-    </form>
-  </div>
+  <section class="n3s-save-delete-zone">
+    <button
+      id="delete-options-button"
+      class="pure-button n3s-save-delete-trigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="delete-options"
+      onclick="show_delete_options(true)">プログラムを削除</button>
+
+    <div id="delete-options" class="n3s-save-delete-panel" hidden>
+      <p class="n3s-save-section-label">削除</p>
+      <h2 id="save-delete-title">完全に削除</h2>
+      <p class="n3s-save-delete-warning">一度、削除すると内容を戻すことはできません</p>
+      <form method="POST" action="index.php?action=save&amp;page={{$app_id}}&amp;mode=delete">
+        <input name="yesno" type="hidden" value="yes">
+        <input name="edit_token" type="hidden" value="{{$edit_token}}">
+        <input name="ref_id" type="hidden" value="{{$ref_id}}">
+        <div class="n3s-save-delete-actions">
+          <input class="pure-button n3s-save-delete-submit" type="submit" value="完全削除を実行">
+          <button class="pure-button" type="button" onclick="show_delete_options(false)">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </section>
   {{endif}}
 
   {{if n3s_is_admin() }}
-  <div class="ctrl_block option_box">
-    <h2>管理者</h2>
-    <form method="POST" action="index.php?action=save&page={{$app_id}}&mode=reset_bad">
-      <div style="color:red;">【管理用】通報を解除したい場合：</div>
-      <div>
-        <label>設定する値(2以上でリスト非表示):<br />
-          <input id="bad_value" name="bad_value" type="text" value="0" />
-        </label>
-      </div>
-      <div>
-        <input name="edit_token" type="hidden" value="{{$edit_token}}" />
-        <input class="pure-button" type="submit" value="通報値変更">
-      </div>
+  <section class="n3s-save-danger" aria-labelledby="save-admin-title">
+    <p class="n3s-save-section-label">管理者</p>
+    <h2 id="save-admin-title">通報値の変更</h2>
+    <form method="POST" action="index.php?action=save&amp;page={{$app_id}}&amp;mode=reset_bad">
+      <label class="n3s-save-field" for="bad_value">
+        <span>設定する値 (2以上でリスト非表示)</span>
+        <input id="bad_value" name="bad_value" type="text" value="0">
+      </label>
+      <input name="edit_token" type="hidden" value="{{$edit_token}}">
+      <input class="pure-button" type="submit" value="通報値変更">
     </form>
-  </div>
+  </section>
   {{endif}}
-</div>
+</main>
 
 <script>
-
-// load_src yes か no か session のみ
 const saveCols = ['body', 'canvas_w', 'canvas_h', 'version']
 switch ('{{$load_src}}') {
   case 'no': saveToLocalStorage(); break;
@@ -296,7 +303,7 @@ function loadFromLocalStorage() {
     const e = document.getElementById(key)
     if (!e) {
       console.log('!! form not found: ' + key)
-      constinue
+      return
     }
     e.value = localStorage[key]
   })
@@ -308,15 +315,13 @@ function saveToLocalStorage() {
     saveCols.forEach(key => {
       localStorage[key] = document.getElementById(key).value
     })
-    // リンクを表示
     const loginLink = document.getElementById('login_link')
     if (loginLink) {
-      loginLink.style.display = "block"
+      loginLink.style.display = 'flex'
     }
   }, 100)
 }
 
-// check submit
 function checkSubmit() {
   const body = document.getElementById('body').value
   const title = document.getElementById('title').value
@@ -324,83 +329,72 @@ function checkSubmit() {
   const author = document.getElementById('author').value
   const fmt = document.getElementById('nakotype').value
   const agree = document.getElementById('agree').checked
-  // タグのチェック
   const tag = document.getElementById('tag')
   tag.value = tag.value.replace(/[\s\#]+/g, '')
   if (tag.value.indexOf('w_noname') >= 0) {
-    tag.value = 'w_noname' // このタグは特別で排他的
+    tag.value = 'w_noname'
     const sl = document.getElementById('show_list')
-    if (sl) { sl.checked = false } // w_nonameは一覧非掲載を意味する (#202)
+    if (sl) { sl.checked = false }
   }
   if (tag.value.length > 64) {
     alert('タグが長すぎます。64文字以内にしてください。')
     return false
   }
-  // 本文などのチェック
   if (body.length < 30) {
-    alert('お手数おかけします。\n' +
-      '現在プログラムに最低文字数の制限をかけさせていただいています。\n' +
-      '30文字以上のプログラムを保存できます。')
+    alert('お手数おかけします。\n現在プログラムに最低文字数の制限をかけさせていただいています。\n30文字以上のプログラムを保存できます。')
     return false
   }
   if (title.length < 5) {
-    alert('お手数おかけします。\n' +
-      'プログラムのタイトルに、分かりやすい5文字以上の名前を付けてください。\n' +
-      'どうぞ、ご協力よろしくお願いします。')
+    alert('お手数おかけします。\nプログラムのタイトルに、分かりやすい5文字以上の名前を付けてください。\nどうぞ、ご協力よろしくお願いします。')
     return false
   }
   if (memo.length < 10) {
-    alert('お手数おかけします。\n' +
-      'プログラムの説明を10文字以上で記入してください。\n' +
-      'どうぞ、ご協力よろしくお願いします。')
+    alert('お手数おかけします。\nプログラムの説明を10文字以上で記入してください。\nどうぞ、ご協力よろしくお願いします。')
     return false
   }
   if (author == '') {
-    alert('お手数おかけします。\n' +
-      '作者名を記入してください。\n' +
-      'どうぞ、ご協力よろしくお願いします。')
+    alert('お手数おかけします。\n作者名を記入してください。\nどうぞ、ご協力よろしくお願いします。')
     return false
   }
   if (!agree) {
-    alert('お手数おかけします。\n' +
-      '利用規約に同意のチェックをいれてください。同意しないと書き込めません。')
+    alert('お手数おかけします。\n利用規約に同意のチェックをいれてください。同意しないと書き込めません。')
     return false
   }
-  if (fmt == 'wnako' || fmt == 'cnako' || fmt == 'text' || fmt == 'json' ||
-      fmt == 'css' || fmt == 'html' || fmt == 'csv' || fmt == 'js' || fmt == "sh" || fmt == "bat") { // ok
-  } else {
-      alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
-      return false
+  if (fmt != 'wnako' && fmt != 'cnako' && fmt != 'text' && fmt != 'json' &&
+      fmt != 'css' && fmt != 'html' && fmt != 'csv' && fmt != 'js' && fmt != 'sh' && fmt != 'bat') {
+    alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
+    return false
   }
-
-  // editkey をブラウザに保存
   const editkey = document.getElementById('editkey').value
-  localStorage['n3s_editkey'] = xx_enc(editkey, 30)  
-  //
+  localStorage['n3s_editkey'] = xx_enc(editkey, 30)
   return true
 }
 
 function xx_dec(val, key) {
-  val = encodeURIComponent(val);
-  var result = "";
+  val = encodeURIComponent(val)
+  var result = ''
   for (var i = 0; i < val.length; i++) {
-    result += String.fromCharCode(val.charCodeAt(i) + key);
+    result += String.fromCharCode(val.charCodeAt(i) + key)
   }
-  return result;
+  return result
 }
 function xx_enc(val, key) {
-  var result = "";
+  var result = ''
   for (var i = 0; i < val.length; i++) {
-    result += String.fromCharCode(val.charCodeAt(i) - key);
+    result += String.fromCharCode(val.charCodeAt(i) - key)
   }
-  return decodeURIComponent(result) ;
+  return decodeURIComponent(result)
 }
 
 function show_save_options(b) {
   const opt = document.getElementById('save_options')
-  opt.style.display = b ? 'block' : 'none'
   const optButton = document.getElementById('save_options_button')
-  optButton.style.display = b ? 'none' : 'block'
+  if (!opt || !optButton) return
+
+  opt.hidden = !b
+  optButton.hidden = b
+  optButton.setAttribute('aria-expanded', b ? 'true' : 'false')
+  if (!b) optButton.focus()
 }
 
 function setCanvas0x0() {
@@ -408,12 +402,8 @@ function setCanvas0x0() {
   document.getElementById('canvas_h').value = '0'
 }
 
-// タイトルなどを自動で埋める処理
-setTimeout(()=>{
-  // 本文を取得
+setTimeout(() => {
   const body = document.getElementById('body').value.substring(0, 2048).replace(/^\s+/, '')
-
-  // タグの確認
   const tag = document.getElementById('tag')
   const hasDNCL = (body.indexOf('!DNCL') >= 0) || (body.indexOf('！DNCL') >= 0) || (body.indexOf('💡DNCL') >= 0)
   if (hasDNCL && tag.value.indexOf('DNCL') < 0) {
@@ -425,8 +415,6 @@ setTimeout(()=>{
     a.push('DNCL')
     tag.value = a.join(',')
   }
-
-  // タイトルを自動的に埋める
   const title = document.getElementById('title')
   const isHTML = (body.indexOf('<!DOCTYPE html>') == 0)
   if (title.value == '' && isHTML === false) {
@@ -436,7 +424,6 @@ setTimeout(()=>{
       .replace(/(インデントモード|DNCLモード)/g, '')
     title.value = new_title.substring(0, 16)
   }
-  // HTML ?
   if (isHTML) {
     document.getElementById('canvas_options').style.display = 'none'
     document.getElementById('format_options').style.display = 'none'
@@ -444,32 +431,22 @@ setTimeout(()=>{
     fmt.value = 'html'
     document.getElementById('canvas_w').value = '0'
     document.getElementById('canvas_h').value = '0'
-    // bodyのHTMLのコードから<tile>を抜き出す
     const reTitle = /<title>(.*?)<\/title>/i
     const m = body.match(reTitle)
-    if (m && m.length >= 2) {
-      const title = document.getElementById('title')
-      if (title.value == '') {
-        let t = m[1].substring(0, 16)
-        t = t.replace(/[\#\$\.\!\"\%\'\\\-\=\s\|「」【】『』、]+/g, '')
-        title.value = t
-
-      }
+    if (m && m.length >= 2 && title.value == '') {
+      let t = m[1].substring(0, 16)
+      t = t.replace(/[\#\$\.\!\"\%\'\\\-\=\s\|「」【】『』、]+/g, '')
+      title.value = t
     }
   }
+}, 300)
 
-}, 300);
-
-const is_private = document.getElementById('is_private');
+const is_private = document.getElementById('is_private')
 is_private.addEventListener('change', (e) => {
   const val = e.target.value
   const editkey_options = document.getElementById('editkey_options')
-  if (val == '2') {
-    editkey_options.style.display = 'block'
-  } else {
-    editkey_options.style.display = 'none'
-  }
-});
+  editkey_options.style.display = (val == '2') ? 'grid' : 'none'
+})
 
 const coverDelete = document.getElementById('cover_delete')
 const coverImageFileWrap = document.getElementById('cover_image_file_wrap')
@@ -479,6 +456,18 @@ if (coverDelete && coverImageFileWrap) {
   })
 }
 
+function show_delete_options(show) {
+  const panel = document.getElementById('delete-options')
+  const button = document.getElementById('delete-options-button')
+  if (!panel || !button) return
+
+  panel.hidden = !show
+  button.hidden = show
+  button.setAttribute('aria-expanded', show ? 'true' : 'false')
+  if (!show) {
+    button.focus()
+  }
+}
 </script>
 
 {{ include parts_html_footer.html }}

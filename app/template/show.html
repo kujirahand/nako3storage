@@ -1,319 +1,251 @@
 {{ include parts_html_header.html }}
 
+<main class="n3s-mypage-page n3s-show-page">
+  <nav class="n3s-mypage-nav" aria-label="作品ページのナビゲーション">
+    <a href="index.php">トップ</a>
+    <a href="index.php?action=list">作品一覧</a>
+    {{ if n3s_is_login() }}
+    <a target="_blank" rel="noopener" href="index.php?action=mypage">マイページ</a>
+    <a target="_blank" rel="noopener" href="index.php?action=mypage&amp;mode=material">素材</a>
+    {{ endif }}
+    <a class="is-current" href="index.php?action=show&amp;page={{$app_id}}">作品</a>
+  </nav>
 
-<style>
-#iframe_contents {
-    margin: 0px;
-    padding: 0px;
-    border: 0px none;
-    width: 100%;
-    height: 400px;
-}
-</style>
+  <header class="n3s-show-header">
+    <p class="n3s-show-eyebrow">作品 ID: {{$app_id}}</p>
+    <div class="n3s-show-title-row">
+      <h1>{{ $title | check_mudai }}</h1>
+      {{if $is_private == 0}}<span class="n3s-show-status is-public">公開</span>{{endif}}
+      {{if $is_private == 1}}<span class="n3s-show-status is-private">非公開</span>{{endif}}
+      {{if $is_private == 2}}<span class="n3s-show-status is-limited">限定公開</span>{{endif}}
+    </div>
 
-<div class="showblock">
-  <div>
-    <h1>
-      {{ $title | check_mudai }}
-      {{if $is_private == 0}}📖{{endif}}
-      {{if $is_private == 1}}🔒{{endif}}
-      {{if $is_private == 2}}🔐{{endif}}
-    </h1>
-    <p class="memo">{{ $memo }}</p>
     {{ if $nakotype eq 'wnako' || $nakotype eq 'html' }}
       {{ if $is_private == 1 }}
-      <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝編集ページで実行</a>
+      <div class="n3s-show-private-run">
+        <a href="index.php?action=edit&amp;page={{$app_id}}" class="pure-button pure-button-primary">編集ページで実行</a>
+      </div>
       {{ else }}
         {{ if $widget_url_run }}
-        <div class="show_cover_start" style="background-image:url('{{$cover_url}}');">
-          <a id="a_run_button" class="pure-button pure-button-primary" target="_blank" href="{{$widget_url_run_allow}}">
-            ▶ プログラムを実行</a>
+        <div class="show_cover_start n3s-show-cover" style="background-image:url('{{$cover_url}}');">
+          <a id="a_run_button" class="pure-button pure-button-primary" target="_blank" rel="noopener" href="{{$widget_url_run_allow}}">プログラムを実行</a>
         </div>
         {{ endif }}
       {{ endif }}
     {{ endif }}
-  </div>
-  <div id="program_area">
-    <label>プログラム: <span id="sizeSwitch">(→大)</span><br />
-    <textarea id="nako3code" readonly>{{ $body }}</textarea>
-    </label><br />
-    {{ if $nakotype eq 'wnako' || $nakotype eq 'html' }}
-      <button id="runButton" style="display:none"></button>
-      <button id="clearButton" style="display:none"></button>
-    {{ else }}
-      <button id="runButton" style="display:none"></button>
-      <button id="clearButton" style="display:none"></button>
-    {{ endif }}
-  </div>
-  
-  <!-- #runbox このブロックは必ず必要 -->
-  <div id="runbox"></div>
-  <!-- /#runbox -->
 
-  <ul class="devblock">
-    <li>
-      <span>
-        {{if $user_id gt 0}}
-          <a href="index.php?action=list&user_id={{$user_id}}">
-            <img class="n3s-user-image" src="{{ $profile_url }}" width="32" height="32" alt="">
-            ⭐ {{ $author | check_nanasi }} 作
-          </a>
-        {{else}}
-          {{ $author | check_nanasi }} 作
-        {{endif}}
-        {{ if $url }}
-          (<a href="{{$url}}">関連URL</a>)
-        {{ endif }}
-      </span>
-    </li>
-    <li>
-      <span class="lbl">タイトル:</span> {{ $title }}
-    </li>
-    <li>
-      <span class="lbl">ライセンス:</span> {{ $copyright }}
-      ({{e:echo $copyright_desc[$copyright]}})
-    </li>
-    <li><span class="lbl">タイプ:</span> {{ $nakotype }}</li>
-    <li><span class="lbl">タグ:</span> {{ $tag_link | raw }}</li>
-    <li><span class="lbl">利用バージョン:</span> {{ $version }}</li>
-    <li>
-      <span class="lbl">作成日時:</span> {{ $ctime | datetime }}
-      {{ if $ctime != $mtime }}
-        (編集: {{$mtime | datetime}})
-      {{ endif }}
-    </li>
-    {{if $is_private == 0}}
-    <li><span class="private">公開の投稿</span></li>
-    {{endif}}
-    {{if $is_private == 1}}
-    <li><span class="private">🔒 非公開の投稿</span></li>
-    {{endif}}
-    {{if $is_private == 2}}
-    <li><span class="private">🔐 限定公開の投稿</span></li>
-    {{endif}}
-  </ul>
+    {{ if $memo }}<p class="n3s-show-description">{{ $memo }}</p>{{ endif }}
+  </header>
 
-  <!-- .fav_block-->
-  {{ if $is_private == 0 }}
-  <div class="fav_block" style="border:1px dotted silver;">
-    {{if n3s_is_login()}}
-    <button id="fav_button" class="pure-button"
-      data-bookmark="{{if $bookmark}}1{{else}}0{{endif}}">
-      🌟
-      {{ if $bookmark }}
-          解除
-      {{ else }}
-          気に入った
-      {{ endif }}
-    </button>
-    {{else}}
-    <!-- not login -->
-    {{endif}}
-    <a name="fav">&nbsp;</a>
-    <span>
-      <a style="text-decoration:none;" 
-        href="index.php?action=fav&page={{$app_id}}&m=who">
-        <span id="fav">{{ $fav | star }}</span>
+  <section id="program_area" class="n3s-show-section n3s-show-program" aria-labelledby="show-program-title">
+    <div class="n3s-show-section-head">
+      <div>
+        <p class="n3s-show-section-label">ソース</p>
+        <h2 id="show-program-title">プログラム</h2>
+      </div>
+      <button id="sizeSwitch" type="button" class="pure-button n3s-show-size-button">高さを拡大</button>
+    </div>
+    <textarea id="nako3code" readonly aria-label="プログラムのソースコード">{{ $body }}</textarea>
+    <button id="runButton" type="button" hidden></button>
+    <button id="clearButton" type="button" hidden></button>
+  </section>
+
+  <div id="runbox" class="n3s-show-runbox"></div>
+
+  <section class="n3s-show-section n3s-show-details" aria-labelledby="show-details-title">
+    <div class="n3s-show-section-head">
+      <div>
+        <p class="n3s-show-section-label">作品について</p>
+        <h2 id="show-details-title">作品情報</h2>
+      </div>
+      <a href="index.php?action=edit&amp;page={{$app_id}}" class="pure-button">作品を編集</a>
+    </div>
+
+    <div class="n3s-show-author">
+      {{if $user_id gt 0}}
+      <a href="index.php?action=list&amp;user_id={{$user_id}}">
+        <img class="n3s-user-image" src="{{ $profile_url }}" width="32" height="32" alt="">
+        <span>{{ $author | check_nanasi }}</span>
       </a>
-      {{ if !n3s_is_login() }}
-        &nbsp; &nbsp; &nbsp; &nbsp;
-        <span style="font-size:0.8em; color:#999;">
-        {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#fav"); }}
-        <a href="index.php?action=login&back={{ $backurl }}">
-          ログイン</a>して★を付けよう！</span>
-      {{ endif }}
-  </div>
-  <div class="fav_block">
-    <!-- twitter button -->
-    {{if isset($screen_name) && $screen_name != '' }}
-    <a class="pure-button" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&text=@{{$screen_name}}%20{{$title}}%20#なでしこさん">Twitterへ投稿</a>
-    {{endif}}
-  </div>
-  {{ endif }}
-  <!-- /.fav_block-->
-</div><!-- /.showblock-->
-
-<!-- 編集ボタン(ログインしてなくても編集することはある) -->
-<div class="ctrl_block">
-  <a href="index.php?action=edit&page={{$app_id}}" class="pure-button">📝作品を編集</a>
-</div>
-
-<!-- URLを表示 -->
-<div id="info_accordion_container" style="margin-top: 20px; margin-bottom: 20px;">
-  <!-- アコーディオンヘッダー -->
-  <div id="info_accordion_header" style="cursor: pointer; padding: 12px 15px; background-color: #f9f9f9; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; transition: background-color 0.2s;">
-    <span style="font-weight: bold; color: #333; font-size: 1.1em; margin: 0; padding: 0;">🌐 作品公開情報</span>
-    <span id="info_accordion_icon" style="font-size: 0.9em; color: #666;">▶</span>
-  </div>
-  
-  <!-- アコーディオンコンテンツ -->
-  <div id="info_accordion_content" style="display: none; padding: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px; background-color: #fff;">
-    {{ if $is_private == 1 }}
-    <div class="blogparts">
-      <span>🔒非公開の作品です。</span>
+      {{else}}
+      <span>{{ $author | check_nanasi }}</span>
+      {{endif}}
+      <span class="n3s-show-author-suffix">作</span>
+      {{ if $url }}<a class="n3s-show-related-link" href="{{$url}}" target="_blank" rel="noopener">関連URL</a>{{ endif }}
     </div>
-    {{ endif }}
 
-    {{ if $is_private != 1 }}
-    <div class="blogparts">
-      <span class="memo">📍この作品のURL: </span><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{$n3s_baseurl}}/id.php?{{$app_id}}"><br>
-        {{ if $app_name }}
-        <input class="info_link" type="text" onclick="this.select()"
-        value="{{$n3s_baseurl}}/show/{{$app_name}}"><br>
-        {{ endif }}
-    </div>
-    <div class="blogparts">
-      <!-- url-->
-      <span class="memo">📍アプリ(即時実行)のURL: </span><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{ $widget_url_run }}"><br>
-      <!-- url-->
-      <span class="memo">📍アプリ(実行ボタンあり)のURL: </span><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{ $widget_url }}"><br>
-      <!-- url-->
-      <span class="memo">📍ブログパーツ: </span><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{ $widget_tag }}"><br>
-      <!-- 説明 -->
-      <p class="memo" style="text-align: right;">上記HTML↑をブログに貼り付けることでアプリを埋め込めます。</p>
-    </div>
-    {{ endif }}
+    <dl class="n3s-show-meta">
+      <div><dt>ライセンス</dt><dd>{{ $copyright }}（{{e:echo $copyright_desc[$copyright]}}）</dd></div>
+      <div><dt>形式</dt><dd>{{ $nakotype }}</dd></div>
+      <div><dt>タグ</dt><dd>{{ $tag_link | raw }}</dd></div>
+      <div><dt>利用バージョン</dt><dd>{{ $version }}</dd></div>
+      <div>
+        <dt>更新日時</dt>
+        <dd>
+          {{ $ctime | datetime }}
+          {{ if $ctime != $mtime }}<span class="n3s-show-edited">編集: {{$mtime | datetime}}</span>{{ endif }}
+        </dd>
+      </div>
+    </dl>
 
     {{ if $is_private == 0 }}
-    <div class="blogparts">
-      <span class="memo">📍ライブラリ直リンク - 『!「***」を取込』で使うとき: </span><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}"><br>
-      <input class="info_link" type="text" onclick="this.select()"
-        value="{{$n3s_baseurl}}/index.php?action=plain&page={{$app_id}}"><br>
+    <div class="n3s-show-reactions">
+      {{if n3s_is_login()}}
+      <button id="fav_button" class="pure-button" data-bookmark="{{if $bookmark}}1{{else}}0{{endif}}">
+        {{ if $bookmark }}お気に入りを解除{{ else }}お気に入りに追加{{ endif }}
+      </button>
+      {{endif}}
+      <a class="n3s-show-fav-count" href="index.php?action=fav&amp;page={{$app_id}}&amp;m=who"><span id="fav">{{ $fav | star }}</span></a>
+      {{ if !n3s_is_login() }}
+      {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#fav"); }}
+      <span class="n3s-show-login-note"><a href="index.php?action=login&amp;back={{ $backurl }}">ログイン</a>するとお気に入りに追加できます。</span>
+      {{ endif }}
+      {{if isset($screen_name) && $screen_name != '' }}
+      <a class="pure-button n3s-show-x-share" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&amp;text=@{{$screen_name}}%20{{$title}}%20#なでしこさん" target="_blank" rel="noopener">
+        <span class="n3s-show-x-icon" aria-hidden="true">X</span>
+        <span>Xへ投稿</span>
+      </a>
+      {{endif}}
     </div>
     {{ endif }}
+  </section>
 
-    {{ if $is_private == 0 && ($copyright != '' && $copyright != '自分用' && $copyright != '未指定') }}
-    {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
-    <div class="blogparts">
-      <span class="memo">📍なでしこハブ (最新版の反映は1日後):</span><br>
-      <div class="memo" style="padding-left: 1em;">
-        <ul>
-          <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/blob/main/{{$app_dir}}/{{$app_id}}.nako3">ソースの確認</a></li>
-          <li><a target="new" href="https://github.com/kujirahand/nadesiko3hub/commits/main/{{$app_dir}}/{{$app_id}}.nako3">編集履歴の確認</a></li>
-        </ul>
+  <section id="info_accordion_container" class="n3s-show-section n3s-show-accordion" aria-labelledby="info_accordion_header">
+    <button id="info_accordion_header" class="n3s-show-accordion-trigger" type="button" aria-expanded="false" aria-controls="info_accordion_content">
+      <span>作品公開情報</span>
+      <span id="info_accordion_icon" aria-hidden="true">▶</span>
+    </button>
+
+    <div id="info_accordion_content" class="n3s-show-accordion-content" style="display:none;">
+      {{ if $is_private == 1 }}
+      <p class="n3s-show-private-note">非公開の作品です。</p>
+      {{ endif }}
+
+      {{ if $is_private != 1 }}
+      <div class="n3s-show-link-group">
+        <label>この作品のURL
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{$n3s_baseurl}}/id.php?{{$app_id}}">
+        </label>
+        {{ if $app_name }}
+        <label>作品名によるURL
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{$n3s_baseurl}}/show/{{$app_name}}">
+        </label>
+        {{ endif }}
       </div>
-    </div>
-    {{ endif }}
-    
-    <div class="ctrl_block" style="text-align:right; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px;">
-      <div class="memo">
-        通報数:
+
+      <div class="n3s-show-link-group">
+        <label>アプリ（即時実行）のURL
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{ $widget_url_run }}">
+        </label>
+        <label>アプリ（実行ボタンあり）のURL
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{ $widget_url }}">
+        </label>
+        <label>ブログパーツ
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{ $widget_tag }}">
+          <small>このHTMLをブログへ貼り付けると、アプリを埋め込めます。</small>
+        </label>
+      </div>
+      {{ endif }}
+
+      {{ if $is_private == 0 }}
+      <div class="n3s-show-link-group">
+        <label>ライブラリ直リンク
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{$n3s_baseurl}}/plain/{{ $app_name_or_id }}{{ $ext }}">
+        </label>
+        <label>ライブラリ直リンク（ID指定）
+          <input class="info_link" type="text" readonly onclick="this.select()" value="{{$n3s_baseurl}}/index.php?action=plain&amp;page={{$app_id}}">
+        </label>
+      </div>
+      {{ endif }}
+
+      {{ if $is_private == 0 && ($copyright != '' && $copyright != '自分用' && $copyright != '未指定') }}
+      {{e: $app_dir = sprintf('%05d', floor($app_id/500) * 500); }}
+      <div class="n3s-show-hub-links">
+        <span>なでしこハブ（最新版の反映は1日後）</span>
+        <a target="_blank" rel="noopener" href="https://github.com/kujirahand/nadesiko3hub/blob/main/{{$app_dir}}/{{$app_id}}.nako3">ソースの確認</a>
+        <a target="_blank" rel="noopener" href="https://github.com/kujirahand/nadesiko3hub/commits/main/{{$app_dir}}/{{$app_id}}.nako3">編集履歴の確認</a>
+      </div>
+      {{ endif }}
+
+      <div class="n3s-show-report">
         {{e: $bad = empty($bad) ? 0 : $bad; }}
-        <span id="bad">{{$bad}}</span>
+        <span>通報数: <strong id="bad">{{$bad}}</strong></span>
+        <a href="{{$badlink}}">通報について</a>
+        {{if $app_id gt 0 && n3s_is_login()}}<button id="bad_button" class="pure-button">通報する</button>{{endif}}
       </div>
-      <div class="memo">
-        <a href="{{$badlink}}">通報って何？</a>
+    </div>
+  </section>
+
+  {{ $import_editor | raw }}
+  {{ $import_nako | raw }}
+
+  <script>
+  var setValue = function() { alert('現在ライブラリを読み込み中です。しばらくお待ちください。') }
+  var getValue = function() { alert('現在ライブラリを読み込み中です。しばらくお待ちください。'); return '' }
+  var editorObjects = null
+  const baseurl = "{{ $baseurl | safe }}"
+  window.app_id = {{ $app_id }};
+  const nako_version = "{{ $version }}" + '.0.0.0'
+  const runbox_c = document.getElementById('runbox')
+  runbox_c.style.display = 'none'
+
+  window.addEventListener('message', function(e) {
+    var iframe = document.querySelector('#iframe_contents')
+    var eventName = e.data[0]
+    var data = e.data[1]
+    if (eventName === 'setFrameHeight' && iframe) iframe.style.height = data + 'px'
+  }, false)
+  </script>
+
+  <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
+  <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
+
+  <section id="comment_section" class="n3s-show-section n3s-show-comments" aria-labelledby="show-comments-title">
+    <div class="n3s-show-section-head">
+      <div>
+        <p class="n3s-show-section-label">交流</p>
+        <h2 id="show-comments-title">コメント</h2>
       </div>
-    {{if $app_id gt 0 && n3s_is_login()}}
-      <div style="margin-top: 8px;">
-        <button id="bad_button" class="pure-button">通報する</button>
+    </div>
+
+    <button id="comment_accordion_header" class="n3s-show-accordion-trigger" type="button" aria-expanded="false" aria-controls="comment_accordion_content">
+      <span id="comment_summary_text">コメントを取得中...</span>
+      <span id="comment_accordion_icon" aria-hidden="true">▼</span>
+    </button>
+
+    <div id="comment_accordion_content" class="n3s-show-accordion-content n3s-show-comment-content" style="display:none;">
+      <div id="comment_info_message" class="n3s-show-comment-message" style="display:none;"></div>
+
+      {{ if n3s_is_login() }}
+      <div class="comment-form-container n3s-show-comment-form">
+        <h3>新規コメントを投稿</h3>
+        <p>コメントはポジティブで積極的な内容を投稿してください。内容は確認後に表示されます。</p>
+        <form id="comment_post_form" onsubmit="submitComment(event)">
+          <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
+          <input type="hidden" name="app_id" value="{{ $app_id }}">
+          <input type="hidden" name="parent_id" value="0">
+          <input type="hidden" name="editkey" value="{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}">
+          <textarea id="comment_body" name="body" rows="4" placeholder="コメントを入力してください（1000文字以内）" required></textarea>
+          <div class="n3s-show-comment-actions"><button type="submit" class="pure-button pure-button-primary">コメントを送信</button></div>
+        </form>
       </div>
-    {{endif}}
+      {{ else }}
+      <p class="n3s-show-comment-login">
+        {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#comment_section"); }}
+        <a href="index.php?action=login&amp;back={{ $backurl }}">ログイン</a>するとコメントを投稿できます。
+      </p>
+      {{ endif }}
+
+      <div id="comment_list_area" class="n3s-show-comment-list"></div>
     </div>
-  </div>
-</div><!-- /作品公開情報 -->
+  </section>
 
-<!-- script for ace editor -->
-{{ $import_editor | raw }}
-<!-- script for nadesiko3 -->
-{{ $import_nako | raw }}
-
-<!-- script for nako3storage-->
-<script>
-// nako3storage_show.js から参照する変数
-var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
-var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
-var editorObjects = null
-
-// nako3storage info
-const baseurl = "{{ $baseurl | safe }}";
-
-// nako3 program info
-const app_id = {{ $app_id }};
-const nako_version = "{{ $version }}" + ".0.0.0"
-const runbox_c = document.getElementById('runbox')
-runbox_c.style.display = 'none'
-
-// iframe の高さを調整
-window.addEventListener('message', function(e) {
-  var iframe = document.querySelector("#iframe_contents")
-  var eventName = e.data[0]
-  var data = e.data[1]
-  switch(eventName) {
-  case 'setFrameHeight':
-    iframe.style.height = data + 'px'
-    break;
-  }
-}, false)
-</script>
-
-<script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
-<script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>
-
-<!-- コメントセクション -->
-<div class="ctrl_block" id="comment_section" style="margin-top: 30px;">
-  <h2>💬 コメント</h2>
-  
-  <!-- アコーディオンのヘッダー -->
-  <div id="comment_accordion_header" style="cursor: pointer; padding: 12px 15px; background-color: #f9f9f9; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e0e0e0; transition: background-color 0.2s;">
-    <span id="comment_summary_text" style="font-weight: bold; color: #333;">コメントを取得中...</span>
-    <span id="comment_accordion_icon" style="font-size: 0.9em; color: #666;">▼</span>
-  </div>
-  
-  <!-- アコーディオンのコンテンツ本体 -->
-  <div id="comment_accordion_content" style="display: none; margin-top: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px; padding: 15px; background-color: #fff;">
-    <div id="comment_info_message" style="display: none; padding: 12px; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; border-radius: 4px; margin-bottom: 15px; font-size: 0.95em; line-height: 1.5;"></div>
-    
-    <!-- 新規コメント投稿フォーム（ログイン時のみ） -->
-    {{ if n3s_is_login() }}
-    <div class="comment-form-container" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
-      <h3 style="margin-top: 0; font-size: 1.1em; color: #333;">新規コメントを投稿</h3>
-      <p style="font-size: 0.8em; color: #955;">コメントは<strong>ポジティブで積極的なものだけ</strong>許可されています。AIでネガポジ判定して後ほど表示されます。</p>
-      <form id="comment_post_form" onsubmit="submitComment(event)">
-        <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
-        <input type="hidden" name="app_id" value="{{ $app_id }}">
-        <input type="hidden" name="parent_id" value="0">
-        <input type="hidden" name="editkey" value="{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}">
-        <div style="margin-bottom: 12px;">
-          <textarea id="comment_body" name="body" rows="4" style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95em; resize: vertical;" placeholder="コメントを入力してください（1000文字以内）" required></textarea>
-        </div>
-        <div style="text-align: right;">
-          <button type="submit" class="pure-button pure-button-primary">コメントを送信</button>
-        </div>
-        <br>
-      </form>
-    </div>
-    {{ else }}
-    <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; color: #666; font-size: 0.9em; text-align: center;">
-      {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#comment_section"); }}
-      <a href="index.php?action=login&back={{ $backurl }}">ログイン</a>するとコメントを投稿できます。
-    </div>
-    {{ endif }}
-    <!-- コメント投稿フォームここまで -->
-    
-    <div style="border-top: 1px solid silver; padding: 8px"></div>
-
-    <!-- コメント一覧 -->
-    <div id="comment_list_area"></div>   
-  </div>
-</div>
-
-<script>
-window.app_id = {{ $app_id }};
-window.n3s_edit_token = "{{e: echo n3s_getEditToken(); }}";
-window.n3s_is_login = {{e: echo n3s_is_login() ? 'true' : 'false'; }};
-window.n3s_editkey = "{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}";
-</script>
-<script defer src="{{e:echo n3s_getURL('nako3storage_comment.js', 'file', ['m'=>$mtime_nako3storage_comment]);}}"></script>
+  <script>
+  window.n3s_edit_token = "{{e: echo n3s_getEditToken(); }}";
+  window.n3s_is_login = {{e: echo n3s_is_login() ? 'true' : 'false'; }};
+  window.n3s_editkey = "{{e: echo empty($_GET['editkey']) ? '' : $_GET['editkey']; }}";
+  </script>
+  <script defer src="{{e:echo n3s_getURL('nako3storage_comment.js', 'file', ['m'=>$mtime_nako3storage_comment]);}}"></script>
+</main>
 
 {{ include parts_html_footer.html }}

@@ -288,6 +288,7 @@ function n3s_list_setCardHTML(&$list)
       <img class="n3s-user-image" src="{$profile_url}" width="32" height="32" alt="">
       <div class="n3s-app-meta">
         {$author_html}
+        <br>
         <span class="n3s-app-date">{$date}</span>
       </div>
     </div>

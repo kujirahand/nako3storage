@@ -26,6 +26,7 @@ function n3s_web_userinfo()
     $email = empty($user['email']) ? '' : $user['email'];
     $name = $user['name'];
     $description = $user['description'];
+    $screen_name = isset($user['screen_name']) ? $user['screen_name'] : '';
     $profile_url = n3s_get_user_image_url($user, 0);
     $image_id = intval(isset($user['image_id']) ? $user['image_id'] : 0);
     if ($description == '') {
@@ -39,21 +40,28 @@ function n3s_web_userinfo()
         }
         $name2 = empty($_POST['name']) ? '' : $_POST['name'];
         $description2 = empty($_POST['description']) ? '' : $_POST['description'];
+        $screen_name2 = isset($_POST['screen_name']) ? trim($_POST['screen_name']) : '';
+        $screen_name2 = ltrim($screen_name2, '@');
         if ($name2 == '' || $description2 == '') {
             $error = '空白の項目があります。全て正しく埋めてください。';
         } elseif (mb_strlen($name2) > 12) {
             $error = '名前は12文字以内にしてください。';
+        } elseif ($screen_name2 !== '' && !preg_match('/^[A-Za-z0-9_]{1,15}$/', $screen_name2)) {
+            $error = 'Xアカウントは英数字とアンダースコア15文字以内で入力してください。';
         } else {
-            db_exec('UPDATE users set name=?, description=?, mtime=? WHERE user_id=?',
+            db_exec('UPDATE users set name=?, description=?, screen_name=?, mtime=? WHERE user_id=?',
             [
                 $name2,
                 $description2,
+                $screen_name2,
                 time(),
                 $user_id,
             ], 'users');
             $name = $name2;
             $description = $description2;
+            $screen_name = $screen_name2;
             $_SESSION['name'] = $name2;
+            $_SESSION['screen_name'] = $screen_name2;
             $has_upload = isset($_FILES['user_image']) &&
                 isset($_FILES['user_image']['error']) &&
                 intval($_FILES['user_image']['error']) !== UPLOAD_ERR_NO_FILE;
@@ -89,6 +97,7 @@ function n3s_web_userinfo()
         'user_id' => $user_id,
         'name' => $name,
         'description' => $description,
+        'screen_name' => $screen_name,
         'profile_url' => $profile_url,
         'image_id' => $image_id,
         'edit_token' => n3s_getEditToken('userinfo'),

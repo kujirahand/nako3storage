@@ -1,129 +1,147 @@
 {{ include parts_html_header.html }}
 
-{{ if !n3s_is_login() }}
-<div class="showblock" style="background-color:#fff0f0;">
-  <span class="error">
-    {{e: $backurl = urlencode('index.php?action=edit&page=new'); }}
-    <a href="index.php?action=login&back={{$backurl}}">ログイン</a>していません。
-  </span>
-</div>
-{{ endif }}
+<main class="n3s-mypage-page n3s-edit-page">
+  <nav class="n3s-mypage-nav" aria-label="編集ページのナビゲーション">
+    <a href="index.php">トップ</a>
+    {{ if n3s_is_login() }}
+    <a target="_blank" rel="noopener" href="index.php?action=mypage">マイページ</a>
+    <a target="_blank" rel="noopener" href="index.php?action=mypage&amp;mode=material">素材</a>
+    {{ endif }}
+    <a class="is-current" href="#edit-workspace">プログラム編集</a>
+  </nav>
 
-<div class="showblock">
-  <div class="memo" style="text-align:right;">
-    [<a target="new" href="https://nadesi.com/v3/doc/index.php?%E6%96%87%E6%B3%95">
-      📌文法</a>]
-    [<a target="new" href="https://nadesi.com/v3/doc/index.php?%E5%91%BD%E4%BB%A4%E4%B8%80%E8%A6%A7%2F%E6%A9%9F%E8%83%BD%E9%A0%86">
-      🎨命令一覧</a>]
+  {{ if !n3s_is_login() }}
+  <div class="n3s-edit-notice">
+    {{e: $backurl = urlencode('index.php?action=edit&page=new'); }}
+    <a href="index.php?action=login&amp;back={{$backurl}}">ログイン</a>していません。ログインなしで保存できる投稿数には制限があります。
   </div>
-  <div>
-    <h1 id="edit_title">
-      [編集モード]
-      {{ $title | check_mudai }}
-      {{if $is_private}}🔒{{endif}}
-    </h1>
-    <p class="memo">{{ $memo }}</p>
-  </div>
-  <div id="edit-layout-header">
-    <label>プログラム:
-      <span id="sizeSwitch">(→大)</span>
-      <span id="editSwitch">(→textarea)</span>
-      <span id="editLayoutButton">(→左右に配置)</span>
-    </label>
-  </div>
-  <!-- 上下レイアウト-->
-  <div id="edit-layout-ud" class="">
-    <div id="edit-layout-u">
-      <textarea id="nako3code">{{ $body }}</textarea>
+  {{ endif }}
+
+  <header class="n3s-edit-header">
+    <div class="n3s-edit-heading">
+      <p class="n3s-edit-eyebrow">{{if $app_id == 0}}新規プログラム{{else}}プログラム編集{{endif}}</p>
+      <h1 id="edit_title">
+        {{if $app_id == 0}}プログラムを作成{{else}}{{ $title | check_mudai }}{{endif}}
+        {{if $is_private}}<span class="n3s-edit-private">非公開</span>{{endif}}
+      </h1>
+      {{if $memo}}<p class="n3s-edit-description">{{ $memo }}</p>{{endif}}
     </div>
-    <div id="edit-layout-u2">
-      <div id="controll_buttons">
-        <span style="float:left;">
-          <button id="runButton" class="pure-button pure-button-primary">▶ 実 行 [F9]</button>
-          <button id="clearButton" class="pure-button">クリア</button>
-          <button id="tempSaveButton" class="pure-button" onclick="tmepSaveClick()">一時保存</button>
-          <label for="debugCheck" style="border: 1px silver dotted; padding: 6px;"><input id="debugCheck" type="checkbox" class="pure-checkbox">デバッグ</label>
-          <span id="breakpointButtons" style="display:none">
-            <span style="font-size:0.5em;">ブレイクポイント: </span>
-            <button id="breakpointPlay" class="pure-button" onclick="breakpointPlay()">→ 再開</button>
-            <button id="breakpointNext" class="pure-button" onclick="breakpointNext()">↓ 一行次へ</button>
-          </span>
-          <span id="tempInfoLabel"></span>
-        </span>
-        <span class="memo" style="white-space: nowrap; padding-top: 8px; float:right;">
-            <span><a href="#" class="pure-button" id="no_need_canvas">×</a></span>
-            キャンバス:
-            幅 <input type="text" id="canvas_w" value="{{$canvas_w}}" size="3">×
-            高 <input type="text" id="canvas_h" value="{{$canvas_h}}" size="3">
-        </span>
-        <div style="clear:both;"></div>
-      </div><!-- /#controll_buttons -->
+    <div class="n3s-edit-doc-links">
+      <a target="_blank" rel="noopener" href="https://nadesi.com/v3/doc/index.php?%E6%96%87%E6%B3%95">文法</a>
+      <a target="_blank" rel="noopener" href="https://nadesi.com/v3/doc/index.php?%E5%91%BD%E4%BB%A4%E4%B8%80%E8%A6%A7%2F%E6%A9%9F%E8%83%BD%E9%A0%86">命令一覧</a>
     </div>
-    <div id="edit-layout-d">
-      <div id="runbox">
-        <!-- 3.1.19以上 -->
-        <div id="nako3_output" style="display:none"></div>
-        <!-- 3.1.18以下 -->
-        <div id="nako3_error" style="display:none"></div> 
-        <!-- info box -->
-        <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
-    
-        <canvas id='nako3_canvas' width='{{$canvas_w}}' height='{{$canvas_h}}'></canvas>
-        <div id='nako3_div' class='nako3_div'></div>
+  </header>
+
+  <section id="edit-workspace" class="n3s-edit-workspace" aria-labelledby="edit-workspace-title">
+    <div class="n3s-edit-workspace-head">
+      <div>
+        <p class="n3s-edit-section-label">エディタ</p>
+        <h2 id="edit-workspace-title">プログラム</h2>
+      </div>
+      <div class="n3s-edit-view-controls" aria-label="エディタ表示設定">
+        <button type="button" id="sizeSwitch" class="pure-button">高さを拡大</button>
+        <button type="button" id="editSwitch" class="pure-button">標準テキストに切替</button>
+        <button type="button" id="editLayoutButton" class="pure-button">左右に配置</button>
       </div>
     </div>
-    <div id="api_token" style="display:none;">{{ $api_token }}</div>
-    <div id="app_id" style="display:none;">{{ $app_id }}</div>
-  </div>
-  <!-- /上下レイアウト-->
 
-  <!-- 左右レイアウト -->
-  <div id="edit-layout-lr" class="pure-g">
-    <div id="edit-layout-l" class="pure-u-1-2"></div>
-    <div id="edit-layout-r" class="pure-u-1-2"></div>
-  </div>
-  <!-- /左右レイアウト -->
-</div>
+    <div id="edit-layout-u2" class="n3s-edit-toolbar">
+      <div id="controll_buttons" class="n3s-edit-toolbar-inner">
+        <div class="n3s-edit-run-controls">
+          <button type="button" id="runButton" class="pure-button pure-button-primary">実行 <span>[F9]</span></button>
+          <button type="button" id="clearButton" class="pure-button">クリア</button>
+          <button type="button" id="tempSaveButton" class="pure-button" onclick="tmepSaveClick()">一時保存</button>
+          <label for="debugCheck" class="n3s-edit-debug"><input id="debugCheck" type="checkbox" class="pure-checkbox"> デバッグ</label>
+          <span id="breakpointButtons" class="n3s-edit-breakpoints" style="display:none">
+            <span>ブレイクポイント</span>
+            <button type="button" id="breakpointPlay" class="pure-button" onclick="breakpointPlay()">再開</button>
+            <button type="button" id="breakpointNext" class="pure-button" onclick="breakpointNext()">一行次へ</button>
+          </span>
+          <span id="tempInfoLabel" class="n3s-edit-temp-info" aria-live="polite"></span>
+        </div>
+        <div class="n3s-edit-canvas-controls">
+          <span class="n3s-edit-canvas-label">キャンバス</span>
+          <label>幅 <input type="number" id="canvas_w" value="{{$canvas_w}}" min="0" inputmode="numeric"></label>
+          <span aria-hidden="true">×</span>
+          <label>高さ <input type="number" id="canvas_h" value="{{$canvas_h}}" min="0" inputmode="numeric"></label>
+          <button type="button" class="pure-button" id="no_need_canvas">不使用</button>
+        </div>
+      </div>
+    </div>
 
-<!-- 編集ボタン -->
-<div class="ctrl_block">
-  {{if $app_id == 0}}
-    <p><button onclick="saveClick(true)" class="pure-button">新規保存</button></p>
-  {{else}}
-    <!-- 保存ボタン -->
-    {{if n3s_is_login()}}
-      {{if ($my_user_id === $user_id) || n3s_is_admin()}}
-      <p><button onclick="saveClick(false)" class="pure-button">上書き保存</button></p>
-      {{endif}}
-    {{else}}
-      <p><button onclick="saveClick(false)" class="pure-button">上書き保存</button></p>
-    {{endif}}
-    <p><a href="index.php?action=show&page={{$app_id}}" class="pure-button">表示ページ</a></p>
-  {{endif}}
-  
-  <!-- 復元ボタン -->
-  <p style="text-align:right;font-size:0.7em;">
-    <a name="recover_btn" href="#" id="recover_btn">
-    →直前に実行(または一時保存)した内容を復元<span id="tempSaveLabel"></span></a></p>
-  <!-- なでしこバージョン変更ボタン -->
-  <p style="text-align:right;font-size:0.7em;">なでしこバージョン: v
-    <input id="forceNakoVer" type="text" value="{{$version}}" onchange="changeNakoVersion()"/>
-    <input type="button" value="変更" onclick="changeNakoVersion()">
-    <input type="button" value="最新" onclick="changeNakoNewVersion()">
-  </p>
-</div>
+    <div id="edit-layout-ud">
+      <div id="edit-layout-u" class="n3s-edit-code-pane">
+        <textarea id="nako3code" aria-label="なでしこプログラム">{{ $body }}</textarea>
+      </div>
+      <div id="edit-layout-d" class="n3s-edit-result-pane">
+        <div id="runbox">
+          <div class="n3s-edit-result-head">実行結果</div>
+          <div id="nako3_output" style="display:none"></div>
+          <div id="nako3_error" style="display:none"></div>
+          <div class="nako3row nako3info" id="nako3_info" style="display:none"></div>
+          <canvas id="nako3_canvas" width="{{$canvas_w}}" height="{{$canvas_h}}"></canvas>
+          <div id="nako3_div" class="nako3_div"></div>
+        </div>
+      </div>
+      <div id="api_token" style="display:none;">{{ $api_token }}</div>
+      <div id="app_id" style="display:none;">{{ $app_id }}</div>
+    </div>
 
-<div class="ctrl_block">
-  <h1>素材のアップロード</h1>
-  {{ if n3s_is_login() }}
-  <p><a target="new" href="index.php?action=upload" class="pure-button">アップロード画面を開く</a></p>
-  {{ else }}
-  <p><a href="index.php?action=login">ログイン</a>するとファイルをアップロードできます。</p>
-  {{ endif }}
-</div>
+    <div id="edit-layout-lr" class="pure-g">
+      <div id="edit-layout-l" class="pure-u-1-2 n3s-edit-code-pane"></div>
+      <div id="edit-layout-r" class="pure-u-1-2 n3s-edit-result-pane"></div>
+    </div>
+  </section>
 
-<!-- save form -->
-<div style="display: none;">
+  <section class="n3s-edit-actions" aria-labelledby="edit-save-title">
+    <div class="n3s-edit-save-area">
+      <p class="n3s-edit-section-label">保存</p>
+      <h2 id="edit-save-title">プログラムを保存</h2>
+      <div class="n3s-edit-save-buttons">
+        {{if $app_id == 0}}
+        <button type="button" onclick="saveClick(true)" class="pure-button pure-button-primary">新規保存</button>
+        {{else}}
+          {{if n3s_is_login()}}
+            {{if ($my_user_id === $user_id) || n3s_is_admin()}}
+            <button type="button" onclick="saveClick(false)" class="pure-button pure-button-primary">上書き保存</button>
+            {{endif}}
+          {{else}}
+          <button type="button" onclick="saveClick(false)" class="pure-button pure-button-primary">上書き保存</button>
+          {{endif}}
+        <a href="index.php?action=show&amp;page={{$app_id}}" class="pure-button">表示ページ</a>
+        {{endif}}
+      </div>
+      <a href="#" id="recover_btn" class="n3s-edit-recover">直前に実行または一時保存した内容を復元<span id="tempSaveLabel"></span></a>
+    </div>
+
+    <details class="n3s-edit-version-area">
+      <summary>実行環境</summary>
+      <div class="n3s-edit-version-body">
+        <h2>なでしこバージョン</h2>
+        <div class="n3s-edit-version-controls">
+          <span>v</span>
+          <input id="forceNakoVer" type="text" value="{{$version}}" aria-label="なでしこバージョン" onchange="changeNakoVersion()">
+          <button type="button" class="pure-button" onclick="changeNakoVersion()">変更</button>
+          <button type="button" class="pure-button" onclick="changeNakoNewVersion()">最新版</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="n3s-edit-material" aria-labelledby="edit-material-title">
+    <div>
+      <p class="n3s-edit-section-label">素材</p>
+      <h2 id="edit-material-title">画像・音声・データ</h2>
+    </div>
+    {{ if n3s_is_login() }}
+    <a target="_blank" rel="noopener" href="index.php?action=upload" class="pure-button">素材をアップロード</a>
+    {{ else }}
+    <p><a href="index.php?action=login">ログイン</a>すると素材をアップロードできます。</p>
+    {{ endif }}
+  </section>
+</main>
+
+<div style="display:none;">
   <form id="n3s_save_form" method="post" action="index.php?action=save&amp;page={{$app_id}}&amp;load_src=no">
     <input id="save_form_canvas_w" type="hidden" name="canvas_w" value="">
     <input id="save_form_canvas_h" type="hidden" name="canvas_h" value="">
@@ -134,35 +152,27 @@
   </form>
 </div>
 
-<!-- script for ace editor -->
 {{ $import_editor | raw }}
-<!-- script for nadesiko3 -->
 {{ if $custom_head eq '' }}
 {{   $import_nako | raw }}
 {{ else }}
 {{   $custom_head | raw }}
 {{ endif }}
 
-<!-- script for nako3storage-->
 <script>
-// nako3storage_show.js から参照する変数
 var setValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。") }
 var getValue = function() { alert("現在ライブラリを読み込み中です。しばらくお待ちください。"); return "" }
 var editorObjects = null
 var msie = {{e:echo ($msie)?'true':'false'}};
 
-// nako3storage info
 const baseurl = '{{ $baseurl | safe }}';
 const editlink = 'index.php?action=save&page={{$app_id}}&mode=load&from=localStorage';
-
-// nako3 program info
 const app_id = {{ $app_id }};
-const nako_version = '{{ $version }}' + '.0.0.0' // 古いバージョンを考慮
+const nako_version = '{{ $version }}' + '.0.0.0'
 const newNakoVersion = '{{ $newNakoVersion }}'
 const runbox_c = document.getElementById('runbox')
 runbox_c.style.display = 'none'
 
-// 移動前の確認
 let askBeforeUnload = true
 window.addEventListener('beforeunload', function(event) {
   if (askBeforeUnload) {
@@ -171,7 +181,6 @@ window.addEventListener('beforeunload', function(event) {
   }
 });
 
-// デバッグメッセージの受信
 window.addEventListener('message', (e) => {
   if (!e.data || !e.data.action) { return }
   if (e.data.action !== 'nako3storage.debug.line') { return }
@@ -187,7 +196,6 @@ window.addEventListener('message', (e) => {
     navigator.__aceEditor.gotoLine(lineNo)
   }
 })
-
 </script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_edit.js', 'file', ['m'=>$mtime_nako3storage_edit]);}}"></script>
 <script defer src="{{e:echo n3s_getURL('nako3storage_show.js', 'file', ['m'=>$mtime_nako3storage_show]);}}"></script>

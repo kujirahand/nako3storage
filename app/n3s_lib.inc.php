@@ -533,7 +533,7 @@ function n3s_login_session_start($user)
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['name'] = $user['name'];
-    $_SESSION['screen_name'] = $user['name'];
+    $_SESSION['screen_name'] = $user['screen_name'] ?? '';
     $_SESSION['profile_url'] = n3s_get_user_image_url($user);
 }
 
@@ -1406,17 +1406,11 @@ function n3s_nadesiko3hub_update_all()
 
 function n3s_list_setIcon(&$list)
 {
-    // wnako / dncl / other
     foreach ($list as &$i) {
-        $icon = isset($i['nakotype']) ? $i['nakotype'] : 'wnako';
-        $i['tag'] = isset($i['tag']) ? $i['tag'] : '';
-        if (strpos($i['tag'], 'DNCL') !== FALSE) {
-            $icon = 'dncl';
-        }
-        if ($icon != 'wnako' && $icon != 'dncl') {
-            $icon = 'other';
-        }
-        $i['icon'] = "img/0-$icon.png";
+        $nakotype = isset($i['nakotype']) ? $i['nakotype'] : '';
+        $i['icon'] = ($nakotype === 'wnako' || $nakotype === 'cnako')
+            ? 'https://n3s.nadesi.com/image.php?f=727.png'
+            : 'https://n3s.nadesi.com/image.php?f=729.png';
     }
 }
 

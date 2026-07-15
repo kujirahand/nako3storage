@@ -24,9 +24,11 @@
     <p class="n3s-more"><a href="index.php?action=list&mode=ranking">もっと見る...</a></p>
   </section>
   {{ else }}
+  {{ if $find_user_id eq 0 }}
   <section class="n3s-list-section">
     <h1>投稿数: {{$app_count}}件</h1>
   </section>
+  {{ endif }}
   {{ endif }}
 
   {{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
@@ -60,12 +62,15 @@
     </div>
   </section>
   {{ else }}
+  {{ if $find_user_id eq 0 }}
   <section class="n3s-list-section" id="top_users">
     <h1>ユーザー数: {{$user_count}}名</h1>
   </section>
   {{ endif }}
+  {{ endif }}
 
   <section class="n3s-list-section" id="recent_list">
+    {{ if $find_user_id eq 0 }}
     {{ if $mode == 'ranking' }}
     <h1>人気順の表示</h1>
     {{ else }}
@@ -74,6 +79,7 @@
       {{ else }}
       <h1>投稿の一覧 (更新順 {{e:echo $offset}}件目から) {{ if $onlybad }} - 通報のあった投稿 {{ endif }}</h1>
       {{ endif }}
+    {{ endif }}
     {{ endif }}
 
     {{ if (!$list) }}

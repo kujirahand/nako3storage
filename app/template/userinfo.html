@@ -53,6 +53,12 @@
         <input type="text" name="description" id="desc" value="{{ $description }}" required>
       </div>
 
+      <div class="n3s-userinfo-field">
+        <label for="screen_name">X（Twitter）アカウント</label>
+        <input type="text" name="screen_name" id="screen_name" value="{{ $screen_name }}" maxlength="15" pattern="[A-Za-z0-9_]*" autocapitalize="off" spellcheck="false" placeholder="nadesiko3">
+        <p>作品ページの「Xへ投稿」に宛先として付けます。@ を除く英数字・アンダースコア15文字以内で入力してください。</p>
+      </div>
+
       <fieldset class="n3s-userinfo-image-field">
         <legend>プロフィール画像</legend>
         <input type="file" name="user_image" id="user_image" accept="image/jpeg,image/png,image/gif,image/webp">

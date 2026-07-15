@@ -185,14 +185,14 @@ document.addEventListener("DOMContentLoaded", function() {
     function openComments() {
         accordionContent.style.display = "block";
         accordionIcon.innerText = "▲";
-        accordionHeader.style.backgroundColor = "#eee";
+        accordionHeader.setAttribute("aria-expanded", "true");
         localStorage.setItem(storageKey, "open");
     }
     
     function closeComments() {
         accordionContent.style.display = "none";
         accordionIcon.innerText = "▼";
-        accordionHeader.style.backgroundColor = "#f9f9f9";
+        accordionHeader.setAttribute("aria-expanded", "false");
         localStorage.setItem(storageKey, "close");
     }
     
@@ -201,17 +201,6 @@ document.addEventListener("DOMContentLoaded", function() {
             openComments();
         } else {
             closeComments();
-        }
-    });
-    
-    accordionHeader.addEventListener("mouseenter", function() {
-        accordionHeader.style.backgroundColor = "#f0f0f0";
-    });
-    accordionHeader.addEventListener("mouseleave", function() {
-        if (accordionContent.style.display === "none") {
-            accordionHeader.style.backgroundColor = "#f9f9f9";
-        } else {
-            accordionHeader.style.backgroundColor = "#eee";
         }
     });
     
@@ -224,8 +213,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (infoContent && infoIcon && infoHeader) {
             infoContent.style.display = "block";
             infoIcon.innerText = "▼";
-            infoHeader.style.backgroundColor = "#eee";
-            infoHeader.style.borderRadius = "6px 6px 0 0";
+            infoHeader.setAttribute("aria-expanded", "true");
         }
     }
     
@@ -233,8 +221,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (infoContent && infoIcon && infoHeader) {
             infoContent.style.display = "none";
             infoIcon.innerText = "▶";
-            infoHeader.style.backgroundColor = "#f9f9f9";
-            infoHeader.style.borderRadius = "6px";
+            infoHeader.setAttribute("aria-expanded", "false");
         }
     }
     
@@ -247,16 +234,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
         
-        infoHeader.addEventListener("mouseenter", function() {
-            infoHeader.style.backgroundColor = "#f0f0f0";
-        });
-        infoHeader.addEventListener("mouseleave", function() {
-            if (infoContent.style.display === "none") {
-                infoHeader.style.backgroundColor = "#f9f9f9";
-            } else {
-                infoHeader.style.backgroundColor = "#eee";
-            }
-        });
     }
     
     // 初期状態の復元

@@ -150,10 +150,10 @@ function setupEditorSize() {
   sizeSwitch.onclick = function () {
     if (nako3code.style.height == full_h) {
       nako3code.style.height = mini_h;
-      sizeSwitch.innerHTML = '(→大)';
+      sizeSwitch.innerHTML = '高さを拡大';
     } else {
       nako3code.style.height = full_h;
-      sizeSwitch.innerHTML = '(→小)';
+      sizeSwitch.innerHTML = '高さを縮小';
     }
   };
   
@@ -162,7 +162,7 @@ function setupEditorSize() {
   if (editSwitch) {
     editSwitch.onclick = function () {
       useAce = !useAce
-      editSwitch.innerHTML = useAce ? '(→textarea)' : '(→AceEditor)'
+      editSwitch.innerHTML = useAce ? '標準テキストに切替' : 'Ace Editorに切替'
       setupEditor()
     };
   }
@@ -175,12 +175,12 @@ function setupEditorSize() {
     editLayoutButton.onclick = function () {
       if (config.editLayout == 'UD') {
         config.editLayout = 'LR'
-        editLayoutButton.innerHTML = '(→上下に配置)'
+        editLayoutButton.innerHTML = '上下に配置'
         qid('edit-layout-l').appendChild(nako3code)
         qid('edit-layout-r').appendChild(runbox)
       } else {
         config.editLayout = 'UD'
-        editLayoutButton.innerHTML = '(→左右に配置)'
+        editLayoutButton.innerHTML = '左右に配置'
         qid('edit-layout-u').appendChild(nako3code)
         qid('edit-layout-d').appendChild(runbox)
       }
