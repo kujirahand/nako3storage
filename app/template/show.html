@@ -218,7 +218,15 @@
 
       {{ if n3s_is_login() }}
       <div class="comment-form-container n3s-show-comment-form">
-        <h3>新規コメントを投稿</h3>
+        <div class="n3s-show-comment-form-head">
+          <h3>新規コメントを投稿</h3>
+          <select id="comment_template" class="n3s-show-comment-template" aria-label="コメントのひな形">
+            <option value="">ひな形を選択</option>
+            {{ for $comment_templates as $template_id => $templatebody }}
+            <option value="{{ $template_id }}">{{ $templatebody }}</option>
+            {{ endfor }}
+          </select>
+        </div>
         <p>コメントはポジティブで積極的な内容を投稿してください。内容は確認後に表示されます。</p>
         <form id="comment_post_form" onsubmit="submitComment(event)">
           <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">

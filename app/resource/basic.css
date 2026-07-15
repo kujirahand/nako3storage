@@ -3147,6 +3147,40 @@ ul.devblock span.lbl {
   font-size: 1em;
 }
 
+.n3s-show-comment-form-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.n3s-show-comment-form-head h3 {
+  margin: 0;
+}
+
+.n3s-show-comment-template {
+  max-width: min(100%, 320px);
+  box-sizing: border-box;
+  padding: 6px 28px 6px 9px;
+  border: 1px solid #d8c4cb;
+  border-radius: 5px;
+  color: var(--n3s-show-ink);
+  background: #fff;
+  font: inherit;
+  font-size: 0.88em;
+}
+
+@media (max-width: 480px) {
+  .n3s-show-comment-form-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .n3s-show-comment-template {
+    max-width: 100%;
+  }
+}
+
 .n3s-show-comment-form > p,
 .n3s-show-comment-login {
   color: var(--n3s-show-muted);

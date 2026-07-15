@@ -200,6 +200,23 @@ function comment_api_add()
     $app_id = intval(empty($_POST['app_id']) ? '0' : $_POST['app_id']);
     $parent_id = intval(empty($_POST['parent_id']) ? '0' : $_POST['parent_id']);
     $body = empty($_POST['body']) ? '' : trim($_POST['body']);
+    $is_template = false;
+
+    // ひな形はクライアントから本文を受け取らず、固定IDからサーバー側で解決する
+    if (isset($_POST['template_id']) && $_POST['template_id'] !== '') {
+        $template_id = filter_var($_POST['template_id'], FILTER_VALIDATE_INT);
+        $templates = n3s_get_comment_templates();
+        if ($template_id === false || !isset($templates[$template_id])) {
+            n3s_api_output(false, ['msg' => 'コメントのひな形IDが不正です。']);
+            return;
+        }
+        if ($parent_id !== 0) {
+            n3s_api_output(false, ['msg' => 'コメントのひな形は新規コメントにのみ利用できます。']);
+            return;
+        }
+        $body = $templates[$template_id];
+        $is_template = true;
+    }
     
     if ($app_id <= 0) {
         n3s_api_output(false, ['msg' => 'app_idが不正です。']);
@@ -271,13 +288,14 @@ function comment_api_add()
     
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
     $now = time();
+    $status = $is_template ? 'approved' : 'pending';
     
     db_begin();
     try {
         db_exec(
             "INSERT INTO comments (user_id, app_id, parent_id, name, body, ip, status, fav, ctime, mtime)
-             VALUES (?, ?, ?, ?, ?, ?, 'pending', 0, ?, ?)",
-            [$user_id, $app_id, $parent_id, $name, $body, $ip, $now, $now],
+             VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)",
+            [$user_id, $app_id, $parent_id, $name, $body, $ip, $status, $now, $now],
             'main'
         );
         db_commit();
@@ -287,6 +305,10 @@ function comment_api_add()
         return;
     }
     
+    if ($is_template) {
+        n3s_api_output(true, ['msg' => 'コメントを投稿しました。']);
+        return;
+    }
     n3s_api_output(true, ['msg' => 'コメントを送信しましたが、不適切な内容が含まれていないかAIが審査した後に公開されます。しばらくお待ちください。']);
 }
 

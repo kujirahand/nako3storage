@@ -76,6 +76,77 @@ test('ログイン中ならコメントを投稿できる（status=pendingにな
     expect((int)$comment['user_id'])->toBe($user_id);
 });
 
+test('ひな形IDを指定するとサーバー側の固定本文が審査なしで即時公開される', function () {
+    global $n3s_config;
+    $n3s_config['comment_templates'] = [42 => '設定から生成したコメント'];
+    $user_id = n3s_test_add_legacy_user('template@nadesi.com', 'password123', 'ひな形ユーザー');
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['name'] = 'ひな形ユーザー';
+    $_SESSION['email'] = 'template@nadesi.com';
+    $_SESSION['n3s_login_info'] = [
+        'user_id' => $user_id,
+        'name' => 'ひな形ユーザー',
+        'email' => 'template@nadesi.com',
+    ];
+
+    $_POST = [
+        'app_id' => 1,
+        'parent_id' => 0,
+        'body' => 'クライアントから送った自由文',
+        'template_id' => 42,
+        'edit_token' => n3s_getEditToken(),
+    ];
+    $_GET['mode'] = 'add';
+    $_REQUEST = array_merge($_GET, $_POST);
+
+    $out = n3s_test_capture(fn() => n3s_api_comment());
+    $res = json_decode($out, true);
+    expect($res['result'])->toBe(true);
+    expect($res['msg'])->toBe('コメントを投稿しました。');
+
+    $comment = db_get1('SELECT * FROM comments WHERE user_id = ?', [$user_id], 'main');
+    expect($comment['body'])->toBe('設定から生成したコメント');
+    expect($comment['status'])->toBe('approved');
+
+    $_GET = ['mode' => 'list', 'app_id' => 1];
+    $_POST = [];
+    $_REQUEST = $_GET;
+    $list_out = n3s_test_capture(fn() => n3s_api_comment());
+    $list_res = json_decode($list_out, true);
+    expect($list_res['result'])->toBe(true);
+    expect($list_res['comments'][0]['body'])->toBe('設定から生成したコメント');
+    expect($list_res['comments'][0]['status'])->toBe('approved');
+});
+
+test('存在しないひな形IDは登録されない', function () {
+    $user_id = n3s_test_add_legacy_user('bad-template@nadesi.com', 'password123', 'ひな形ユーザー');
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['name'] = 'ひな形ユーザー';
+    $_SESSION['email'] = 'bad-template@nadesi.com';
+    $_SESSION['n3s_login_info'] = [
+        'user_id' => $user_id,
+        'name' => 'ひな形ユーザー',
+        'email' => 'bad-template@nadesi.com',
+    ];
+
+    $_POST = [
+        'app_id' => 1,
+        'parent_id' => 0,
+        'template_id' => 999,
+        'edit_token' => n3s_getEditToken(),
+    ];
+    $_GET['mode'] = 'add';
+    $_REQUEST = array_merge($_GET, $_POST);
+
+    $out = n3s_test_capture(fn() => n3s_api_comment());
+    $res = json_decode($out, true);
+    expect($res['result'])->toBe(false);
+    expect($res['msg'])->toContain('ひな形IDが不正');
+    expect(db_get1('SELECT * FROM comments WHERE user_id = ?', [$user_id], 'main'))->toBeFalse();
+});
+
 test('NGワードが含まれるコメントは弾かれる', function () {
     global $n3s_config;
     $n3s_config['ng_words'] = ['だめ'];
@@ -518,5 +589,3 @@ test('非公開・限定公開作品に対するコメント閲覧制限', funct
     expect(count($res['comments']))->toBe(1);
     expect($res['comments'][0]['body'])->toBe('限定公開へのコメント');
 });
-
-

@@ -205,6 +205,31 @@ function n3s_get_config($key, $def)
     }
     return $def;
 }
+
+/**
+ * コメントひな形の設定を、画面表示と投稿処理で共通に利用できる形式へ整える。
+ */
+function n3s_get_comment_templates()
+{
+    $configured = n3s_get_config('comment_templates', []);
+    if (!is_array($configured)) {
+        return [];
+    }
+
+    $templates = [];
+    foreach ($configured as $id => $body) {
+        $template_id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($template_id === false || !is_string($body)) {
+            continue;
+        }
+        $body = trim($body);
+        if ($body === '' || mb_strlen($body) > 1000) {
+            continue;
+        }
+        $templates[$template_id] = $body;
+    }
+    return $templates;
+}
 /**
  * set config value
  */

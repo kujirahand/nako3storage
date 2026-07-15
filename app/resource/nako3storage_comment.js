@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const accordionContent = document.getElementById("comment_accordion_content");
     const accordionIcon = document.getElementById("comment_accordion_icon");
     const summaryText = document.getElementById("comment_summary_text");
+    const commentTemplate = document.getElementById("comment_template");
+    const commentBody = document.getElementById("comment_body");
     
     const storageKey = "n3s_comments_open_" + appId;
     
@@ -203,6 +205,23 @@ document.addEventListener("DOMContentLoaded", function() {
             closeComments();
         }
     });
+
+    // 選択したひな形IDを送信し、即座にコメントを登録する
+    if (commentTemplate && commentBody) {
+        commentTemplate.addEventListener("change", function() {
+            const templateId = commentTemplate.value;
+            if (templateId === "") return;
+
+            const form = document.getElementById("comment_post_form");
+            if (!form) return;
+
+            commentTemplate.disabled = true;
+            submitNewComment(form, templateId, function() {
+                commentTemplate.value = "";
+                commentTemplate.disabled = false;
+            });
+        });
+    }
     
     // 作品公開情報のアコーディオン開閉処理
     const infoHeader = document.getElementById("info_accordion_header");
@@ -292,11 +311,13 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     };
     
-    window.submitComment = function(e) {
-        e.preventDefault();
-        const form = e.target;
+    function submitNewComment(form, templateId, onComplete) {
         const formData = new FormData(form);
-        formData.append("editkey", editKey);
+        formData.set("editkey", editKey);
+        if (templateId !== "") {
+            formData.delete("body");
+            formData.set("template_id", templateId);
+        }
         
         fetch("api.php?action=comment&mode=add", {
             method: "POST",
@@ -323,7 +344,15 @@ document.addEventListener("DOMContentLoaded", function() {
         .catch(err => {
             console.error(err);
             alert("通信エラーが発生しました。");
+        })
+        .finally(() => {
+            if (onComplete) onComplete();
         });
+    }
+
+    window.submitComment = function(e) {
+        e.preventDefault();
+        submitNewComment(e.target, "");
     };
     
     window.submitReply = function(e, parentId) {
