@@ -146,6 +146,10 @@ function n3s_db_migrate_apps()
     if (!in_array('image_id', $names, true)) {
         db_exec("ALTER TABLE apps ADD COLUMN image_id INTEGER DEFAULT 0", [], 'main');
     }
+    if (!in_array('comment_count', $names, true)) {
+        db_exec("ALTER TABLE apps ADD COLUMN comment_count INTEGER DEFAULT 0", [], 'main');
+        db_exec("UPDATE apps SET comment_count = (SELECT count(*) FROM comments WHERE comments.app_id = apps.app_id AND comments.status = 'approved')", [], 'main');
+    }
 }
 
 // log DB にアクセス統計まわりのテーブルが無ければ作成する

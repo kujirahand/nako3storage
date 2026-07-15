@@ -298,6 +298,13 @@ function comment_api_add()
             [$user_id, $app_id, $parent_id, $name, $body, $ip, $status, $now, $now],
             'main'
         );
+        if ($status === 'approved') {
+            db_exec(
+                "UPDATE apps SET comment_count = comment_count + 1 WHERE app_id = ?",
+                [$app_id],
+                'main'
+            );
+        }
         db_commit();
     } catch (Exception $e) {
         db_rollback();
@@ -466,6 +473,23 @@ function comment_api_delete()
         return;
     }
     
+    // 削除前の承認済みコメント数をカウント
+    $approved_count = 0;
+    if ($comment['status'] === 'approved') {
+        $approved_count++;
+    }
+    // 親コメントの場合、芋づる削除される承認済み子コメント数も加算
+    if (intval($comment['parent_id']) === 0) {
+        $res = db_get1(
+            "SELECT count(*) FROM comments WHERE parent_id = ? AND status = 'approved'",
+            [$comment_id],
+            'main'
+        );
+        if ($res) {
+            $approved_count += intval($res['count(*)']);
+        }
+    }
+
     db_begin();
     try {
         // 1. コメント本体の削除
@@ -504,6 +528,13 @@ function comment_api_delete()
             );
         }
         
+        if ($approved_count > 0) {
+            db_exec(
+                "UPDATE apps SET comment_count = CASE WHEN comment_count >= ? THEN comment_count - ? ELSE 0 END WHERE app_id = ?",
+                [$approved_count, $approved_count, $comment['app_id']],
+                'main'
+            );
+        }
         db_commit();
     } catch (Exception $e) {
         db_rollback();

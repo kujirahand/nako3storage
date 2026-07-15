@@ -37,7 +37,8 @@ CREATE TABLE apps (
   bad         INTEGER DEFAULT 0,
   prog_hash   TEXT DEFAULT '', /* プログラムのハッシュ(公開プログラムで同一の投稿はできないようにする) */
   ctime       INTEGER DEFAULT 0,
-  mtime       INTEGER DEFAULT 0
+  mtime       INTEGER DEFAULT 0,
+  comment_count INTEGER DEFAULT 0 /* コメント数キャッシュ */
 );
 
 CREATE TABLE comments (

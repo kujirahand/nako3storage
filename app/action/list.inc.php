@@ -81,7 +81,7 @@ function n3s_list_get()
         $wheres1 = unserialize(serialize($wheres));
         $wheres1[] = "user_id > 0";
         $sql =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,view,user_id,tag,nakotype,bad,image_id,comment_count FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres1) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
         $list = db_get($sql, array_merge($where_params, [MAX_APP_RECENT, $offset]));
@@ -89,7 +89,7 @@ function n3s_list_get()
         $wheres2 = unserialize(serialize($wheres));
         $wheres2[] = "user_id == 0";
         $sql2 =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,view,user_id,tag,nakotype,bad,image_id,comment_count FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres2) .
             ' ORDER BY mtime DESC LIMIT ? OFFSET ?';
         $list2 = db_get($sql2, array_merge($where_params, [MAX_APP_GUEST, $offset]));
@@ -97,7 +97,7 @@ function n3s_list_get()
     elseif ($mode === 'ranking') { // ランキング表示モード
         $wheres[] = 'fav >= 3';
         $sql =
-            'SELECT app_id,title,author,memo,mtime,fav,user_id,tag,nakotype,bad,image_id FROM apps ' .
+            'SELECT app_id,title,author,memo,mtime,fav,view,user_id,tag,nakotype,bad,image_id,comment_count FROM apps ' .
             ' WHERE ' . implode(' AND ', $wheres) .
             ' ORDER BY fav DESC, app_id DESC LIMIT ?';
         $statements = array_merge($where_params, [MAX_APP_RECENT]);
@@ -323,8 +323,11 @@ function n3s_list_setCardHTML(&$list)
         $fav_html = ($fav > 0) ? "<span class=\"n3s-app-fav\">⭐ {$fav}</span>" : '';
         $bad_html = ($bad > 0) ? "<span class=\"n3s-app-bad\">⛔{$bad}</span>" : '';
         $tag_html = ($tag_html !== '') ? "<span class=\"n3s-app-tags\">{$tag_html}</span>" : '';
+        $view = isset($r['view']) ? intval($r['view']) : 0;
+        $comment_count = isset($r['comment_count']) ? intval($r['comment_count']) : 0;
+        $info_html = "<span class=\"n3s-app-info-meta\" style=\"position: absolute; right: 14px; bottom: 14px; font-size: 0.82em; color: #76676c;\">id:{$app_id} 👀{$view} 💬{$comment_count}</span>";
         $r['card_html'] = <<<HTML
-<article class="n3s-app-card">
+<article class="n3s-app-card" style="position: relative;">
   <a class="n3s-app-card-cover" href="id.php?{$app_id}">
     <img src="{$cover_url}" alt="{$title}">
   </a>
@@ -340,11 +343,12 @@ function n3s_list_setCardHTML(&$list)
     </div>
     <h2 class="n3s-app-title"><a href="id.php?{$app_id}">{$title}</a></h2>
     <p class="n3s-app-memo">{$memo}</p>
-    <div class="n3s-app-foot">
+    <div class="n3s-app-foot" style="padding-right: 155px;">
       {$fav_html}
       {$bad_html}
       {$tag_html}
     </div>
+    {$info_html}
   </div>
 </article>
 HTML;

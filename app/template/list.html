@@ -101,11 +101,7 @@
       {{ $r.card_html | raw }}
       {{ endfor }}
     </div>
-    {{ if $next_url }}
-    <div class="next_button_div">
-      <a href='{{$next_url}}' class="pure-button">次へ</a>
-    </div>
-    {{ endif }}
+    <p class="n3s-more" style="clear: both;"><a href="index.php?action=list_login">もっと見る...</a></p>
     {{ endif }}
   </section>
 
@@ -117,11 +113,7 @@
       {{ $r.card_html | raw }}
       {{ endfor }}
     </div>
-    {{ if $next_url }}
-    <div class="next_button_div">
-      <a href='{{$next_url}}' class="pure-button">次へ</a>
-    </div>
-    {{ endif }}
+    <p class="n3s-more" style="clear: both;"><a href="index.php?action=list_nologin">もっと見る...</a></p>
   </section>
   {{ endif }}
 

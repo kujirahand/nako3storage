@@ -1,0 +1,50 @@
+{{ include parts_html_header.html }}
+
+<div class="n3s-list-page">
+  <section class="n3s-list-section">
+    <h1>ログインなしの投稿一覧 ({{ $total_count }}件)</h1>
+    <p class="n3s-section-lead">ユーザー登録なし（ゲスト）で投稿された作品の一覧です。</p>
+    
+    <div class="n3s-upload-tabs" role="tablist" aria-label="ソート順">
+      <a href="index.php?action=list_nologin&sort=mtime&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'mtime' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'mtime' }}true{{ else }}false{{ endif }}">最新順</a>
+      <a href="index.php?action=list_nologin&sort=view&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'view' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'view' }}true{{ else }}false{{ endif }}">アクセス数順</a>
+      <a href="index.php?action=list_nologin&sort=fav&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'fav' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'fav' }}true{{ else }}false{{ endif }}">お気に入り順</a>
+      <a href="index.php?action=list_nologin&sort=comment&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'comment' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'comment' }}true{{ else }}false{{ endif }}">コメント順</a>
+    </div>
+
+    {{ if (!$list) }}
+    <div class="showblock">作品が見つかりませんでした。</div>
+    {{ else }}
+    <div class="n3s-tiles">
+      {{ for $list as $r }}
+      {{ $r.card_html | raw }}
+      {{ endfor }}
+    </div>
+
+    <div class="next_button_div" style="margin-top: 25px; text-align: center;">
+      {{ if $prev_url }}
+      <a href="{{ $prev_url }}" class="pure-button" style="margin-right: 10px;">◀ 前へ</a>
+      {{ endif }}
+      {{ if $next_url }}
+      <a href="{{ $next_url }}" class="pure-button">次へ ▶</a>
+      {{ endif }}
+    </div>
+    {{ endif }}
+  </section>
+
+  <div class="addon_block n3s-list-actions" style="margin-top: 30px;">
+    <a class="pure-button" href="index.php?action=list">作品一覧に戻る</a>
+  </div>
+
+  {{ if $is_admin }}
+  <div class="addon_block n3s-admin-links">
+    <p>管理用</p>
+    <ul>
+      <li><a href="index.php?action=list_nologin&sort={{ $sort }}&onlybad=1&noindex=1">問題投稿(閲覧注意)</a></li>
+      <li><a href="index.php?action=list_nologin&sort={{ $sort }}&nofilter=1&noindex=1">問題込みで表示</a></li>
+    </ul>
+  </div>
+  {{ endif }}
+</div>
+
+{{ include parts_html_footer.html }}

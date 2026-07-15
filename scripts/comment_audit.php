@@ -177,6 +177,13 @@ foreach ($comments as $c) {
             [$status, time(), $comment_id],
             'main'
         );
+        if ($status === 'approved') {
+            db_exec(
+                "UPDATE apps SET comment_count = comment_count + 1 WHERE app_id = ?",
+                [$c['app_id']],
+                'main'
+            );
+        }
         db_commit();
         echo "[SUCCESS] ステータスを '{$status}' に更新しました。\n";
     } catch (Exception $e) {
