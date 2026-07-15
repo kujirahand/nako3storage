@@ -33,5 +33,5 @@ test('編集画面のマイページと素材リンクは別タブで開く', fu
 
     expect($out)
         ->toContain('<a target="_blank" rel="noopener" href="index.php?action=mypage">マイページ</a>')
-        ->toContain('<a target="_blank" rel="noopener" href="index.php?action=mypage&amp;mode=material">素材</a>');
+        ->toContain('<a target="_blank" rel="noopener" href="index.php?action=mypage&amp;mode=material">私の素材</a>');
 });

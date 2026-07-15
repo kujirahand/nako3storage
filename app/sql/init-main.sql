@@ -58,6 +58,7 @@ CREATE TABLE comments (
 CREATE TABLE images (
   image_id      INTEGER PRIMARY KEY,
   title         TEXT DEFAULT '',
+  description   TEXT DEFAULT '', /* 素材の説明 */
   filename      TEXT DEFAULT '', /* UPLOAD時のファイル名 */
   user_id       INTEGER DEFAULT 0,
   fav           INTEGER DEFAULT 0, /*　現在未使用 */
@@ -66,6 +67,7 @@ CREATE TABLE images (
   image_name    TEXT DEFAULT '', /* 画像の名前 */
   copyright     TEXT DEFAULT 'CC0',
   token         TEXT DEFAULT '', /* アクセスに必要なトークン */
+  view          INTEGER DEFAULT 0, /* 閲覧数(集計バッチ scripts/image_count.php が加算) */
   bad           INTEGER DEFAULT 0,
   ctime         INTEGER DEFAULT 0,
   mtime         INTEGER DEFAULT 0
@@ -88,6 +90,12 @@ CREATE TABLE comment_likes (
 );
 
 /*
+2026/07/15 images テーブルに説明カラムを追加 (既存DBは n3s_db_migrate_images() が自動マイグレーション)
+ALTER TABLE images ADD COLUMN description TEXT DEFAULT '';
+
+2026/07/15 images テーブルに閲覧数カラムを追加 (既存DBは n3s_db_migrate_images() が自動マイグレーション)
+ALTER TABLE images ADD COLUMN view INTEGER DEFAULT 0;
+
 2026/07/15 扉絵カラムを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)
 ALTER TABLE apps ADD COLUMN image_id INTEGER DEFAULT 0;
 

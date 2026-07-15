@@ -4,7 +4,7 @@
   {{if n3s_is_login()}}
   <nav class="n3s-mypage-nav" aria-label="マイページメニュー">
     <a href="{{ $link_mypage }}">私の作品</a>
-    <a href="{{ $link_material }}">素材</a>
+    <a href="{{ $link_material }}">私の素材</a>
     <a href="{{ $link_all_fav }}">お気に入り</a>
     <a href="{{ $link_userinfo }}">プロフィール設定</a>
   </nav>
@@ -30,6 +30,8 @@
       <dl class="n3s-upload-details">
         <div><dt>提供者</dt><dd><a target="new" href="{{$link_user}}">{{$user.name}}</a></dd></div>
         <div><dt>ライセンス</dt><dd>{{$copyright}}</dd></div>
+        <div><dt>アクセス数</dt><dd>👀 {{$view}}</dd></div>
+        <div><dt>説明</dt><dd class="n3s-upload-description-text">{{ if $description !== '' }}{{$description}}{{ else }}(説明はありません){{ endif }}</dd></div>
         {{ if $image_name !== '' }}
         <div><dt>ファイル名</dt><dd>{{$image_name}}</dd></div>
         <div><dt>アプリ</dt><dd><a href="id.php?{{ $app_id }}">app_id: {{ $app_id }}</a></dd></div>
@@ -48,15 +50,39 @@
   </section>
 
   {{ if n3s_is_login() && $can_edit }}
-  <section class="n3s-mypage-section n3s-upload-section n3s-upload-danger-zone">
-    <div class="n3s-mypage-section-head"><h2>素材の削除</h2></div>
-    <form action="index.php?action=upload&amp;mode=delete" method="POST" class="n3s-upload-delete-form">
-      <input type="hidden" name="image_id" value="{{$image_id}}">
-      <input type="hidden" name="acc_token" value="{{$acc_token}}">
-      <label class="n3s-upload-check"><input type="checkbox" name="really" value="delete"> この素材を削除する</label>
-      <button type="submit" class="pure-button">素材を削除</button>
-    </form>
-  </section>
+  <details class="n3s-mypage-section n3s-upload-section">
+    <summary>素材情報を編集</summary>
+    <div class="n3s-upload-edit-body">
+      <form action="index.php?action=upload&amp;mode=update" method="POST" class="pure-form pure-form-stacked n3s-upload-form">
+        <input type="hidden" name="image_id" value="{{$image_id}}">
+        <input type="hidden" name="acc_token" value="{{$acc_token}}">
+        <div class="n3s-upload-field">
+          <label for="edit_title">タイトル</label>
+          <input id="edit_title" type="text" name="title" value="{{$title}}">
+        </div>
+        <div class="n3s-upload-field">
+          <label for="edit_description">説明</label>
+          <textarea id="edit_description" name="description" rows="4">{{$description}}</textarea>
+        </div>
+        <div class="n3s-upload-actions">
+          <button type="submit" class="pure-button pure-button-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </details>
+
+  <details class="n3s-mypage-section n3s-upload-section n3s-upload-danger-zone">
+    <summary>素材の削除</summary>
+    <div class="n3s-upload-danger-body">
+      <p class="n3s-upload-danger-notice">素材を削除すると復元できません。ライセンスによっては他のユーザーが使っていることがあります。</p>
+      <form action="index.php?action=upload&amp;mode=delete" method="POST" class="n3s-upload-delete-form">
+        <input type="hidden" name="image_id" value="{{$image_id}}">
+        <input type="hidden" name="acc_token" value="{{$acc_token}}">
+        <label class="n3s-upload-check"><input type="checkbox" name="really" value="delete"> この素材を削除する</label>
+        <button type="submit" class="pure-button">素材を削除</button>
+      </form>
+    </div>
+  </details>
   {{ endif }}
 </main>
 

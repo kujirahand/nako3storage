@@ -54,7 +54,10 @@ function n3s_api_image()
         echo "404 not found (e100)";
         exit;
     }
-    
+
+    // 素材の表示回数カウント用ログ (集計は scripts/image_count.php が行う)
+    n3s_record_image_access($id);
+
     // アクセスコントロール
     header('Cross-Origin-Resource-Policy: cross-origin');
     header('Access-Control-Allow-Origin: *');

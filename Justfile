@@ -46,3 +46,7 @@ lint:
 # コメント審査バッチを実行する
 comment-audit:
     php scripts/comment_audit.php
+
+# 素材アクセスログの集計バッチを実行する (1時間に1回程度 cron から実行する想定)
+image-count:
+    php scripts/image_count.php

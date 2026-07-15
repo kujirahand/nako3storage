@@ -125,6 +125,31 @@
   </section>
   {{ endif }}
 
+  {{ if $top_materials }}
+  <section class="n3s-list-section" id="popular_materials">
+    <h1>人気の素材一覧</h1>
+    <p class="n3s-section-lead">よく利用されている画像・音声・データ素材です。</p>
+    <div class="n3s-material-tiles">
+      {{ for $top_materials as $m }}
+      <a class="n3s-material-tile" href="{{$m.info_url}}">
+        <span class="n3s-material-tile-preview">
+          {{ if $m.is_image }}
+          <img src="{{$m.preview_url}}" width="120" height="120" alt="" loading="lazy">
+          {{ else }}
+          <span class="n3s-material-tile-ext">{{$m.extension}}</span>
+          {{ endif }}
+        </span>
+        <span class="n3s-material-tile-body">
+          <span class="n3s-material-tile-title">{{$m.display_title}}</span>
+          <span class="n3s-material-tile-meta">👀 {{$m.view}}<span>{{$m.copyright}}</span></span>
+        </span>
+      </a>
+      {{ endfor }}
+    </div>
+    <p class="n3s-more"><a href="index.php?action=upload&mode=list">素材ファイルの一覧を表示</a></p>
+  </section>
+  {{ endif }}
+
   <div class="addon_block n3s-list-actions">
     <a class="pure-button" href="index.php?action=upload&mode=list">素材ファイルの一覧を表示</a>
     {{if n3s_is_login()}}

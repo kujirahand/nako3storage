@@ -67,6 +67,29 @@
   <p>データなし</p>
   {{endif}}
 
+  <h2>閲覧数 上位素材 (image.php)</h2>
+  {{if $top_images}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:700px">
+    <thead>
+      <tr><th>#</th><th>プレビュー</th><th>素材</th><th>閲覧数</th></tr>
+    </thead>
+    <tbody>
+    {{e: $n = 0; }}
+    {{for $top_images as $i=>$row}}
+    {{e: $n++; }}
+      <tr>
+        <td>{{$n}}</td>
+        <td><img src="{{$row.image_url}}" alt="" style="max-width:48px;max-height:48px"></td>
+        <td>{{if $row.title}}{{$row.title}}{{else}}{{$row.filename}}{{endif}}</td>
+        <td>{{$row.view}}</td>
+      </tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>データなし</p>
+  {{endif}}
+
   <p><a href="index.php?action=admin" class="pure-button">← ログページに戻る</a></p>
 </div>
 

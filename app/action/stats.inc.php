@@ -32,6 +32,9 @@ function n3s_web_stats()
     $top_show   = n3s_stats_top_apps('show',   $since, 10);
     $top_widget = n3s_stats_top_apps('widget', $since, 10);
 
+    // 閲覧数上位の素材 (image.php, scripts/image_count.php が集計した累計値)
+    $top_images = n3s_stats_top_images(10);
+
     // 日付リストを作成してチャートデータ用に整形
     $date_labels   = [];
     $show_counts   = [];
@@ -60,6 +63,7 @@ function n3s_web_stats()
         'api_counts'    => json_encode($api_counts,    JSON_UNESCAPED_UNICODE),
         'top_show'      => $top_show,
         'top_widget'    => $top_widget,
+        'top_images'    => $top_images,
     ]);
 }
 
@@ -94,6 +98,24 @@ function n3s_stats_top_apps($kind, $since, $limit = 10)
         $app = db_get1('SELECT title, author FROM apps WHERE app_id=?', [$row['app_id']]);
         $row['title']  = $app ? $app['title']  : '(削除済み)';
         $row['author'] = $app ? $app['author'] : '';
+    }
+    return $rows;
+}
+
+/**
+ * 閲覧数上位の素材一覧を取得する (images.view, scripts/image_count.php が集計)
+ */
+function n3s_stats_top_images($limit = 10)
+{
+    $rows = db_get(
+        'SELECT image_id, title, filename, app_id, view FROM images
+          WHERE view > 0 ORDER BY view DESC LIMIT ?',
+        [$limit]
+    );
+    if (!$rows) { return []; }
+    $baseurl = n3s_get_config('baseurl', '.');
+    foreach ($rows as &$row) {
+        $row['image_url'] = $baseurl . '/image.php?f=' . rawurlencode($row['filename']);
     }
     return $rows;
 }

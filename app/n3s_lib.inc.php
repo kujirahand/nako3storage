@@ -47,6 +47,7 @@ function n3s_db_init()
     n3s_db_migrate_comments();
     n3s_db_migrate_apps(); // 一覧掲載フラグ show_list (Issue #202)
     n3s_db_migrate_access_stats(); // アクセス統計テーブル (Issue #217)
+    n3s_db_migrate_images(); // 素材アクセスランキング用 images.view / image_access_log
 
     // v0.7未満で利用(過去のDB参照のため) #80
     /*
@@ -191,6 +192,60 @@ function n3s_record_access($kind, $app_id)
             [$date, $kind],
             'log'
         );
+    }
+}
+
+// main DB の images テーブルに view カラムが無ければ追加し、
+// log DB に image_access_log (素材アクセスの生ログ) テーブルが無ければ作成する
+function n3s_db_migrate_images()
+{
+    $columns = db_get('PRAGMA table_info(images)', [], 'main');
+    if (is_array($columns)) {
+        $names = array_column($columns, 'name');
+        if (!in_array('view', $names, true)) {
+            db_exec("ALTER TABLE images ADD COLUMN view INTEGER DEFAULT 0", [], 'main');
+        }
+        if (!in_array('description', $names, true)) {
+            db_exec("ALTER TABLE images ADD COLUMN description TEXT DEFAULT ''", [], 'main');
+        }
+    }
+    db_exec(
+        'CREATE TABLE IF NOT EXISTS image_access_log (
+            log_id   INTEGER PRIMARY KEY,
+            image_id INTEGER NOT NULL,
+            ip       TEXT NOT NULL,
+            ctime    INTEGER NOT NULL
+        )',
+        [],
+        'log'
+    );
+    db_exec(
+        'CREATE INDEX IF NOT EXISTS idx_image_access_log_image_id ON image_access_log(image_id)',
+        [],
+        'log'
+    );
+}
+
+/**
+ * 素材(image.php)へのアクセスを生ログとして記録する。
+ * 同一IPからの重複アクセスの除去は scripts/image_count.php の集計時に行うため、
+ * ここでは単純に1行追加するだけでよい。
+ */
+function n3s_record_image_access($image_id)
+{
+    $image_id = intval($image_id);
+    if ($image_id <= 0) {
+        return;
+    }
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    try {
+        db_exec(
+            'INSERT INTO image_access_log (image_id, ip, ctime) VALUES (?, ?, ?)',
+            [$image_id, $ip, time()],
+            'log'
+        );
+    } catch (Exception $e) {
+        // ログ記録の失敗で画像配信そのものを失敗させない
     }
 }
 

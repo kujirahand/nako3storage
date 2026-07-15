@@ -33,6 +33,10 @@ function n3s_web_upload()
         delete_image();
         return;
     }
+    if ($mode == 'update') {
+        update_image_meta();
+        return;
+    }
     if ($mode == 'list') {
         list_image();
         return;
@@ -80,6 +84,7 @@ function go_upload()
     // パラメータをチェック
     $copyright = isset($_POST['copyright']) ? $_POST['copyright'] : '';
     $title = isset($_POST['title']) ? $_POST['title'] : '';
+    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
     // 各種チェック
     if ($copyright != 'ok') {
         n3s_error('アップロードできません', '著作権に同意しないとアップロードできません。');
@@ -93,6 +98,7 @@ function go_upload()
         return;
     }
     $title = mb_substr($title, 0, 512); // size_field_max で弾きたいけど、アップロードし直すのは嫌なのでとりあえず適当にトリム
+    $description = mb_substr($description, 0, 2000); // 説明が極端に長い場合はトリムする
     // ファイルのチェック
     $userfile = isset($_FILES['userfile']) ? $_FILES['userfile'] : [];
     if (!$userfile) {
@@ -174,8 +180,8 @@ function go_upload()
         $token = bin2hex(random_bytes(8)); // 自分専用はよりトークンを生成
     }
     $image_id = db_insert(
-        'INSERT INTO images (title,user_id,copyright,app_id,image_name,token,ctime,mtime)VALUES(?,?,?,?,?,?,?,?)',
-        [$title, $user_id, $copyright_type, $app_id, $image_name, $token, time(), time()]
+        'INSERT INTO images (title,description,user_id,copyright,app_id,image_name,token,ctime,mtime)VALUES(?,?,?,?,?,?,?,?,?)',
+        [$title, $description, $user_id, $copyright_type, $app_id, $image_name, $token, time(), time()]
     );
     // detect filename
     $filename = "{$image_id}{$ext}";
@@ -278,10 +284,12 @@ function show_image()
         'im' => $image_name_url,
         'image_id' => $im['image_id'],
         'title' => $im['title'],
+        'description' => isset($im['description']) ? $im['description'] : '',
         'image_name' => $im['image_name'],
         'app_id' => $im['app_id'],
         'copyright' => getCopyrightName($im['copyright']),
         'image_url' => $image_url,
+        'view' => intval(isset($im['view']) ? $im['view'] : 0),
         'msg' => 'ファイルの情報',
         'user' => $user,
         'can_edit' => $can_edit,
@@ -319,6 +327,53 @@ function getCopyrightName2($type)
             return 'CC-BY';
     }
     return '著作権表示不明:' . $type;
+}
+
+function update_image_meta()
+{
+    // check acc_token (削除フォームと共通のCSRFトークン)
+    $acc_token = isset($_POST['acc_token']) ? $_POST['acc_token'] : '';
+    if (empty($_SESSION['n3s_acc_token_upload']) || $acc_token != $_SESSION['n3s_acc_token_upload']) {
+        n3s_error('更新できません', 'トークンの有効期限が切れています。ページを戻ってやり直してください。');
+        return;
+    }
+    $image_id = intval(isset($_POST['image_id']) ? $_POST['image_id'] : '0');
+    if ($image_id == 0) {
+        n3s_error('更新できません', 'パラメータが不正です。');
+        return;
+    }
+    $im = db_get1('SELECT * FROM images WHERE image_id=? LIMIT 1', [$image_id]);
+    if (!$im) {
+        n3s_error('ファイルがありません', '指定のファイルはありません。');
+        return;
+    }
+    // can_edit
+    $can_edit = false;
+    if (n3s_is_admin()) {
+        $can_edit = true;
+    } else {
+        $self_id = n3s_get_user_id();
+        if ($self_id == $im['user_id']) {
+            $can_edit = true;
+        }
+    }
+    if (!$can_edit) {
+        n3s_error('更新権限がありません。', '他人のリソースは更新できません。');
+        return;
+    }
+    $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+    $title = mb_substr($title, 0, 512);
+    $description = mb_substr($description, 0, 2000);
+    if ($title === '') {
+        $title = $im['filename'];
+    }
+    db_exec('UPDATE images SET title=?, description=?, mtime=? WHERE image_id=?', [$title, $description, time(), $image_id]);
+    $url = n3s_getURL('', 'upload', [
+        'mode' => 'show',
+        'image_id' => $image_id
+    ]);
+    header('location:' . $url);
 }
 
 function delete_image()
@@ -372,14 +427,31 @@ function delete_image()
 function list_image()
 {
     $PER_PAGE = 20;
-    $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
-    $images = db_get(
-        'SELECT * FROM images WHERE image_id <= ? ' .
-            'ORDER BY image_id DESC LIMIT ?',
-        [$max_id, $PER_PAGE]
-    );
+    // デフォルトは閲覧数ランキング順。sort=mtime のときだけ最新順にする。
+    $sort = (isset($_GET['sort']) && $_GET['sort'] === 'mtime') ? 'mtime' : 'ranking';
+
+    if ($sort === 'mtime') {
+        $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
+        $images = db_get(
+            'SELECT * FROM images WHERE image_id <= ? ' .
+                'ORDER BY image_id DESC LIMIT ?',
+            [$max_id, $PER_PAGE]
+        );
+        foreach ($images as $i) {
+            $max_id = $i['image_id'] - 1;
+        }
+        $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode' => 'list', 'sort' => 'mtime']);
+    } else {
+        // ランキング順は image_id と相関しないため、カーソル方式ではなく offset で送る
+        $offset = isset($_GET['offset']) ? max(0, intval($_GET['offset'])) : 0;
+        $images = db_get(
+            'SELECT * FROM images ORDER BY view DESC, image_id DESC LIMIT ? OFFSET ?',
+            [$PER_PAGE, $offset]
+        );
+        $next_url = n3s_getURL('', 'upload', ['offset' => $offset + $PER_PAGE, 'mode' => 'list', 'sort' => 'ranking']);
+    }
+
     foreach ($images as &$i) {
-        $max_id = $i['image_id'] - 1;
         $fname = $i['filename'];
         $is_image = false;
         if (preg_match('/\.(jpe?g|png|gif|webp)$/i', $fname)) {
@@ -391,10 +463,12 @@ function list_image()
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id' => $i['image_id'], 'mode' => 'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
-    $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode' => 'list']);
     n3s_template_fw('upload-list.html', [
         'images' => $images,
         'next_url' => $next_url,
+        'sort' => $sort,
+        'link_ranking_url' => n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'ranking']),
+        'link_mtime_url' => n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'mtime']),
         'link_mypage' => n3s_getURL('all', 'mypage'),
         'link_material' => n3s_getURL('all', 'mypage', ['mode' => 'material']),
         'link_all_fav' => n3s_getURL('all', 'mypage', ['fav' => 'all']),

@@ -155,6 +155,8 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 - `logs`: 操作ログ。
 - `ip_check`: IP 関連チェック。
+- `access_stats`: 作品(`apps`)の日別アクセス統計。`n3s_record_access($kind, $app_id)` がリクエスト時に直接インクリメントする(集計バッチ不要)。
+- `image_access_log`: 素材(`image.php`)アクセスの生ログ (`image_id`, `ip`, `ctime`)。`n3s_record_image_access()` がアクセス毎に無条件で1行追加する(重複除去はしない)。`scripts/image_count.php` が定期的に `(image_id, ip)` の重複を除去して `images.view` へ加算し、処理済み行を削除する。詳細は 8 章参照。
 
 ### アプリ内ストレージ DB: `data_astorage/`
 
@@ -232,10 +234,16 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `image.php?f=1.png` は `n3s_api_image()` で配信される。
 - `image.php?t=<token>&f=1.png` は `SELF` ファイルなど token 付き実ファイルに必要。
 - `image.php?app_id=<id>&image_name=<name>` でも検索できる。
-- `mp3`、`ogg`、`oga` は HTTP Range 対応のため実ファイル URL へリダイレクトする。
+- `mp3`、`ogg`、`oga` は `images/` への直接アクセスを禁止しているため、`n3s_output_file_with_range()` により `image.php` 自身が HTTP Range 対応で配信する(実ファイルへのリダイレクトはしない)。
 - 配信時は `Access-Control-Allow-Origin: *` と `Cross-Origin-Resource-Policy: cross-origin` が付く。
 
 注意: 現状のアップロード検証は主に拡張子ベースです。MIME 検証を追加する場合は、既存互換と保存済みファイルへの影響を確認してください。
+
+素材アクセスのカウント(閲覧数ランキング用):
+
+- `n3s_api_image()` はファイル配信の直前に `n3s_record_image_access($image_id)` を呼び、ログDBの `image_access_log` へ `(image_id, ip, ctime)` を1行追加する。同一IPからの重複除去はこの時点では行わない。
+- `scripts/image_count.php` (`just image-count`) を 1 時間に 1 回程度 cron で実行し、`image_access_log` を `(image_id, ip)` で重複除去して `images.view` に加算し、処理済みログを削除する。リアルタイム集計ではない。
+- 管理者向け統計ページ (`index.php?action=stats`、`n3s_web_stats()`) の「閲覧数 上位素材」に `images.view` 降順のランキングが表示される。
 
 ---
 

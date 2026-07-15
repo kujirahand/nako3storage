@@ -2,6 +2,7 @@
 const MAX_APP_RECENT = 20; // 最新の投稿を何件まで表示するか
 const MAX_APP_GUEST = 4; // ログインなし投稿を何件まで表示するか
 const MAX_APP_RANKING = 8; // トップページのランキング枠を何件まで表示するか
+const MAX_LIST_MATERIALS = 12; // トップページの人気素材枠を何件まで表示するか
 const MAX_PAGE_OFFSET = 500; // 500以降は表示しない
 
 // ブラウザからのアクセスがあったとき
@@ -118,7 +119,11 @@ function n3s_list_get()
     // --------------------------------------------------------
     $ranking = [];
     $ranking_all = [];
+    $top_materials = [];
     if ($mode === 'list' && $find_user_id === 0 && $onlybad === 0 && $nofilter === 0 && $offset == 0) {
+        // 人気の素材一覧 (image.php の閲覧数ランキング, scripts/image_count.php が集計)
+        $top_materials = n3s_list_get_popular_materials(MAX_LIST_MATERIALS);
+
         // 全期間を取得
         $ranking_all = db_get('SELECT * FROM apps '.
             'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (show_list = 1)'.
@@ -220,7 +225,45 @@ function n3s_list_get()
         "top_users" => $top_users,
         "user_count" => $user_count,
         "app_count" => $app_count,
+        "top_materials" => $top_materials,
     ];
+}
+
+/**
+ * 人気の素材一覧を取得する (images.view 降順)。
+ * view はアクセスログの集計バッチ scripts/image_count.php が更新する。
+ * 自分専用(SELF)や通報された素材は除外し、表示用のプレビューURL・詳細URLを付与する。
+ */
+function n3s_list_get_popular_materials($limit)
+{
+    $limit = intval($limit);
+    if ($limit <= 0) {
+        return [];
+    }
+    $rows = db_get(
+        'SELECT image_id, title, filename, copyright, view FROM images ' .
+            "WHERE view > 0 AND copyright != 'SELF' AND bad = 0 " .
+            'ORDER BY view DESC, image_id DESC LIMIT ?',
+        [$limit]
+    );
+    if (!$rows) {
+        return [];
+    }
+    foreach ($rows as &$row) {
+        $filename = isset($row['filename']) ? $row['filename'] : '';
+        $extension = strtoupper(pathinfo($filename, PATHINFO_EXTENSION));
+        $row['extension'] = ($extension !== '') ? $extension : 'FILE';
+        $row['is_image'] = preg_match('/\.(jpe?g|png|gif|webp)$/i', $filename) === 1;
+        $row['preview_url'] = $row['is_image'] ? n3s_cover_url_from_image_row($row) : '';
+        $title = isset($row['title']) ? trim($row['title']) : '';
+        $row['display_title'] = ($title !== '') ? $title : $filename;
+        $row['info_url'] = n3s_getURL('', 'upload', [
+            'mode' => 'show',
+            'image_id' => intval($row['image_id']),
+        ]);
+    }
+    unset($row);
+    return $rows;
 }
 
 function n3s_list_setUserProfileURL(&$list)
