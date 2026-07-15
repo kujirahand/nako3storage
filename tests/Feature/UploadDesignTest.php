@@ -296,3 +296,97 @@ test('mode=update は他人の素材を更新できない', function () {
     $row = db_get1('SELECT title FROM images WHERE image_id=?', [$image_id]);
     expect($row['title'])->toBe('他人の画像');
 });
+
+test('素材一覧の検索機能：タイトル・解説で検索可能、SELF素材の除外、ワイルドカードのエスケープ、引き継ぎURL', function () {
+    $now = time();
+    // ユーザー作成とログイン
+    n3s_add_user('search-material@example.com', 'password1', '検索太郎');
+    expect(n3s_login('search-material@example.com', 'password1'))->toBeTrue();
+    $user = n3s_get_login_info();
+
+    // テストデータの投入
+    // 1. タイトルが一致する公開素材
+    $id_title_match = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['青空の画像', 'これは青い空です。', 'search1.png', $user['user_id'], 'CC0', $now, $now]
+    );
+    // 2. 解説が一致する公開素材
+    $id_desc_match = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['夕暮れの写真', 'とても美しい夕日空です。', 'search2.png', $user['user_id'], 'CC0', $now, $now]
+    );
+    // 3. 一致しない公開素材
+    $id_no_match = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['緑の草原', '緑が綺麗です。', 'search3.png', $user['user_id'], 'CC0', $now, $now]
+    );
+    // 4. タイトルが一致するがSELF（自分専用）素材
+    $id_self_match = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['青空のヒミツ画像', '自分用の青空写真。', 'search4.png', $user['user_id'], 'SELF', $now, $now]
+    );
+    // 5. ワイルドカード文字を含む公開素材
+    $id_wildcard = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['100%の力', 'パーセント記号を含むテスト', 'search5.png', $user['user_id'], 'CC0', $now, $now]
+    );
+
+    // テストA: sort=search で「空」で検索
+    $_GET = [
+        'mode' => 'list',
+        'search_word' => '空',
+        'sort' => 'search'
+    ];
+    $out = n3s_test_capture(fn() => n3s_web_upload());
+
+    // タイトル一致（青空の画像）、解説一致（夕暮れの写真）が含まれていること
+    expect($out)->toContain('青空の画像');
+    expect($out)->toContain('夕暮れの写真');
+    // 一致しない（緑の草原）が含まれていないこと
+    expect($out)->not->toContain('緑の草原');
+    // SELF素材（青空のヒミツ画像）が含まれていないこと
+    expect($out)->not->toContain('青空のヒミツ画像');
+
+    // 検索タブのリンクと次ページURLなどに search_word が引き継がれていること
+    expect($out)->toContain('search_word=%E7%A9%BA');
+    expect($out)->toContain('sort=ranking');
+    expect($out)->toContain('sort=mtime');
+    expect($out)->toContain('sort=search');
+
+    // テストB: sort=search でヒットしないワードで検索
+    $_GET = [
+        'mode' => 'list',
+        'search_word' => '存在しないはずのキーワード',
+        'sort' => 'search'
+    ];
+    $out_empty = n3s_test_capture(fn() => n3s_web_upload());
+    expect($out_empty)->toContain('『存在しないはずのキーワード』に一致する公開素材はありません。');
+
+    // テストC: sort=search で%での検索（ワイルドカードのエスケープ検証）
+    $_GET = [
+        'mode' => 'list',
+        'search_word' => '%',
+        'sort' => 'search'
+    ];
+    $out_pct = n3s_test_capture(fn() => n3s_web_upload());
+    // "100%の力" はヒットするはず
+    expect($out_pct)->toContain('100%の力');
+    // それ以外の素材（%を含まないもの）はヒットしないはず（ワイルドカードがエスケープされているため、全部にはヒットしない）
+    expect($out_pct)->not->toContain('青空の画像');
+    expect($out_pct)->not->toContain('夕暮れの写真');
+
+    // テストD: sort=mtime (最新順タブ) のときは検索フォームが表示されず、全件表示されること
+    $_GET = [
+        'mode' => 'list',
+        'search_word' => '空',
+        'sort' => 'mtime'
+    ];
+    $out_mtime = n3s_test_capture(fn() => n3s_web_upload());
+    // 検索フォームは非表示
+    expect($out_mtime)->not->toContain('class="n3s-material-search-form');
+    // 全件表示されること
+    expect($out_mtime)->toContain('青空の画像');
+    expect($out_mtime)->toContain('夕暮れの写真');
+    expect($out_mtime)->toContain('緑の草原');
+    expect($out_mtime)->toContain('100%の力');
+});

@@ -3449,3 +3449,54 @@ ul.devblock span.lbl {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
+
+/* Material Search Styles */
+.n3s-material-search-form {
+  margin: 0 0 24px;
+}
+
+.n3s-material-search-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.n3s-material-search-input-group label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.n3s-material-search-input-group input[type="text"] {
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.n3s-material-search-clear {
+  color: var(--n3s-sakura-accent);
+  font-size: 0.9em;
+  text-decoration: none;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.n3s-material-search-clear:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .n3s-material-search-input-group {
+    flex-wrap: wrap;
+  }
+  .n3s-material-search-input-group input[type="text"] {
+    width: 100%;
+    flex: none;
+  }
+}

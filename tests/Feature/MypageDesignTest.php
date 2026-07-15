@@ -64,3 +64,56 @@ test('マイページのプロフィール画像は500px版を表示する', fun
         ->toContain('/image.php?f=201.jpg&amp;t=large-token')
         ->not->toContain('/image.php?f=201.jpg&amp;s=32');
 });
+
+test('マイページの素材検索機能：タイトル・解説で検索可能、自分の画像のみ検索、エスケープ検証', function () {
+    $now = time();
+    // ユーザーA (自分) を作成・ログイン
+    n3s_add_user('my-search@example.com', 'password1', 'マイ検索太郎');
+    expect(n3s_login('my-search@example.com', 'password1'))->toBeTrue();
+    $userA = n3s_get_login_info();
+
+    // ユーザーB (他人) を作成
+    $userB_id = n3s_add_user('other-search@example.com', 'password1', '他検索太郎');
+
+    // テストデータの投入
+    // 1. 自分のタイトル一致画像
+    $id_my_title = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['マイ青空画像', 'これは自分の青空です。', 'my1.png', $userA['user_id'], 'CC0', $now, $now]
+    );
+    // 2. 自分の解説一致画像
+    $id_my_desc = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['マイ夕暮れ写真', '夕日の空が綺麗です。', 'my2.png', $userA['user_id'], 'CC0', $now, $now]
+    );
+    // 3. 他人のタイトル一致画像 (ヒットしてはいけない)
+    $id_other_title = db_insert(
+        'INSERT INTO images (title,description,filename,user_id,copyright,ctime,mtime) VALUES (?,?,?,?,?,?,?)',
+        ['他人の青空画像', '他人の青空。', 'my3.png', $userB_id, 'CC0', $now, $now]
+    );
+
+    // テストA: 自分の「空」で検索
+    $_GET = [
+        'mode' => 'material',
+        'search_word' => '空',
+        'sort' => 'search',
+        'page' => '0'
+    ];
+    $out = n3s_test_capture(fn() => n3s_web_mypage());
+
+    // 自分の「マイ青空画像」と「マイ夕暮れ写真」が含まれていること
+    expect($out)->toContain('マイ青空画像');
+    expect($out)->toContain('マイ夕暮れ写真');
+    // 他人の「他人の青空画像」が含まれていないこと
+    expect($out)->not->toContain('他人の青空画像');
+
+    // テストB: ヒットしない言葉で検索
+    $_GET = [
+        'mode' => 'material',
+        'search_word' => '存在しないはずのキーワード',
+        'sort' => 'search',
+        'page' => '0'
+    ];
+    $out_empty = n3s_test_capture(fn() => n3s_web_mypage());
+    expect($out_empty)->toContain('『存在しないはずのキーワード』に一致する素材はありません。');
+});

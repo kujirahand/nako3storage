@@ -20,9 +20,28 @@
 
   <section class="n3s-mypage-section n3s-upload-section">
     <div class="n3s-upload-tabs" role="tablist" aria-label="素材一覧の並び替え">
-      <a href="{{$link_ranking_url}}" class="n3s-upload-tab{{if $sort != 'mtime'}} is-active{{endif}}" role="tab" aria-selected="{{if $sort != 'mtime'}}true{{else}}false{{endif}}">ランキング順</a>
+      <a href="{{$link_ranking_url}}" class="n3s-upload-tab{{if $sort == 'ranking'}} is-active{{endif}}" role="tab" aria-selected="{{if $sort == 'ranking'}}true{{else}}false{{endif}}">ランキング順</a>
       <a href="{{$link_mtime_url}}" class="n3s-upload-tab{{if $sort == 'mtime'}} is-active{{endif}}" role="tab" aria-selected="{{if $sort == 'mtime'}}true{{else}}false{{endif}}">最新順</a>
+      <a href="{{$link_search_url}}" class="n3s-upload-tab{{if $sort == 'search'}} is-active{{endif}}" role="tab" aria-selected="{{if $sort == 'search'}}true{{else}}false{{endif}}">検索</a>
     </div>
+
+    {{if $sort == 'search'}}
+    <!-- 検索フォーム -->
+    <form method="GET" action="index.php" class="n3s-material-search-form pure-form">
+      <input type="hidden" name="action" value="upload">
+      <input type="hidden" name="mode" value="list">
+      <input type="hidden" name="sort" value="search">
+      <div class="n3s-material-search-input-group">
+        <label for="material-search-input">素材の検索</label>
+        <input type="text" id="material-search-input" name="search_word" value="{{$search_word}}" placeholder="タイトル・解説で検索" class="pure-input-rounded">
+        <button type="submit" class="pure-button pure-button-primary">検索</button>
+        {{if $has_search}}
+        <a href="{{$link_clear_search}}" class="n3s-material-search-clear">クリア</a>
+        {{endif}}
+      </div>
+    </form>
+    {{endif}}
+
     {{ if $images }}
     <div class="n3s-upload-list">
       {{ for $images as $i }}
@@ -48,7 +67,11 @@
       <a href="{{$next_url}}" class="pure-button">次へ</a>
     </nav>
     {{ else }}
-    <p class="n3s-mypage-empty">公開素材はまだありません。</p>
+      {{ if $sort == 'search' && $has_search }}
+      <p class="n3s-mypage-empty">『{{$search_word}}』に一致する公開素材はありません。</p>
+      {{ else }}
+      <p class="n3s-mypage-empty">公開素材はまだありません。</p>
+      {{ endif }}
     {{ endif }}
   </section>
 </main>

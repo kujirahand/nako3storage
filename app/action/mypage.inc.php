@@ -58,15 +58,49 @@ function n3s_web_mypage()
     // 素材ページ
     if ($mode == 'material') {
         // 素材一覧
-        // デフォルトは閲覧数ランキング順。sort=mtime のときだけ最新順にする。
-        $sort = (isset($_GET['sort']) && $_GET['sort'] === 'mtime') ? 'mtime' : 'ranking';
-        $order_by = ($sort === 'mtime') ? 'image_id DESC' : 'view DESC, image_id DESC';
+        // ranking, mtime, search の3択
+        $sort = 'ranking';
+        if (isset($_GET['sort'])) {
+            if ($_GET['sort'] === 'mtime') {
+                $sort = 'mtime';
+            } elseif ($_GET['sort'] === 'search') {
+                $sort = 'search';
+            }
+        }
+
+        // 検索語の取得
+        $search_word = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
+        $has_search = ($sort === 'search' && $search_word !== '');
+
+        global $n3s_config;
+        $n3s_config['search_word'] = $search_word;
+        $n3s_config['has_search'] = $has_search;
+
+        $params = [$user_id];
+        $where = 'WHERE user_id=?';
+
+        if ($has_search) {
+            // %, _, \ のエスケープ
+            $escaped_word = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search_word);
+            $search_like = "%{$escaped_word}%";
+            $where .= ' AND (title LIKE ? ESCAPE \'\\\' OR description LIKE ? ESCAPE \'\\\')';
+            $params[] = $search_like;
+            $params[] = $search_like;
+        }
+
+        if ($sort === 'mtime' || $sort === 'search') {
+            $order_by = 'image_id DESC';
+        } else {
+            $order_by = 'view DESC, image_id DESC';
+        }
+
         $material_offset = MAX_MYPAGE_MATERIALS * $page;
-        $images = db_get(
-            'SELECT * FROM images WHERE user_id=? ORDER BY ' . $order_by .
-                ' LIMIT ? OFFSET ?',
-            [$user_id, MAX_MYPAGE_MATERIALS, $material_offset]
-        );
+        $sql = 'SELECT * FROM images ' . $where . ' ORDER BY ' . $order_by . ' LIMIT ? OFFSET ?';
+        $params[] = MAX_MYPAGE_MATERIALS;
+        $params[] = $material_offset;
+
+        $images = db_get($sql, $params);
+
         foreach ($images as &$image) {
             $filename = isset($image['filename']) ? $image['filename'] : '';
             $extension = strtoupper(pathinfo($filename, PATHINFO_EXTENSION));
@@ -79,13 +113,20 @@ function n3s_web_mypage()
             ]);
         }
         unset($image);
-        $link_next_material_page = n3s_getURL($page + 1, 'mypage', ['mode' => 'material', 'sort' => $sort]);
+
+        $link_params = ['mode' => 'material', 'sort' => $sort];
+        if ($has_search) {
+            $link_params['search_word'] = $search_word;
+        }
+
+        $link_next_material_page = n3s_getURL($page + 1, 'mypage', $link_params);
         if (count($images) < MAX_MYPAGE_MATERIALS) {
             $link_next_material_page = '';
         }
         $link_prev_material_page = ($page > 0)
-            ? n3s_getURL($page - 1, 'mypage', ['mode' => 'material', 'sort' => $sort])
+            ? n3s_getURL($page - 1, 'mypage', $link_params)
             : '';
+
         n3s_template_fw('mymaterial.html', [
             'user_id' => $user_id,
             'name' => $user['name'],
@@ -101,8 +142,12 @@ function n3s_web_mypage()
             'link_userinfo' => $link_userinfo,
             'page' => $page,
             'sort' => $sort,
+            'search_word' => $search_word,
+            'has_search' => $has_search,
             'link_sort_ranking' => n3s_getURL('all', 'mypage', ['mode' => 'material', 'sort' => 'ranking']),
             'link_sort_mtime' => n3s_getURL('all', 'mypage', ['mode' => 'material', 'sort' => 'mtime']),
+            'link_sort_search' => n3s_getURL('all', 'mypage', ['mode' => 'material', 'sort' => 'search']),
+            'link_clear_search' => n3s_getURL('all', 'mypage', ['mode' => 'material', 'sort' => 'search']),
         ]);
         return;
     }

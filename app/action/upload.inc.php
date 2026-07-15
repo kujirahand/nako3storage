@@ -427,27 +427,77 @@ function delete_image()
 function list_image()
 {
     $PER_PAGE = 20;
-    // デフォルトは閲覧数ランキング順。sort=mtime のときだけ最新順にする。
-    $sort = (isset($_GET['sort']) && $_GET['sort'] === 'mtime') ? 'mtime' : 'ranking';
+    
+    // sort パラメータの判定
+    $sort = 'ranking';
+    if (isset($_GET['sort'])) {
+        if ($_GET['sort'] === 'mtime') {
+            $sort = 'mtime';
+        } elseif ($_GET['sort'] === 'search') {
+            $sort = 'search';
+        }
+    }
+
+    // 検索語の取得
+    $search_word = isset($_GET['search_word']) ? trim($_GET['search_word']) : '';
+    $has_search = ($sort === 'search' && $search_word !== '');
+
+    global $n3s_config;
+    $n3s_config['search_word'] = $search_word;
+    $n3s_config['has_search'] = $has_search;
+
+    $params = [];
+    if ($has_search) {
+        // %, _, \ のエスケープ
+        $escaped_word = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search_word);
+        $search_like = "%{$escaped_word}%";
+    }
 
     if ($sort === 'mtime') {
         $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
-        $images = db_get(
-            'SELECT * FROM images WHERE image_id <= ? ' .
-                'ORDER BY image_id DESC LIMIT ?',
-            [$max_id, $PER_PAGE]
-        );
+        $sql = 'SELECT * FROM images WHERE (copyright != \'SELF\') AND (image_id <= ?) ORDER BY image_id DESC LIMIT ?';
+        $params[] = $max_id;
+        $params[] = $PER_PAGE;
+
+        $images = db_get($sql, $params);
         foreach ($images as $i) {
             $max_id = $i['image_id'] - 1;
         }
+
         $next_url = n3s_getURL('', 'upload', ['max_id' => $max_id, 'mode' => 'list', 'sort' => 'mtime']);
+    } elseif ($sort === 'search') {
+        $max_id = isset($_GET['max_id']) ? intval($_GET['max_id']) : 65535;
+        $sql = 'SELECT * FROM images WHERE (copyright != \'SELF\') AND (image_id <= ?)';
+        $params[] = $max_id;
+
+        if ($has_search) {
+            $sql .= ' AND (title LIKE ? ESCAPE \'\\\' OR description LIKE ? ESCAPE \'\\\')';
+            $params[] = $search_like;
+            $params[] = $search_like;
+        }
+
+        $sql .= ' ORDER BY image_id DESC LIMIT ?';
+        $params[] = $PER_PAGE;
+
+        $images = db_get($sql, $params);
+        foreach ($images as $i) {
+            $max_id = $i['image_id'] - 1;
+        }
+
+        $next_params = ['max_id' => $max_id, 'mode' => 'list', 'sort' => 'search'];
+        if ($has_search) {
+            $next_params['search_word'] = $search_word;
+        }
+        $next_url = n3s_getURL('', 'upload', $next_params);
     } else {
         // ランキング順は image_id と相関しないため、カーソル方式ではなく offset で送る
         $offset = isset($_GET['offset']) ? max(0, intval($_GET['offset'])) : 0;
-        $images = db_get(
-            'SELECT * FROM images ORDER BY view DESC, image_id DESC LIMIT ? OFFSET ?',
-            [$PER_PAGE, $offset]
-        );
+        $sql = 'SELECT * FROM images WHERE (copyright != \'SELF\') ORDER BY view DESC, image_id DESC LIMIT ? OFFSET ?';
+        $params[] = $PER_PAGE;
+        $params[] = $offset;
+
+        $images = db_get($sql, $params);
+
         $next_url = n3s_getURL('', 'upload', ['offset' => $offset + $PER_PAGE, 'mode' => 'list', 'sort' => 'ranking']);
     }
 
@@ -463,12 +513,26 @@ function list_image()
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id' => $i['image_id'], 'mode' => 'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
     }
+
+    $link_ranking_url = n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'ranking']);
+    $link_mtime_url = n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'mtime']);
+    $link_search_params = ['mode' => 'list', 'sort' => 'search'];
+    if ($search_word !== '') {
+        $link_search_params['search_word'] = $search_word;
+    }
+    $link_search_url = n3s_getURL('', 'upload', $link_search_params);
+    $link_clear_search = n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'search']);
+
     n3s_template_fw('upload-list.html', [
         'images' => $images,
         'next_url' => $next_url,
         'sort' => $sort,
-        'link_ranking_url' => n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'ranking']),
-        'link_mtime_url' => n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'mtime']),
+        'search_word' => $search_word,
+        'has_search' => $has_search,
+        'link_clear_search' => $link_clear_search,
+        'link_ranking_url' => $link_ranking_url,
+        'link_mtime_url' => $link_mtime_url,
+        'link_search_url' => $link_search_url,
         'link_mypage' => n3s_getURL('all', 'mypage'),
         'link_material' => n3s_getURL('all', 'mypage', ['mode' => 'material']),
         'link_all_fav' => n3s_getURL('all', 'mypage', ['fav' => 'all']),
