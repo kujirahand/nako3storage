@@ -2,6 +2,7 @@
 const MAX_APP_RECENT = 20; // 最新の投稿を何件まで表示するか
 const MAX_APP_GUEST = 4; // ログインなし投稿を何件まで表示するか
 const MAX_APP_RANKING = 8; // トップページのランキング枠を何件まで表示するか
+const MAX_APP_RANKING_GREAT = 4; // 偉大な投稿の数を何件まで表示するか
 const MAX_LIST_MATERIALS = 12; // トップページの人気素材枠を何件まで表示するか
 const MAX_PAGE_OFFSET = 500; // 500以降は表示しない
 
@@ -158,7 +159,7 @@ function n3s_list_get()
             }
         }
         shuffle($ranking_all);
-        $ranking_all = array_splice($ranking_all, 0, MAX_APP_RANKING);
+        $ranking_all = array_splice($ranking_all, 0, MAX_APP_RANKING_GREAT);
 
         // 人気のユーザー (#185)
         $users = [];
