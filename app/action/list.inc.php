@@ -57,6 +57,9 @@ function n3s_list_get()
         $wheres[] = 'user_id = ?';
         $where_params[] = $find_user_id;
         $find_user_info = db_get1("SELECT * FROM users WHERE user_id=?", [$find_user_id], "users");
+        if ($find_user_info) {
+            $find_user_info['profile_url_large'] = n3s_get_user_image_url($find_user_info, 0);
+        }
     }
     // 非公開投稿は表示しない
     $wheres[] = 'is_private = 0';

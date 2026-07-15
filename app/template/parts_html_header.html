@@ -6,6 +6,7 @@
     
     <title>{{ $page_title }}</title>
     <meta name="description" content="{{ $page_title }}">
+    {{if isset($og_image) && $og_image}}<meta property="og:image" content="{{ $og_image }}">{{endif}}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="skin/def/pure-min.css">
     <link rel="stylesheet" href="index.php?action=file&page=basic.css&m={{ $n3s_css_mtime }}">
@@ -22,4 +23,3 @@
     <h1 class="title"><a href="./index.php">{{ $page_title }}</a></h1>
     {{ include parts_html_menu.html }}
 </div>
-

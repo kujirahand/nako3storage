@@ -11,6 +11,7 @@ function n3s_web_show()
     $editkey = empty($_GET['editkey']) ? '' : $_GET['editkey'];
     $sandbox_url = n3s_get_config('sandbox_url', '');
     $a['sandbox_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&mute_title=1&editkey={$editkey}";
+    $a['og_image'] = $a['cover_url'];
     n3s_set_config('page_title', $a['title']);
     // 閲覧統計を記録 (Issue #217)
     if (!empty($a['app_id'])) {

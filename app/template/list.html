@@ -4,8 +4,19 @@
   <div class="list info">{{ $top_message | raw }}</div>
 
   {{ if ($find_user_id gt 0)&&(!empty($find_user_info)) }}
-  <section class="n3s-list-section">
+  <section class="n3s-list-section n3s-list-user-section">
     <h1>{{$find_user_info.name}} さんの投稿</h1>
+    <div class="n3s-list-user-profile">
+      <img class="n3s-list-user-profile-image" src="{{$find_user_info.profile_url_large}}" width="200" height="200" alt="{{$find_user_info.name}}のプロフィール画像">
+      <div class="n3s-list-user-profile-main">
+        <h2>プロフィール</h2>
+        {{ if $find_user_info.description }}
+        <p class="n3s-list-user-description">{{$find_user_info.description}}</p>
+        {{ else }}
+        <p class="n3s-list-user-description is-empty">プロフィールはまだ設定されていません。</p>
+        {{ endif }}
+      </div>
+    </div>
   </section>
   {{ endif }}
 

@@ -535,6 +535,46 @@ ul.devblock span.lbl {
   color: var(--n3s-sakura-accent);
   font-size: 0.9em;
 }
+.n3s-list-user-profile {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 36px;
+  align-items: center;
+  padding: 18px 0 28px;
+}
+.n3s-list-user-profile-image {
+  display: block;
+  box-sizing: border-box;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border: 1px solid var(--n3s-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 7px 20px rgba(59, 49, 52, 0.1);
+}
+.n3s-list-user-profile-main {
+  min-width: 0;
+  padding-left: 24px;
+  border-left: 3px solid var(--n3s-sakura-soft);
+}
+.n3s-list-user-profile-main h2 {
+  margin: 0 0 14px;
+  color: var(--n3s-sumi);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: 1.25em;
+  letter-spacing: 0;
+}
+.n3s-list-user-description {
+  margin: 0;
+  color: #5f5357;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.n3s-list-user-description.is-empty {
+  color: #8b7a80;
+}
 .n3s-section-lead {
   color: #6f6065;
   line-height: 1.7;
@@ -2453,6 +2493,23 @@ ul.devblock span.lbl {
   .n3s-list-section h1 {
     font-size: 1.18em;
     margin: 16px 0 8px;
+  }
+  .n3s-list-user-profile {
+    display: block;
+    padding: 8px 0 24px;
+  }
+  .n3s-list-user-profile-image {
+    width: min(400px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .n3s-list-user-profile-main {
+    margin-top: 20px;
+    padding-left: 14px;
+  }
+  .n3s-list-user-profile-main h2 {
+    margin-bottom: 8px;
+    font-size: 1.08em;
   }
   .n3s-tiles {
     display: block;
