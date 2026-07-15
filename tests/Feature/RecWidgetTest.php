@@ -20,16 +20,20 @@ require_once N3S_TEST_ROOT . '/app/action/rec_widget.inc.php';
 // ヘルパー
 // ------------------------------------------------
 
-/** access_stats から当日の widget カウントを取得する */
+/**
+ * 記録された widget アクセスのログ件数を取得する。
+ * n3s_record_access() は app_access_log へ生ログを追記するだけで、
+ * access_stats への集計は scripts/app_count.php が後から行う (Issue #246 と同方式)。
+ * ここでは「記録されたかどうか」を見たいので、生ログの件数を数える。
+ */
 function _rw_widget_count(int $app_id): int
 {
-    $date = date('Y-m-d');
     $row = db_get1(
-        'SELECT count FROM access_stats WHERE date=? AND kind=? AND app_id=?',
-        [$date, 'widget', $app_id],
+        'SELECT COUNT(*) AS cnt FROM app_access_log WHERE kind=? AND app_id=?',
+        ['widget', $app_id],
         'log'
     );
-    return $row ? (int)$row['count'] : 0;
+    return $row ? (int)$row['cnt'] : 0;
 }
 
 /** apps テーブルにテスト用の作品を挿入して app_id を返す */

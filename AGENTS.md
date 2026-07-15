@@ -155,8 +155,10 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 - `logs`: 操作ログ。
 - `ip_check`: IP 関連チェック。
-- `access_stats`: 作品(`apps`)の日別アクセス統計。`n3s_record_access($kind, $app_id)` がリクエスト時に直接インクリメントする(集計バッチ不要)。
-- `image_access_log`: 素材(`image.php`)アクセスの生ログ (`image_id`, `ip`, `ctime`)。`n3s_record_image_access()` がアクセス毎に無条件で1行追加する(重複除去はしない)。`scripts/image_count.php` が定期的に `(image_id, ip)` の重複を除去して `images.view` へ加算し、処理済み行を削除する。詳細は 8 章参照。
+- `app_access_log`: 作品(`show`/`widget`/`api`)アクセスの生ログ (`app_id`, `kind`, `ip`, `ctime`)。`n3s_record_access($kind, $app_id)` がアクセス毎に無条件で1行追加する(重複除去はしない)。`scripts/app_count.php` (`just app-count`) が定期的に `(date, kind, app_id, ip)` の重複を除去して `access_stats` / `access_stats_monthly` / `apps.view` へ加算し、処理済み行を削除する(素材の #246 と同方式)。集計本体は `n3s_aggregate_app_access()`。詳細は 8 章および `docs/access_counter.md` 参照。
+- `access_stats`: 作品(`apps`)の日別アクセス統計。`app_count.php` が `app_access_log` から集計する(`app_id=0` は全体合計)。以前はリクエスト毎のリアルタイム加算だったが、生ログ+定期集計方式へ移行済み。
+- `access_stats_monthly`: 作品の月別アクセス統計 (`month`='YYYY-MM')。`app_count.php` が同時に集計する。
+- `image_access_log`: 素材(`image.php`)アクセスの生ログ (`image_id`, `ip`, `ctime`)。`n3s_record_image_access()` がアクセス毎に無条件で1行追加する(重複除去はしない)。`scripts/image_count.php` が定期的に `(image_id, ip)` の重複を除去して `images.view` へ加算し、処理済み行を削除する。詳細は 8 章および `docs/access_counter.md` 参照。
 
 ### アプリ内ストレージ DB: `data_astorage/`
 
@@ -209,6 +211,8 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 主な実装は `app/action/upload.inc.php` と `app/action/image.inc.php` です。
 
+素材・作品それぞれのアクセスカウント(生ログ+定期集計方式)の詳しい仕様は `docs/access_counter.md` にまとめてある。
+
 アップロード:
 
 - Web アップロードはログイン必須。
@@ -244,6 +248,13 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `n3s_api_image()` はファイル配信の直前に `n3s_record_image_access($image_id)` を呼び、ログDBの `image_access_log` へ `(image_id, ip, ctime)` を1行追加する。同一IPからの重複除去はこの時点では行わない。
 - `scripts/image_count.php` (`just image-count`) を 1 時間に 1 回程度 cron で実行し、`image_access_log` を `(image_id, ip)` で重複除去して `images.view` に加算し、処理済みログを削除する。リアルタイム集計ではない。
 - 管理者向け統計ページ (`index.php?action=stats`、`n3s_web_stats()`) の「閲覧数 上位素材」に `images.view` 降順のランキングが表示される。
+
+作品アクセスのカウント(トータル/月間アクセス数用。素材と同方式):
+
+- `show` / `widget` / `api` の各アクションが `n3s_record_access($kind, $app_id)` を呼び、ログDBの `app_access_log` へ `(app_id, kind, ip, ctime)` を1行追加する。同一IPからの重複除去はこの時点では行わない。
+- `scripts/app_count.php` (`just app-count`) を 1 時間に 1 回程度 cron で実行し、`app_access_log` を `(date, kind, app_id, ip)` で重複除去して、`access_stats`(日別) / `access_stats_monthly`(月別) / `apps.view`(トータル) に加算し、処理済みログを削除する。集計本体は `n3s_aggregate_app_access()`。リアルタイム集計ではない。
+- トータル(`apps.view`)と月間(`access_stats_monthly`)は、どちらも `show + widget` の合計 (`api` は含めない)。`n3s_get_app_access_count($app_id)` が両方を返し、`n3s_web_show()` が作品情報(`show.html`)に「アクセス数(累計)」「アクセス数(今月)」として表示する。表示値は最後のバッチ集計時点のもので、今回のアクセスはまだ含まれない。
+- `access_stats_monthly` テーブルを新規作成する時、`n3s_db_migrate_access_stats()` が既存の日別 `access_stats` から月別統計と `apps.view` を一度だけバックフィルする (`n3s_backfill_access_stats_monthly()`)。移行前の日別統計は生ヒット数のため、復元値は移行後のユニークIP集計より多めに出る。
 
 ---
 

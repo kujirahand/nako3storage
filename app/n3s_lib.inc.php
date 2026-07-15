@@ -148,7 +148,11 @@ function n3s_db_migrate_apps()
     }
 }
 
-// log DB に access_stats テーブルが無ければ作成する (Issue #217)
+// log DB にアクセス統計まわりのテーブルが無ければ作成する
+// (Issue #217 / #246 の素材アクセスと同じ「生ログ + 定期集計」方式へ移行)
+//  - access_stats         : 日別集計。scripts/app_count.php が書き込む
+//  - access_stats_monthly : 月別集計。同上
+//  - app_access_log       : 作品アクセスの生ログ。n3s_record_access() が追記する
 function n3s_db_migrate_access_stats()
 {
     db_exec(
@@ -163,36 +167,264 @@ function n3s_db_migrate_access_stats()
         [],
         'log'
     );
+    db_exec(
+        'CREATE TABLE IF NOT EXISTS app_access_log (
+            log_id INTEGER PRIMARY KEY,
+            app_id INTEGER NOT NULL,
+            kind   TEXT NOT NULL,
+            ip     TEXT NOT NULL,
+            ctime  INTEGER NOT NULL
+        )',
+        [],
+        'log'
+    );
+    db_exec(
+        'CREATE INDEX IF NOT EXISTS idx_app_access_log_app_id ON app_access_log(app_id)',
+        [],
+        'log'
+    );
+    // access_stats_monthly を新規作成した時だけ、既存の日別統計から一度だけ
+    // 月別集計と apps.view を作り直す。CREATE TABLE IF NOT EXISTS では新規作成か
+    // どうか分からないため、作成前に存在を確認しておく。
+    $exists = db_get1(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='access_stats_monthly'",
+        [],
+        'log'
+    );
+    db_exec(
+        'CREATE TABLE IF NOT EXISTS access_stats_monthly (
+            stat_id INTEGER PRIMARY KEY,
+            month   TEXT NOT NULL,   /* YYYY-MM */
+            kind    TEXT NOT NULL,
+            app_id  INTEGER DEFAULT 0,
+            count   INTEGER DEFAULT 0,
+            UNIQUE(month, kind, app_id)
+        )',
+        [],
+        'log'
+    );
+    if (!$exists) {
+        n3s_backfill_access_stats_monthly();
+    }
 }
 
 /**
- * アクセス統計を日別にアップサートする (Issue #217)
+ * 既存の access_stats (日別) から月別集計と apps.view を復元する。
+ * n3s_db_migrate_access_stats() から一度だけ呼ばれる。
+ * 移行前の access_stats は同一IPの重複を除去していない生ヒット数なので、
+ * ここで復元した値は移行後に集計される値(ユニークIP数)より多めに出る。
+ */
+function n3s_backfill_access_stats_monthly()
+{
+    db_exec(
+        "INSERT OR REPLACE INTO access_stats_monthly (month, kind, app_id, count)
+           SELECT substr(date, 1, 7) AS month, kind, app_id, SUM(count)
+             FROM access_stats
+            GROUP BY month, kind, app_id",
+        [],
+        'log'
+    );
+    // トータルアクセス数 (apps.view) は show + widget の合計とする。
+    // apps.view はこれまで未使用で全件 0 のため、加算ではなく上書きしてよい。
+    $rows = db_get(
+        "SELECT app_id, SUM(count) AS total FROM access_stats
+          WHERE app_id > 0 AND kind IN ('show', 'widget')
+          GROUP BY app_id",
+        [],
+        'log'
+    );
+    if (!$rows) {
+        return;
+    }
+    foreach ($rows as $row) {
+        db_exec(
+            'UPDATE apps SET view=? WHERE app_id=?',
+            [intval($row['total']), intval($row['app_id'])],
+            'main'
+        );
+    }
+}
+
+/**
+ * 作品へのアクセスを生ログとして記録する (Issue #217 / #246 と同方式)
+ *
+ * 同一IPからの重複アクセスの除去と、access_stats / access_stats_monthly /
+ * apps.view への反映は scripts/app_count.php の集計時に行うため、
+ * ここでは単純に1行追加するだけでよい。
  *
  * @param string $kind   'show' | 'widget' | 'api'
- * @param int    $app_id 対象の app_id (0 = 全体)
+ * @param int    $app_id 対象の app_id
  */
 function n3s_record_access($kind, $app_id)
 {
-    $date = date('Y-m-d');
     $app_id = intval($app_id);
-    // アプリ単位のカウントアップ
-    db_exec(
-        'INSERT INTO access_stats (date, kind, app_id, count)
-         VALUES (?, ?, ?, 1)
-         ON CONFLICT(date, kind, app_id) DO UPDATE SET count = count + 1',
-        [$date, $kind, $app_id],
-        'log'
-    );
-    // 全体合計 (app_id=0) のカウントアップ
-    if ($app_id !== 0) {
+    if ($app_id <= 0) {
+        return;
+    }
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    try {
         db_exec(
-            'INSERT INTO access_stats (date, kind, app_id, count)
-             VALUES (?, ?, 0, 1)
-             ON CONFLICT(date, kind, app_id) DO UPDATE SET count = count + 1',
-            [$date, $kind],
+            'INSERT INTO app_access_log (app_id, kind, ip, ctime) VALUES (?, ?, ?, ?)',
+            [$app_id, $kind, $ip, time()],
             'log'
         );
+    } catch (Exception $e) {
+        // ログ記録の失敗でページ表示そのものを失敗させない
     }
+}
+
+/**
+ * app_access_log を集計して access_stats (日別) / access_stats_monthly (月別) /
+ * apps.view (トータル) へ反映し、処理済みのログを削除する。
+ * scripts/app_count.php から1時間に1回程度呼ばれることを想定している。
+ *
+ * 重複除去は (date, kind, app_id, ip) の組で行うが、対象はこの実行で処理する分だけ。
+ * 同一IPが別々のバッチ実行にまたがってアクセスした場合はそれぞれ1回として数えられる
+ * (scripts/image_count.php と同じ割り切り)。
+ *
+ * @return array ['log_count'=>int, 'app_count'=>int, 'daily_count'=>int,
+ *                'monthly_count'=>int, 'max_log_id'=>int]
+ * @throws Exception 集計に失敗した場合 (ログは削除されないので次回やり直せる)
+ */
+function n3s_aggregate_app_access()
+{
+    $empty = ['log_count' => 0, 'app_count' => 0, 'daily_count' => 0,
+              'monthly_count' => 0, 'max_log_id' => 0];
+
+    // 処理対象を実行開始時点までのログに固定する(実行中に増える分は次回に回す)
+    $max_row = db_get1('SELECT MAX(log_id) AS max_log_id FROM app_access_log', [], 'log');
+    $max_log_id = $max_row ? intval($max_row['max_log_id']) : 0;
+    if ($max_log_id <= 0) {
+        return $empty;
+    }
+    $rows = db_get(
+        'SELECT app_id, kind, ip, ctime FROM app_access_log WHERE log_id <= ?',
+        [$max_log_id],
+        'log'
+    );
+    if (empty($rows)) {
+        return $empty;
+    }
+
+    // (date, kind, app_id, ip) の組で重複除去して集計する
+    $seen = [];
+    $daily = [];    // "date\tkind\tapp_id" => count
+    $monthly = [];  // "month\tkind\tapp_id" => count
+    $app_view = []; // app_id => count (show + widget のみ)
+    foreach ($rows as $row) {
+        $app_id = intval($row['app_id']);
+        $kind = (string) $row['kind'];
+        $ip = (string) $row['ip'];
+        if ($app_id <= 0 || $kind === '') {
+            continue;
+        }
+        $date = date('Y-m-d', intval($row['ctime']));
+        $month = substr($date, 0, 7);
+
+        $seen_key = $date . "\t" . $kind . "\t" . $app_id . "\t" . $ip;
+        if (isset($seen[$seen_key])) {
+            continue;
+        }
+        $seen[$seen_key] = true;
+
+        // 日別・月別ともに、作品単位と全体合計(app_id=0)の両方を数える
+        foreach ([$app_id, 0] as $target_id) {
+            $dkey = $date . "\t" . $kind . "\t" . $target_id;
+            $mkey = $month . "\t" . $kind . "\t" . $target_id;
+            $daily[$dkey] = isset($daily[$dkey]) ? $daily[$dkey] + 1 : 1;
+            $monthly[$mkey] = isset($monthly[$mkey]) ? $monthly[$mkey] + 1 : 1;
+        }
+        // トータルアクセス数 (apps.view) は show + widget の合計とする
+        if ($kind === 'show' || $kind === 'widget') {
+            $app_view[$app_id] = isset($app_view[$app_id]) ? $app_view[$app_id] + 1 : 1;
+        }
+    }
+
+    // 1) トータルアクセス数 (main DB) を更新する。
+    //    失敗した場合はログを残したまま中断し、次回の実行でやり直す。
+    db_begin('main');
+    try {
+        foreach ($app_view as $app_id => $count) {
+            db_exec('UPDATE apps SET view = view + ? WHERE app_id = ?', [$count, $app_id], 'main');
+        }
+        db_commit('main');
+    } catch (Exception $e) {
+        db_rollback('main');
+        throw new Exception('トータルアクセス数の更新に失敗しました: ' . $e->getMessage());
+    }
+
+    // 2) 日別・月別集計の更新と、集計済みログの削除を1つのトランザクションで行う。
+    //    (途中で失敗すると apps.view だけが進んでしまうため、log DB 側はまとめて処理する)
+    db_begin('log');
+    try {
+        foreach ($daily as $key => $count) {
+            list($date, $kind, $target_id) = explode("\t", $key);
+            db_exec(
+                'INSERT INTO access_stats (date, kind, app_id, count)
+                 VALUES (?, ?, ?, ?)
+                 ON CONFLICT(date, kind, app_id) DO UPDATE SET count = count + ?',
+                [$date, $kind, intval($target_id), $count, $count],
+                'log'
+            );
+        }
+        foreach ($monthly as $key => $count) {
+            list($month, $kind, $target_id) = explode("\t", $key);
+            db_exec(
+                'INSERT INTO access_stats_monthly (month, kind, app_id, count)
+                 VALUES (?, ?, ?, ?)
+                 ON CONFLICT(month, kind, app_id) DO UPDATE SET count = count + ?',
+                [$month, $kind, intval($target_id), $count, $count],
+                'log'
+            );
+        }
+        db_exec('DELETE FROM app_access_log WHERE log_id <= ?', [$max_log_id], 'log');
+        db_commit('log');
+    } catch (Exception $e) {
+        db_rollback('log');
+        throw new Exception(
+            '日別・月別統計の更新に失敗しました' .
+            '(トータルアクセス数は加算済みのため、次回実行で二重計上される可能性があります): ' .
+            $e->getMessage()
+        );
+    }
+
+    return [
+        'log_count'     => count($rows),
+        'app_count'     => count($app_view),
+        'daily_count'   => count($daily),
+        'monthly_count' => count($monthly),
+        'max_log_id'    => $max_log_id,
+    ];
+}
+
+/**
+ * 作品のアクセス数 (トータル / 今月) を取得する。
+ * どちらも show + widget の合計で、scripts/app_count.php が集計した値を読む。
+ * リアルタイム集計ではないため、直近の集計以降のアクセスは含まれない。
+ *
+ * @return array ['view_total' => int, 'view_monthly' => int]
+ */
+function n3s_get_app_access_count($app_id)
+{
+    $app_id = intval($app_id);
+    $result = ['view_total' => 0, 'view_monthly' => 0];
+    if ($app_id <= 0) {
+        return $result;
+    }
+    $total = db_get1('SELECT view FROM apps WHERE app_id=?', [$app_id], 'main');
+    if ($total && isset($total['view'])) {
+        $result['view_total'] = intval($total['view']);
+    }
+    $monthly = db_get1(
+        "SELECT SUM(count) AS total FROM access_stats_monthly
+          WHERE month=? AND app_id=? AND kind IN ('show', 'widget')",
+        [date('Y-m'), $app_id],
+        'log'
+    );
+    if ($monthly && isset($monthly['total'])) {
+        $result['view_monthly'] = intval($monthly['total']);
+    }
+    return $result;
 }
 
 // main DB の images テーブルに view カラムが無ければ追加し、

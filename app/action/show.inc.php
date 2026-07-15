@@ -18,6 +18,9 @@ function n3s_web_show()
     if (!empty($a['app_id'])) {
         n3s_record_access('show', $a['app_id']);
     }
+    // 作品情報に表示するアクセス数 (scripts/app_count.php が集計した値。
+    // 上で記録した今回のアクセスはまだ含まれない)
+    $a = array_merge($a, n3s_get_app_access_count(isset($a['app_id']) ? $a['app_id'] : 0));
     n3s_template_fw('show.html', $a);
 }
 

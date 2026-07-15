@@ -50,3 +50,7 @@ comment-audit:
 # 素材アクセスログの集計バッチを実行する (1時間に1回程度 cron から実行する想定)
 image-count:
     php scripts/image_count.php
+
+# 作品アクセスログの集計バッチを実行する (1時間に1回程度 cron から実行する想定)
+app-count:
+    php scripts/app_count.php

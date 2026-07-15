@@ -79,6 +79,8 @@
       <div><dt>形式</dt><dd>{{ $nakotype }}</dd></div>
       <div><dt>タグ</dt><dd>{{ $tag_link | raw }}</dd></div>
       <div><dt>利用バージョン</dt><dd>{{ $version }}</dd></div>
+      <div><dt>アクセス数(累計)</dt><dd>{{ $view_total | number_format }}</dd></div>
+      <div><dt>アクセス数(今月)</dt><dd>{{ $view_monthly | number_format }}</dd></div>
       <div>
         <dt>更新日時</dt>
         <dd>
