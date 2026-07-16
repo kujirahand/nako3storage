@@ -3685,3 +3685,26 @@ ul.devblock span.lbl {
 .n3s-list-page .pure-button-primary:hover {
   opacity: 0.85;
 }
+
+/* お知らせ（top_message）のスタイル */
+.n3s-top-message {
+  background-color: var(--n3s-sakura-band); /* ほんのり薄ピンク */
+  border: 1px solid var(--n3s-border); /* 薄い境界線 */
+  border-left: 4px solid var(--n3s-sakura-accent); /* 左側にアクセントライン */
+  color: var(--n3s-sumi); /* 墨色テキスト */
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  border-radius: 6px;
+  font-size: 0.88em;
+  line-height: 1.6;
+  white-space: pre-wrap; /* 改行を有効にする */
+  box-shadow: 0 2px 8px rgba(232, 211, 218, 0.2); /* 軽めの影で柔らかく浮かせる */
+}
+.n3s-top-message a {
+  color: var(--n3s-sakura-accent);
+  text-decoration: underline;
+}
+.n3s-top-message a:hover {
+  text-decoration: none;
+}
+

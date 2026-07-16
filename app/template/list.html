@@ -1,7 +1,11 @@
 {{ include parts_html_header.html }}
 
 <div class="n3s-list-page">
-  <div class="list info">{{ $top_message | raw }}</div>
+  {{ if $top_message }}
+  <div class="n3s-list-section">
+    <div class="n3s-top-message">{{ $top_message | raw }}</div>
+  </div>
+  {{ endif }}
 
   {{ if ($find_user_id gt 0)&&(!empty($find_user_info)) }}
   <section class="n3s-list-section n3s-list-user-section">
