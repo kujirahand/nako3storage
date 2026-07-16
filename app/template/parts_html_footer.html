@@ -1,18 +1,19 @@
 <!-- footer -->
 <div id="n3s_footer">
-    <div id="n3s_footer_menu">
-        {{ include parts_html_menu.html }}
-    </div><!-- /#n3s_footer_menu -->
-    <!-- version info -->
-    <div class="applink">
-        <a href="index.php">なでしこ3貯蔵庫</a>
-        <a href="https://github.com/kujirahand/nako3storage/">v.{{$nako3storage_version}}</a>
-        -
-        <a href="index.php?action=kiyaku">利用規約</a>
-        - 
-        <a href="https://nadesi.com/cgi/kaizen3/">
-            不具合の報告</a>
+    <div class="n3s-inner">
+        <div id="n3s_footer_menu">
+            {{ include parts_html_menu.html }}
+        </div><!-- /#n3s_footer_menu -->
+        <!-- version info -->
+        <div class="applink">
+            <a href="index.php">なでしこ3貯蔵庫</a>
+            <a href="https://github.com/kujirahand/nako3storage/">v.{{$nako3storage_version}}</a>
+            <span class="n3s-footer-sep">・</span>
+            <a href="index.php?action=kiyaku">利用規約</a>
+            <span class="n3s-footer-sep">・</span>
+            <a href="https://nadesi.com/cgi/kaizen3/">不具合の報告</a>
         </div>
+    </div>
 </div>
 
 </body>

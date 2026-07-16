@@ -45,7 +45,7 @@
   {{ if $ranking && (!isset($app_id) || $app_id eq 0) }}
   <section class="n3s-list-section" id="ranking_list">
     <h1>人気の投稿</h1>
-    <p class="n3s-section-lead">最近の人気の投稿をランダムに表示します。</p>
+    <p class="n3s-section-lead">直近3ヶ月のアクセス数が多い投稿を表示します。</p>
     <div class="n3s-tiles">
       {{ for $ranking as $r }}
       {{ $r.card_html | raw }}
@@ -64,7 +64,7 @@
       {{ if $u.user_id == 0}}
       <span class="n3s-top-user">{{$u.name}}<span class="memo">({{ $u.count }})</span></span>
       {{ else }}
-      <a class="n3s-top-user" href="index.php?action=list&user_id={{$u.user_id}}">
+      <a class="n3s-top-user" href="index.php?action=user&user_id={{$u.user_id}}">
         {{$u.name}}<span class="memo">({{ $u.count }})</span>
       </a>
       {{ endif }}
@@ -159,3 +159,5 @@
   </div>
   {{ endif }}
 </div>
+
+{{ include parts_html_footer.html }}

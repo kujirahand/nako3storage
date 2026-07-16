@@ -31,7 +31,7 @@
             <td>
                 {{if $r.user_id gt 0}}
                 <span class="dev">
-                    <a href="index.php?user_id={{$r.user_id}}&action=list">😀{{$r.author | check_nanasi }} 作</a>
+                    <a href="index.php?action=user&user_id={{$r.user_id}}">😀{{$r.author | check_nanasi }} 作</a>
                 </span>
                 {{else}}
                 <span class="dev">{{$r.author | check_nanasi }} 作</span>

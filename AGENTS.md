@@ -422,6 +422,7 @@ cd app && composer install
 - `app/action/api.inc.php`: アプリ内ストレージ API。
 - `app/action/login.inc.php`: ユーザー登録、ログイン、パスワード再設定。
 - `app/action/list.inc.php`: 一覧、ランキング、ユーザー別一覧。
+- `app/action/user.inc.php`: 公開ユーザーのプロフィールと作品一覧ページ。
 - `app/sql/*.sql`: DB スキーマ。
 - `app/template/*.html`: 表示テンプレート。
 - `app/resource/basic.css`: 全体 CSS。

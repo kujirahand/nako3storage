@@ -294,7 +294,7 @@ function show_image()
         'user' => $user,
         'can_edit' => $can_edit,
         'acc_token' => $n3s_acc_token,
-        'link_user' => n3s_getURL($user_id, 'list', ['user_id' => $user_id]),
+        'link_user' => n3s_getURL('', 'user', ['user_id' => $user_id]),
         'is_preview_image' => preg_match('/\.(jpe?g|png|gif|webp)$/i', $filename) === 1,
         'file_extension' => strtoupper(pathinfo($filename, PATHINFO_EXTENSION)),
         'link_mypage' => n3s_getURL('all', 'mypage'),

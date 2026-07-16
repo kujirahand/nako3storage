@@ -47,7 +47,7 @@ function fav_who()
         $name= $u['name'];
         $img = $u['profile_url'];
         $html .= "<li>".
-      "<a style='text-decoration:none;' href='index.php?user_id=$user_id&action=list'>".
+      "<a style='text-decoration:none;' href='index.php?action=user&user_id=$user_id'>".
       "<img src='$img' width=32> {$name}</a>".
       "</li>";
         */

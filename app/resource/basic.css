@@ -1,44 +1,144 @@
 /* nako3storage - basic.css */
 
+:root {
+  --n3s-sakura-bg: #fef7f9;
+  --n3s-sakura-band: #fdf0f4;
+  --n3s-sakura-accent: #d1477a;
+  --n3s-sakura-soft: #e5a3b3;
+  --n3s-sumi: #3b3134;
+  --n3s-border: #e8d3da;
+  --n3s-gold: #c9a86a;
+}
+
+.n3s-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
 #n3s_header {
   margin: 0;
-  padding: 4px;
-  background-color: white;
+  padding: 0;
+  background: #fff;
   font-size: 0.8em;
-  border-bottom: 1px dotted gray;
+  border-bottom: 1px solid var(--n3s-border);
+}
+
+#n3s_header .n3s-header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 10px 0 4px;
+  color: #8a6672;
+  font-size: 0.78em;
+}
+
+#n3s_header .n3s-header-breadcrumb a {
+  color: var(--n3s-sakura-accent);
+  text-decoration: none;
+  background: transparent;
+}
+
+#n3s_header .n3s-header-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+#n3s_header .n3s-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0 12px;
 }
 
 #n3s_header h1.title {
   margin: 0;
-  font-size: 1.2em;
-  padding: 1em;
-  background-color: #fff0f0;
+  min-width: 0;
+  padding: 0;
+  color: var(--n3s-sumi);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: 1.45em;
+  line-height: 1.45;
+  border: 0;
+  overflow-wrap: anywhere;
+}
+
+#n3s_header h1.title::before {
+  content: "❀";
+  margin-right: 0.42em;
+  color: var(--n3s-sakura-accent);
+  font-size: 0.88em;
 }
 
 #n3s_header h1.title a {
   text-decoration: none;
-  color: black;
+  color: inherit;
 }
 
-#n3s_header .search_box {
-  padding-left: 1em;
+#n3s_header h1.title a:hover {
+  color: var(--n3s-sakura-accent);
 }
 
 #n3s_footer {
-  border-top: 1px dotted gray;
-  padding: 4px;
+  margin-top: 24px;
+  padding: 24px 0 32px;
+  border-top: 3px double var(--n3s-border);
+  background: var(--n3s-sakura-band);
   font-size: 0.8em;
 }
 
 #n3s_footer .applink {
-  padding: 12px;
+  padding-top: 14px;
   text-align: center;
   font-size: 0.8em;
+  color: #8a6672;
 }
-.header-right {
-  text-align: right;
-  padding: 0.5em;
-  line-height: 3;
+
+#n3s_footer .applink a {
+  color: var(--n3s-sakura-accent);
+  text-decoration: none;
+}
+
+#n3s_footer .applink a:hover {
+  text-decoration: underline;
+}
+
+.n3s-footer-sep {
+  margin: 0 0.25em;
+}
+
+#n3s_header .header-right,
+#n3s_footer .header-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  line-height: normal;
+}
+
+#n3s_header .header-right {
+  justify-content: flex-end;
+}
+
+#n3s_footer .header-right {
+  justify-content: center;
+}
+
+#n3s_header .header-right .pure-button,
+#n3s_footer .header-right .pure-button {
+  border: 1px solid var(--n3s-border);
+  border-radius: 999px;
+  color: var(--n3s-sumi);
+  background: #fff;
+  box-shadow: none;
+}
+
+#n3s_header .header-right .pure-button:hover,
+#n3s_footer .header-right .pure-button:hover {
+  border-color: var(--n3s-sakura-accent);
+  color: var(--n3s-sakura-accent);
+  background: var(--n3s-sakura-band);
 }
 
 h1 {
@@ -499,13 +599,6 @@ ul.devblock span.lbl {
 
 .n3s-list-page,
 .n3s-mypage-page {
-  --n3s-sakura-bg: #fef7f9;
-  --n3s-sakura-band: #fdf0f4;
-  --n3s-sakura-accent: #d1477a;
-  --n3s-sakura-soft: #e5a3b3;
-  --n3s-sumi: #3b3134;
-  --n3s-border: #e8d3da;
-  --n3s-gold: #c9a86a;
   color: var(--n3s-sumi);
   background: var(--n3s-sakura-bg);
   padding: 1px 0 2em;
@@ -717,6 +810,40 @@ ul.devblock span.lbl {
   border: 1px solid var(--n3s-border);
   border-radius: 8px;
   background: #fff;
+}
+
+/* 利用規約ページ (action=kiyaku) : show.html (作品ページ) と同じ本文幅 (980px) に揃える */
+.n3s-kiyaku-section {
+  max-width: 980px;
+  padding-bottom: 40px;
+}
+.n3s-kiyaku-body {
+  margin-top: 8px;
+  color: #5f5357;
+  line-height: 1.9;
+}
+.n3s-kiyaku-body h2 {
+  margin: 1.7em 0 0.6em;
+  padding: 0.1em 0 0.1em 0.7em;
+  border-left: 4px solid var(--n3s-sakura-accent);
+  color: var(--n3s-sumi);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: 1.15em;
+  letter-spacing: 0;
+}
+.n3s-kiyaku-body h2:first-child {
+  margin-top: 0.3em;
+}
+.n3s-kiyaku-body p {
+  margin: 0 0 1em;
+}
+.n3s-kiyaku-body ul {
+  margin: 0 0 1em;
+  padding-left: 1.6em;
+}
+.n3s-kiyaku-body ul li {
+  margin: 0.3em 0;
+  line-height: 1.8;
 }
 
 /* 人気の素材一覧タイル (action=list トップページ) */
@@ -2629,6 +2756,39 @@ ul.devblock span.lbl {
 }
 
 @media (max-width: 767px) {
+  .n3s-inner {
+    padding: 0 12px;
+  }
+  #n3s_header .n3s-header-breadcrumb {
+    padding-top: 8px;
+  }
+  #n3s_header .n3s-header-main {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+  #n3s_header h1.title {
+    font-size: 1.1em;
+  }
+  #n3s_header .header-right {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  #n3s_header .header-right .pure-button,
+  #n3s_footer .header-right .pure-button {
+    padding: 0.45em 0.65em;
+  }
+  #n3s_footer {
+    margin-top: 16px;
+    padding: 20px 0 28px;
+  }
+  #n3s_footer .header-right {
+    gap: 6px;
+  }
+  #n3s_footer .applink {
+    font-size: 0.78em;
+  }
   .n3s-list-page,
   .n3s-mypage-page {
     background: #fff;
@@ -3499,4 +3659,29 @@ ul.devblock span.lbl {
     width: 100%;
     flex: none;
   }
+}
+
+/* Public User Page Styles */
+.n3s-x-button {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  font-size: 0.85em !important;
+  padding: 0.4em 1em !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.n3s-x-button:hover {
+  opacity: 0.85;
+}
+
+.n3s-list-page .pure-button-primary {
+  border-color: var(--n3s-sakura-accent);
+  color: #fff;
+  background: var(--n3s-sakura-accent);
+}
+.n3s-list-page .pure-button-primary:hover {
+  opacity: 0.85;
 }

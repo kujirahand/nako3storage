@@ -1,0 +1,95 @@
+{{ include parts_html_header.html }}
+
+<div class="n3s-list-page">
+  <section class="n3s-list-section n3s-list-user-section">
+    <h1>{{$user.name}} さんの作品一覧 ({{$total_post_count}}件)</h1>
+    <div class="n3s-list-user-profile">
+      <img class="n3s-list-user-profile-image" src="{{$user.profile_url_large}}" width="200" height="200" alt="{{$user.name}}のプロフィール画像">
+      <div class="n3s-list-user-profile-main">
+        <h2>プロフィール</h2>
+        {{ if $user.description }}
+        <p class="n3s-list-user-description" style="white-space: pre-wrap;">{{$user.description}}</p>
+        {{ else }}
+        <p class="n3s-list-user-description is-empty">プロフィールはまだ設定されていません。</p>
+        {{ endif }}
+        
+        {{ if $x_url }}
+        <div class="n3s-user-x-link" style="margin-top: 10px;">
+          <a href="{{$x_url}}" class="pure-button n3s-x-button" target="_blank" rel="noopener">
+            <span style="font-weight: bold;">𝕏</span> @{{$screen_name}}
+          </a>
+        </div>
+        {{ endif }}
+      </div>
+    </div>
+  </section>
+
+  <section class="n3s-list-section" style="margin-top: 20px;">
+    <!-- 検索ボックス -->
+    <div class="n3s-user-search-box" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+      <div class="n3s-upload-tabs" role="tablist" aria-label="ソート順" style="margin-bottom: 0;">
+        <a href="index.php?action=user&user_id={{ $user.user_id }}&sort=mtime&search_word={{ $search_word_url }}&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'mtime' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'mtime' }}true{{ else }}false{{ endif }}">最新順</a>
+        <a href="index.php?action=user&user_id={{ $user.user_id }}&sort=view&search_word={{ $search_word_url }}&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'view' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'view' }}true{{ else }}false{{ endif }}">アクセス数順</a>
+        <a href="index.php?action=user&user_id={{ $user.user_id }}&sort=fav&search_word={{ $search_word_url }}&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="n3s-upload-tab{{ if $sort eq 'fav' }} is-active{{ endif }}" role="tab" aria-selected="{{ if $sort eq 'fav' }}true{{ else }}false{{ endif }}">お気に入り順</a>
+      </div>
+      
+      <form method="GET" action="index.php" class="n3s-material-search-form pure-form" style="margin-bottom: 0;">
+        <input type="hidden" name="action" value="user">
+        <input type="hidden" name="user_id" value="{{ $user.user_id }}">
+        <input type="hidden" name="sort" value="{{ $sort }}">
+        <input type="hidden" name="nofilter" value="{{ $nofilter }}">
+        <input type="hidden" name="onlybad" value="{{ $onlybad }}">
+        <div class="n3s-material-search-input-group">
+          <label for="user-search-input">作品の検索</label>
+          <input type="text" id="user-search-input" name="search_word" value="{{ $search_word }}" placeholder="このユーザーの作品を検索" class="pure-input-rounded">
+          <button type="submit" class="pure-button pure-button-primary">検索</button>
+        </div>
+      </form>
+    </div>
+
+    {{ if $search_word != '' }}
+      <div class="search-result-info" style="margin-bottom: 15px; padding: 10px; background-color: #f5f5f5; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span>「<strong>{{ $search_word }}</strong>」の検索結果: {{ $total_count }}件</span>
+        <a href="index.php?action=user&user_id={{ $user.user_id }}&sort={{ $sort }}&nofilter={{ $nofilter }}&onlybad={{ $onlybad }}" class="pure-button" style="font-size: 0.85em;">検索を解除</a>
+      </div>
+      {{ if $search_error != '' }}
+      <div style="color:red; border:1px solid #ffa0a0; padding:0.7em; margin-bottom: 15px; border-radius: 4px;">{{$search_error}}</div>
+      {{ endif }}
+    {{ endif }}
+
+    {{ if (!$list) }}
+    <div class="showblock">作品が見つかりませんでした。</div>
+    {{ else }}
+    <div class="n3s-tiles">
+      {{ for $list as $r }}
+      {{ $r.card_html | raw }}
+      {{ endfor }}
+    </div>
+
+    <div class="next_button_div" style="margin-top: 25px; text-align: center;">
+      {{ if $prev_url }}
+      <a href="{{ $prev_url }}" class="pure-button" style="margin-right: 10px;">◀ 前へ</a>
+      {{ endif }}
+      {{ if $next_url }}
+      <a href="{{ $next_url }}" class="pure-button">次へ ▶</a>
+      {{ endif }}
+    </div>
+    {{ endif }}
+  </section>
+
+  <div class="addon_block n3s-list-actions" style="margin-top: 30px;">
+    <a class="pure-button" href="index.php?action=list">作品一覧に戻る</a>
+  </div>
+
+  {{ if $is_admin }}
+  <div class="addon_block n3s-admin-links">
+    <p>管理用</p>
+    <ul>
+      <li><a href="index.php?action=user&user_id={{ $user.user_id }}&sort={{ $sort }}&search_word={{ $search_word_url }}&onlybad=1&noindex=1">問題投稿(閲覧注意)</a></li>
+      <li><a href="index.php?action=user&user_id={{ $user.user_id }}&sort={{ $sort }}&search_word={{ $search_word_url }}&nofilter=1&noindex=1">問題込みで表示</a></li>
+    </ul>
+  </div>
+  {{ endif }}
+</div>
+
+{{ include parts_html_footer.html }}

@@ -9,6 +9,16 @@ const MAX_PAGE_OFFSET = 500; // 500以降は表示しない
 // ブラウザからのアクセスがあったとき
 function n3s_web_list()
 {
+    // 旧URL (index.php?user_id=XX&action=list など) のリダイレクト
+    $find_user_id = empty($_GET['user_id']) ? 0 : intval($_GET['user_id']);
+    if ($find_user_id > 0) {
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Location: index.php?action=user&user_id=" . $find_user_id);
+        if (!defined('N3S_TEST_ROOT')) {
+            exit;
+        }
+        return;
+    }
     $r = n3s_list_get();
     n3s_template_fw('list.html', $r);
 }
@@ -130,34 +140,12 @@ function n3s_list_get()
             'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (show_list = 1)'.
             'ORDER BY fav DESC LIMIT 30', []);
 
-        // Nヶ月以内に更新されたアプリを取得
-        // mtimeはいいねでは更新されないため、fav蓄積ペースに対して閾値・期間が厳しすぎると
-        // 対象がほぼ枯渇する(#今回の不具合)。閾値と期間を緩めて母数を確保する。
-        $mon = 12;
-        $mtime = time() - (60 * 60 * 24 * 30 * $mon);
-        $ranking = db_get('SELECT * FROM apps '.
-            'WHERE (mtime > ?) AND (bad < 2) AND (fav >= 1) AND (is_private = 0) AND (show_list = 1)'.
-            'ORDER BY fav DESC LIMIT 40', [$mtime]);
+        // 直近3ヶ月のアクセスランキングを取得 (人気の投稿)
+        // access_stats_monthly (log DB) は scripts/app_count.php が集計する月別アクセス数
+        $ranking = n3s_list_get_access_ranking(3, MAX_APP_RANKING);
         // ランキング情報を得る
         $ranking_total = $ranking_all + $ranking;
 
-        // 常に異なる作品が表示されるようにシャッフルして新鮮味を出す
-        // 上位N件を取る
-        shuffle($ranking);
-        $ranking = array_splice($ranking, 0, MAX_APP_RANKING);
-        // 重なる投稿を削除
-        $all = [];
-        foreach ($ranking_all as $row) {
-            $flag = TRUE;
-            $all_id = $row['app_id'];
-            foreach ($ranking as $r) {
-                $a_id = $r['app_id'];
-                if ($a_id == $all_id) { $flag = FALSE; break; }
-            }
-            if ($flag) {
-                $all[] = $row;
-            }
-        }
         shuffle($ranking_all);
         $ranking_all = array_splice($ranking_all, 0, MAX_APP_RANKING_GREAT);
 
@@ -267,6 +255,50 @@ function n3s_list_get_popular_materials($limit)
     return $rows;
 }
 
+/**
+ * 直近 $months ヶ月のアクセス数ランキングを取得する (人気の投稿)。
+ * access_stats_monthly (log DB) を scripts/app_count.php が集計しており、
+ * show + widget の合計アクセス数が多い順に並べる。
+ */
+function n3s_list_get_access_ranking($months, $limit)
+{
+    $month_list = [];
+    for ($i = 0; $i < $months; $i++) {
+        $month_list[] = date('Y-m', strtotime("-{$i} month"));
+    }
+    $placeholders = implode(',', array_fill(0, count($month_list), '?'));
+    $access_ranking = db_get(
+        "SELECT app_id, SUM(count) AS access_count FROM access_stats_monthly " .
+        "WHERE month IN ($placeholders) AND kind IN ('show', 'widget') AND app_id > 0 " .
+        'GROUP BY app_id ORDER BY access_count DESC LIMIT 100',
+        $month_list,
+        'log'
+    );
+    if (!$access_ranking) {
+        return [];
+    }
+    $app_ids = array_map('intval', array_column($access_ranking, 'app_id'));
+    $ph = implode(',', array_fill(0, count($app_ids), '?'));
+    $rows = db_get(
+        "SELECT * FROM apps WHERE app_id IN ($ph) AND (bad < 2) AND (is_private = 0) AND (show_list = 1)",
+        $app_ids
+    );
+    $rows_by_id = [];
+    foreach ($rows as $row) {
+        $rows_by_id[intval($row['app_id'])] = $row;
+    }
+    $ranking = [];
+    foreach ($app_ids as $app_id) {
+        if (isset($rows_by_id[$app_id])) {
+            $ranking[] = $rows_by_id[$app_id];
+            if (count($ranking) >= $limit) {
+                break;
+            }
+        }
+    }
+    return $ranking;
+}
+
 function n3s_list_setUserProfileURL(&$list)
 {
     $user_ids = [];
@@ -317,7 +349,7 @@ function n3s_list_setCardHTML(&$list)
         $user_id = intval($r['user_id']);
         $tag_html = (!empty($r['tag'])) ? $r['tag_link'] : '';
         if ($user_id > 0) {
-            $author_html = "<a class=\"n3s-app-author\" href=\"index.php?user_id={$user_id}&action=list\">{$author} 作</a>";
+            $author_html = "<a class=\"n3s-app-author\" href=\"index.php?action=user&user_id={$user_id}\">{$author} 作</a>";
         } else {
             $author_html = "<span class=\"n3s-app-author\">{$author} 作</span>";
         }

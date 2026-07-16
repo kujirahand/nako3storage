@@ -66,7 +66,7 @@
       <div class="search_info">
         <div>
           {{if $i.user_id > 0}}
-          <span class="setumei"><a href="index.php?user_id={{$i.user_id}}&action=list">{{$i.author}} 作</a></span>
+          <span class="setumei"><a href="index.php?action=user&user_id={{$i.user_id}}">{{$i.author}} 作</a></span>
           {{else}}
           &nbsp; {{$i.author}} 作
           {{endif}}
