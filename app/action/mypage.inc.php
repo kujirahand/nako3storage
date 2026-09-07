@@ -178,6 +178,8 @@ function n3s_web_mypage()
                     'WHERE app_id=?',
                 [intval($aid['app_id'])]
             );
+            // 作品が削除済みの場合は取得できないのでスキップする
+            if (!$a) { continue; }
             $bookmarks[] = $a;
         }
     }

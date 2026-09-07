@@ -5,7 +5,7 @@
 
 function n3s_web_comment()
 {
-    n3s_error('コメント機能はWeb経由の直接呼び出しをサポートしていません。APIを利用してください。');
+    n3s_error('コメント機能のエラー', 'コメント機能はWeb経由の直接呼び出しをサポートしていません。APIを利用してください。');
 }
 
 function n3s_api_comment()
