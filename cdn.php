@@ -129,7 +129,7 @@ function useCache($ver, $url, $file, $ext = '') {
   if (! $can_cache || ! file_exists($cache_file)) {
     // WEBからファイルを取得
     $body = @file_get_contents($url);
-    if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2 || isBadResponseBody($body, $ext)) {
+    if (!n3s_cdn_response_is_valid($body, $ext)) {
       // [失敗条件] FALSE or 空
       // https://www.php.net/manual/ja/function.file-get-contents.php
       header("HTTP/1.0 404 Not Found");
@@ -145,12 +145,12 @@ function useCache($ver, $url, $file, $ext = '') {
   } else {
     // キャッシュからファイルを取得
     $body = @file_get_contents($cache_file);
-    if (isBadResponseBody($body, $ext)) {
+    if (!n3s_cdn_response_is_valid($body, $ext)) {
       if ($can_cache) {
         @unlink($cache_file);
       }
       $body = @file_get_contents($url);
-      if ($body === "" || $body === FALSE || strlen(trim($body)) <= 2 || isBadResponseBody($body, $ext)) {
+      if (!n3s_cdn_response_is_valid($body, $ext)) {
         header("HTTP/1.0 404 Not Found");
         header('content-type: text/plain; charset=utf-8');
         echo "404 file not found";
@@ -163,7 +163,7 @@ function useCache($ver, $url, $file, $ext = '') {
   }
   // 正常に取得できた release/* のGETだけを生ログへ記録する。
   // カウンタDBの障害でCDN配信自体を止めないよう、例外は内部で処理する。
-  n3s_record_cdn_download_safe($org_file, $ver);
+  n3s_record_cdn_delivery_if_successful($org_file, $ver, $body, $ext);
   // output
   header('Access-Control-Allow-Origin: *');
   // check ext
@@ -201,22 +201,5 @@ function get($key, $def = '') {
 }
 
 function isBadResponseBody($body, $ext) {
-  if ($body === FALSE || $body === NULL) {
-    return TRUE;
-  }
-  $trimmed = ltrim((string)$body);
-  if ($trimmed === '') {
-    return TRUE;
-  }
-  if ($ext === 'js' || $ext === 'mjs' || $ext === 'css' || $ext === 'map') {
-    if (preg_match('#^<#', $trimmed)) {
-      return TRUE;
-    }
-  }
-  if ($ext === 'map') {
-    if (preg_match('#^[\{\[]#', $trimmed) !== 1) {
-      return TRUE;
-    }
-  }
-  return FALSE;
+  return !n3s_cdn_response_is_valid($body, $ext);
 }

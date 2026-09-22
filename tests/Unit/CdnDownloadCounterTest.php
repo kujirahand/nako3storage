@@ -58,6 +58,26 @@ test('CDNログ用接続は指定したロック待機時間を使用する', fu
     expect($busy_timeout)->toBe(250);
 });
 
+test('成功したCDN配信だけを実際の生ログへ記録する', function () {
+    expect(n3s_record_cdn_delivery_if_successful(
+        'release/wnako3.js', '3.8.7', 'console.log("ok");', 'js', 'GET'
+    ))->toBeTrue()
+        ->and(n3s_record_cdn_delivery_if_successful(
+            'release/failed.js', '3.8.7', '<!DOCTYPE html><html>', 'js', 'GET'
+        ))->toBeFalse()
+        ->and(n3s_record_cdn_delivery_if_successful(
+            'release/empty.js', '3.8.7', '', 'js', 'GET'
+        ))->toBeFalse()
+        ->and(n3s_record_cdn_delivery_if_successful(
+            'src/ignored.js', '3.8.7', 'console.log("ok");', 'js', 'GET'
+        ))->toBeFalse();
+
+    $rows = dlcounter_log_rows();
+    expect($rows)->toHaveCount(1)
+        ->and($rows[0]['file'])->toBe('release/wnako3.js')
+        ->and($rows[0]['version'])->toBe('3.8.7');
+});
+
 test('日付・時間・ファイル・バージョン別に集計して生ログを削除する', function () {
     // Unix epoch 0 は JST で 1970-01-01 09時。
     n3s_record_cdn_download('release/wnako3.js', '3.8.7', 0, 'GET');

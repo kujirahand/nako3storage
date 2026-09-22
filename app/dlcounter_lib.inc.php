@@ -78,6 +78,25 @@ function n3s_dlcounter_should_record($file, $method = 'GET')
 }
 
 /**
+ * CDNから得た本文が配信・カウント対象として妥当か判定する。
+ */
+function n3s_cdn_response_is_valid($body, $ext)
+{
+    if ($body === false || $body === null || strlen(trim((string) $body)) <= 2) {
+        return false;
+    }
+    $trimmed = ltrim((string) $body);
+    if (($ext === 'js' || $ext === 'mjs' || $ext === 'css' || $ext === 'map') &&
+        preg_match('#^<#', $trimmed)) {
+        return false;
+    }
+    if ($ext === 'map' && preg_match('#^[\{\[]#', $trimmed) !== 1) {
+        return false;
+    }
+    return true;
+}
+
+/**
  * 成功したCDN配信を生ログDBへ記録する。
  */
 function n3s_record_cdn_download($file, $version, $ctime = null, $method = null)
@@ -115,6 +134,17 @@ function n3s_record_cdn_download_safe($file, $version, $ctime = null, $method = 
         }
         return false;
     }
+}
+
+/**
+ * 正常なCDN本文の配信だけを記録する。
+ */
+function n3s_record_cdn_delivery_if_successful($file, $version, $body, $ext, $method = null)
+{
+    if (!n3s_cdn_response_is_valid($body, $ext)) {
+        return false;
+    }
+    return n3s_record_cdn_download_safe($file, $version, null, $method);
 }
 
 /**
