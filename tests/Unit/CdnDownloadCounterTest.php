@@ -51,6 +51,13 @@ test('対象外ファイルとHEADはログへ保存しない', function () {
         ->and(dlcounter_log_rows())->toBeEmpty();
 });
 
+test('CDNログ用接続は指定したロック待機時間を使用する', function () {
+    $pdo = n3s_dlcounter_open_logs(250);
+    $busy_timeout = (int) $pdo->query('PRAGMA busy_timeout')->fetchColumn();
+
+    expect($busy_timeout)->toBe(250);
+});
+
 test('日付・時間・ファイル・バージョン別に集計して生ログを削除する', function () {
     // Unix epoch 0 は JST で 1970-01-01 09時。
     n3s_record_cdn_download('release/wnako3.js', '3.8.7', 0, 'GET');
@@ -92,6 +99,34 @@ test('複数回の集計は既存統計へ加算し空実行では変更しな�
             'log_count' => 0,
             'stat_count' => 0,
         ]);
+});
+
+test('集計途中で失敗した場合は統計加算と生ログ削除を両方ロールバックする', function () {
+    n3s_record_cdn_download('release/wnako3.js', '3.8.7', 0, 'GET');
+    $main = n3s_dlcounter_open_main();
+    $main->exec(
+        "CREATE TRIGGER force_cdn_aggregate_failure
+         BEFORE INSERT ON cdn_download_stats
+         BEGIN
+           SELECT RAISE(ABORT, 'forced aggregate failure');
+         END"
+    );
+
+    $failed = false;
+    try {
+        n3s_aggregate_cdn_downloads();
+    } catch (Throwable $e) {
+        $failed = true;
+    }
+
+    expect($failed)->toBeTrue()
+        ->and(dlcounter_stat_rows())->toBeEmpty()
+        ->and(dlcounter_log_rows())->toHaveCount(1);
+
+    $main->exec('DROP TRIGGER force_cdn_aggregate_failure');
+    n3s_aggregate_cdn_downloads();
+    expect(dlcounter_stat_rows()[0]['count'])->toBe(1)
+        ->and(dlcounter_log_rows())->toBeEmpty();
 });
 
 test('ダッシュボードは週間・月間・時間・バージョン・ファイルを集計する', function () {

@@ -23,7 +23,7 @@ function n3s_dlcounter_paths()
 /**
  * SQLite接続を作り、指定した初期化SQLを適用する。
  */
-function n3s_dlcounter_open($file, $init_sql)
+function n3s_dlcounter_open($file, $init_sql, $busy_timeout_ms = 3000)
 {
     $dir = dirname($file);
     if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
@@ -32,8 +32,9 @@ function n3s_dlcounter_open($file, $init_sql)
     $pdo = new PDO('sqlite:' . $file);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 3);
-    $pdo->exec('PRAGMA busy_timeout = 3000');
+    $busy_timeout_ms = max(0, (int) $busy_timeout_ms);
+    $pdo->setAttribute(PDO::ATTR_TIMEOUT, max(1, (int) ceil($busy_timeout_ms / 1000)));
+    $pdo->exec('PRAGMA busy_timeout = ' . $busy_timeout_ms);
     // 配信のたびにDDLを実行しない。新規DBまたは将来のスキーマ更新時だけ適用する。
     $schema_version = (int) $pdo->query('PRAGMA user_version')->fetchColumn();
     if ($schema_version < 1) {
@@ -52,10 +53,14 @@ function n3s_dlcounter_open_main()
     return n3s_dlcounter_open($paths['main'], __DIR__ . '/sql/init-dlcounter-main.sql');
 }
 
-function n3s_dlcounter_open_logs()
+function n3s_dlcounter_open_logs($busy_timeout_ms = 3000)
 {
     $paths = n3s_dlcounter_paths();
-    return n3s_dlcounter_open($paths['logs'], __DIR__ . '/sql/init-dlcounter-logs.sql');
+    return n3s_dlcounter_open(
+        $paths['logs'],
+        __DIR__ . '/sql/init-dlcounter-logs.sql',
+        $busy_timeout_ms
+    );
 }
 
 /**
@@ -86,7 +91,8 @@ function n3s_record_cdn_download($file, $version, $ctime = null, $method = null)
     if ($ctime === null) {
         $ctime = time();
     }
-    $pdo = n3s_dlcounter_open_logs();
+    // CDNレスポンスを長時間止めない。短時間で書けなければsafeラッパーで配信を優先する。
+    $pdo = n3s_dlcounter_open_logs(250);
     $stmt = $pdo->prepare(
         'INSERT INTO cdn_download_logs (file, version, ctime) VALUES (?, ?, ?)'
     );
@@ -129,7 +135,10 @@ function n3s_aggregate_cdn_downloads()
     try {
         $pdo->exec('ATTACH DATABASE ' . $pdo->quote($paths['logs']) . ' AS dlcounter_logs');
         $attached = true;
-        $pdo->beginTransaction();
+        // BEGIN DEFERRED だと、先に生ログを読んだ後でCDN側のINSERTと競合した際に
+        // 共有ロックから書込ロックへ昇格できず SQLITE_BUSY になることがある。
+        // 最初に両DBの書込権を確保し、集計とログ削除を確実に同じ処理単位にする。
+        $pdo->exec('BEGIN IMMEDIATE');
 
         $max_log_id = (int) $pdo->query(
             'SELECT COALESCE(MAX(log_id), 0) FROM dlcounter_logs.cdn_download_logs'
