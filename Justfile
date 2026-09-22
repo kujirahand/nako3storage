@@ -54,3 +54,7 @@ image-count:
 # 作品アクセスログの集計バッチを実行する (1時間に1回程度 cron から実行する想定)
 app-count:
     php scripts/app_count.php
+
+# release/* CDNダウンロードログの集計バッチを実行する (1時間に1回程度)
+cdn-download-count:
+    php scripts/cdn_download_count.php

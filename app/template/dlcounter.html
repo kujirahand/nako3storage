@@ -1,0 +1,85 @@
+{{ include parts_html_header.html }}
+
+<div class="showblock">
+  <h1>📦 CDNダウンロード統計</h1>
+  <p><code>release/*</code> の正常なGETリクエストを集計しています。</p>
+
+  <h2>サマリー</h2>
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:650px">
+    <tbody>
+      <tr><th>直近7日間 ({{$week_since}}〜)</th><td>{{$week_total}}</td></tr>
+      <tr><th>今月 ({{$month}})</th><td>{{$month_total}}</td></tr>
+      <tr><th>集計待ちログ</th><td>{{$pending_count}}</td></tr>
+      <tr><th>最終集計</th><td>{{$last_aggregated}}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>日別ダウンロード数 (直近30日)</h2>
+  <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-daily-chart" height="80"></canvas></div>
+
+  <h2>時間帯別ダウンロード数 (今月)</h2>
+  <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-hour-chart" height="80"></canvas></div>
+
+  <h2>使用バージョン (今月)</h2>
+  {{if $version_rows}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:650px">
+    <thead><tr><th>バージョン</th><th>ダウンロード数</th></tr></thead>
+    <tbody>
+    {{for $version_rows as $row}}
+      <tr><td>{{$row.version}}</td><td>{{$row.count}}</td></tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}<p>データなし</p>{{endif}}
+
+  <h2>ダウンロードされたファイル (今月)</h2>
+  {{if $file_rows}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:800px">
+    <thead><tr><th>ファイル</th><th>ダウンロード数</th></tr></thead>
+    <tbody>
+    {{for $file_rows as $row}}
+      <tr><td><code>{{$row.file}}</code></td><td>{{$row.count}}</td></tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}<p>データなし</p>{{endif}}
+
+  <h2>バージョン・ファイル別 (今月、上位100件)</h2>
+  {{if $version_file_rows}}
+  <table class="pure-table pure-table-bordered" style="width:100%;max-width:900px">
+    <thead><tr><th>バージョン</th><th>ファイル</th><th>ダウンロード数</th></tr></thead>
+    <tbody>
+    {{for $version_file_rows as $row}}
+      <tr><td>{{$row.version}}</td><td><code>{{$row.file}}</code></td><td>{{$row.count}}</td></tr>
+    {{endfor}}
+    </tbody>
+  </table>
+  {{else}}<p>データなし</p>{{endif}}
+
+  <p><a href="index.php?action=admin" class="pure-button">← 管理者ページに戻る</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js"
+  integrity="sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=" crossorigin="anonymous"></script>
+<script>
+(function() {
+  new Chart(document.getElementById('dl-daily-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{$daily_labels | safe}},
+      datasets: [{ label: 'ダウンロード数', data: {{$daily_counts | safe}}, borderColor: '#4e8cff', backgroundColor: 'rgba(78,140,255,0.1)', fill: true, tension: 0.3 }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+  new Chart(document.getElementById('dl-hour-chart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: {{$hour_labels | safe}},
+      datasets: [{ label: 'ダウンロード数', data: {{$hour_counts | safe}}, backgroundColor: '#f0a500' }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+})();
+</script>
+
+{{ include parts_html_footer.html }}
