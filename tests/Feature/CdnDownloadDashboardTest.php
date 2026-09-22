@@ -19,6 +19,11 @@ test('CDNダウンロード統計は管理者だけが閲覧できる', function
 
     expect($admin_html)->toContain('CDNダウンロード統計')
         ->and($admin_html)->toContain('直近7日間')
+        ->and($admin_html)->toContain('月間ダウンロード数')
+        ->and($admin_html)->toContain('年間ダウンロード数')
+        ->and($admin_html)->toContain('月別ダウンロード推移')
+        ->and($admin_html)->toContain('週別ダウンロード推移')
+        ->and($admin_html)->toContain('wnako3.js')
         ->and($admin_html)->toContain('使用バージョン')
         ->and($admin_html)->toContain('ダウンロードされたファイル');
 });
