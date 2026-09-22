@@ -170,6 +170,14 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 この API は、編集画面で発行された `api_token` とログイン済みセッションを前提にします。
 
+### CDNダウンロードカウンタDB: `data/dlcounter-*.sqlite`
+
+- `dlcounter-logs.sqlite`: `cdn.php` が正常に配信した `release/*` の生ログ。
+- `dlcounter-main.sqlite`: 日付・時間帯・ファイル・バージョン別の集計値。
+- 実際の保存先は `n3s_config.ini.php` の `dir_data` に従う。
+- `scripts/cdn_download_count.php` (`just cdn-download-count`) が定期集計する。
+- 管理者画面 `index.php?action=dlcounter` で集計結果を確認できる。
+
 ---
 
 ## 7. 投稿保存・編集の重要仕様
@@ -312,6 +320,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - JS/CSS/map は内容を直接返す。
 - その他ファイルは `cache-cdn/` または CDN へ 307 リダイレクトする。
 - 取得内容が HTML など不正そうな場合はキャッシュを破棄または 404 にする。
+- 正常に配信した `release/*` のGETは `dlcounter-logs.sqlite` に記録し、`just cdn-download-count` で集計する。
 
 `show.inc.php` はなでしこ本体とプラグイン読み込みタグを組み立てます。バージョン互換の条件分岐があるため、プラグイン読み込みを触る場合は `n3s_show_get()` 全体を確認してください。
 

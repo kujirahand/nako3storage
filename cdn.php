@@ -1,6 +1,6 @@
 <?php
 // CDN.php --- redirect to cdn
-global $cache_dir, $CDN, $cache_url, $cache_config;
+global $cache_dir, $CDN, $cache_url, $cache_config, $n3s_config;
 // cache_config
 $cache_config = ['cache_all' => TRUE];
 
@@ -8,7 +8,12 @@ $cache_config = ['cache_all' => TRUE];
 // get nadesiko default version
 // --------------------------------------------------
 // require_once __DIR__.'/app/mime.inc.php'; // 使っていない
-require_once __DIR__.'/nako_version.inc.php';
+require_once __DIR__.'/app/n3s_config.def.php';
+$config_file = __DIR__.'/n3s_config.ini.php';
+if (file_exists($config_file)) {
+  require_once $config_file;
+}
+require_once __DIR__.'/app/dlcounter_lib.inc.php';
 
 // --------------------------------------------------
 // setting
@@ -156,6 +161,9 @@ function useCache($ver, $url, $file, $ext = '') {
       }
     }
   }
+  // 正常に取得できた release/* のGETだけを生ログへ記録する。
+  // カウンタDBの障害でCDN配信自体を止めないよう、例外は内部で処理する。
+  n3s_record_cdn_download_safe($org_file, $ver);
   // output
   header('Access-Control-Allow-Origin: *');
   // check ext
@@ -212,4 +220,3 @@ function isBadResponseBody($body, $ext) {
   }
   return FALSE;
 }
-
