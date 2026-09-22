@@ -266,6 +266,19 @@ function n3s_dlcounter_fetch_value($pdo, $sql, $params = [])
 }
 
 /**
+ * 日付文字列 (YYYY-MM-DD) の月曜始まり週の先頭日を返す。
+ */
+function n3s_dlcounter_week_start($date, $timezone)
+{
+    $day = DateTimeImmutable::createFromFormat('!Y-m-d', $date, $timezone);
+    if ($day === false) {
+        return null;
+    }
+    $days_from_monday = (int) $day->format('N') - 1;
+    return $day->modify("-{$days_from_monday} days")->format('Y-m-d');
+}
+
+/**
  * 管理画面で使う統計一式を返す。
  */
 function n3s_get_cdn_download_dashboard($now = null)
@@ -279,7 +292,12 @@ function n3s_get_cdn_download_dashboard($now = null)
     $week_since = date('Y-m-d', strtotime('-6 days', $now));
     $month = date('Y-m', $now);
     $month_since = $month . '-01';
+    $year_since = date('Y', $now) . '-01-01';
     $daily_since = date('Y-m-d', strtotime('-29 days', $now));
+    $timezone = new DateTimeZone('Asia/Tokyo');
+    $today_date = DateTimeImmutable::createFromFormat('!Y-m-d', $today, $timezone);
+    $week_start_date = $today_date->modify('-' . ((int) $today_date->format('N') - 1) . ' days');
+    $weekly_since = $week_start_date->modify('-51 weeks')->format('Y-m-d');
 
     $week_total = n3s_dlcounter_fetch_value(
         $main,
@@ -290,6 +308,11 @@ function n3s_get_cdn_download_dashboard($now = null)
         $main,
         'SELECT COALESCE(SUM(count), 0) FROM cdn_download_stats WHERE date >= ? AND date <= ?',
         [$month_since, $today]
+    );
+    $year_total = n3s_dlcounter_fetch_value(
+        $main,
+        'SELECT COALESCE(SUM(count), 0) FROM cdn_download_stats WHERE date >= ? AND date <= ?',
+        [$year_since, $today]
     );
     $daily_rows = n3s_dlcounter_fetch_all(
         $main,
@@ -321,6 +344,20 @@ function n3s_get_cdn_download_dashboard($now = null)
           WHERE date BETWEEN ? AND ? GROUP BY version, file
           ORDER BY count DESC, version DESC, file ASC LIMIT 100',
         [$month_since, $today]
+    );
+    $historical_rows = n3s_dlcounter_fetch_all(
+        $main,
+        'SELECT date, SUM(count) AS count FROM cdn_download_stats
+          WHERE date <= ? GROUP BY date ORDER BY date',
+        [$today]
+    );
+    $wnako3_version_rows = n3s_dlcounter_fetch_all(
+        $main,
+        "SELECT substr(date, 1, 7) AS month, version, SUM(count) AS count
+           FROM cdn_download_stats
+          WHERE date <= ? AND file = 'release/wnako3.js'
+          GROUP BY month, version ORDER BY month, version",
+        [$today]
     );
     $pending_count = n3s_dlcounter_fetch_value(
         $logs,
@@ -355,11 +392,79 @@ function n3s_get_cdn_download_dashboard($now = null)
         $hour_counts[] = isset($hour_map[$hour]) ? $hour_map[$hour] : 0;
     }
 
+    // 月別は記録開始月から現在月までを0件の月も含めて返す。
+    $monthly_map = [];
+    $weekly_map = [];
+    $first_date = null;
+    foreach ($historical_rows as $row) {
+        $date = (string) $row['date'];
+        if ($first_date === null) {
+            $first_date = $date;
+        }
+        $month_key = substr($date, 0, 7);
+        if (!isset($monthly_map[$month_key])) {
+            $monthly_map[$month_key] = 0;
+        }
+        $monthly_map[$month_key] += (int) $row['count'];
+
+        if ($date >= $weekly_since) {
+            $week_key = n3s_dlcounter_week_start($date, $timezone);
+            if ($week_key !== null) {
+                if (!isset($weekly_map[$week_key])) {
+                    $weekly_map[$week_key] = 0;
+                }
+                $weekly_map[$week_key] += (int) $row['count'];
+            }
+        }
+    }
+
+    $monthly_labels = [];
+    $monthly_counts = [];
+    if ($first_date !== null) {
+        $cursor = DateTimeImmutable::createFromFormat('!Y-m-d', substr($first_date, 0, 7) . '-01', $timezone);
+        $last_month = DateTimeImmutable::createFromFormat('!Y-m-d', $month_since, $timezone);
+        while ($cursor <= $last_month) {
+            $month_key = $cursor->format('Y-m');
+            $monthly_labels[] = $month_key;
+            $monthly_counts[] = isset($monthly_map[$month_key]) ? $monthly_map[$month_key] : 0;
+            $cursor = $cursor->modify('+1 month');
+        }
+    }
+
+    $weekly_labels = [];
+    $weekly_counts = [];
+    for ($i = 0; $i < 52; $i++) {
+        $week_key = $week_start_date->modify("-{$i} weeks")->format('Y-m-d');
+        array_unshift($weekly_labels, $week_key);
+        array_unshift($weekly_counts, isset($weekly_map[$week_key]) ? $weekly_map[$week_key] : 0);
+    }
+
+    // wnako3.js はバージョンごとに、月別グラフの横軸へ揃えて返す。
+    $wnako3_version_map = [];
+    foreach ($wnako3_version_rows as $row) {
+        $version = (string) $row['version'];
+        $month_key = (string) $row['month'];
+        if (!isset($wnako3_version_map[$version])) {
+            $wnako3_version_map[$version] = [];
+        }
+        $wnako3_version_map[$version][$month_key] = (int) $row['count'];
+    }
+    $wnako3_version_series = [];
+    foreach ($wnako3_version_map as $version => $version_map) {
+        $counts = [];
+        foreach ($monthly_labels as $month_key) {
+            $counts[] = isset($version_map[$month_key]) ? $version_map[$month_key] : 0;
+        }
+        $wnako3_version_series[$version] = $counts;
+    }
+
     return [
         'week_since' => $week_since,
         'month' => $month,
+        'year' => date('Y', $now),
         'week_total' => $week_total,
         'month_total' => $month_total,
+        'year_total' => $year_total,
         'pending_count' => $pending_count,
         'last_aggregated_at' => isset($meta['last_aggregated_at'])
             ? (int) $meta['last_aggregated_at'] : 0,
@@ -367,6 +472,11 @@ function n3s_get_cdn_download_dashboard($now = null)
         'daily_counts' => $daily_counts,
         'hour_labels' => $hour_labels,
         'hour_counts' => $hour_counts,
+        'monthly_labels' => $monthly_labels,
+        'monthly_counts' => $monthly_counts,
+        'weekly_labels' => $weekly_labels,
+        'weekly_counts' => $weekly_counts,
+        'wnako3_version_series' => $wnako3_version_series,
         'version_rows' => $version_rows,
         'file_rows' => $file_rows,
         'version_file_rows' => $version_file_rows,

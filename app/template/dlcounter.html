@@ -8,7 +8,8 @@
   <table class="pure-table pure-table-bordered" style="width:100%;max-width:650px">
     <tbody>
       <tr><th>直近7日間 ({{$week_since}}〜)</th><td>{{$week_total}}</td></tr>
-      <tr><th>今月 ({{$month}})</th><td>{{$month_total}}</td></tr>
+      <tr><th>月間ダウンロード数 ({{$month}})</th><td>{{$month_total}}</td></tr>
+      <tr><th>年間ダウンロード数 ({{$year}})</th><td>{{$year_total}}</td></tr>
       <tr><th>集計待ちログ</th><td>{{$pending_count}}</td></tr>
       <tr><th>最終集計</th><td>{{$last_aggregated}}</td></tr>
     </tbody>
@@ -16,6 +17,15 @@
 
   <h2>日別ダウンロード数 (直近30日)</h2>
   <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-daily-chart" height="80"></canvas></div>
+
+  <h2>月別ダウンロード推移 (記録開始以降)</h2>
+  <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-monthly-chart" height="80"></canvas></div>
+
+  <h2>週別ダウンロード推移 (直近52週・月曜始まり)</h2>
+  <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-weekly-chart" height="80"></canvas></div>
+
+  <h2><code>wnako3.js</code> のバージョン別ダウンロード推移 (月別)</h2>
+  <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-wnako3-version-chart" height="100"></canvas></div>
 
   <h2>時間帯別ダウンロード数 (今月)</h2>
   <div style="max-width:900px;margin-bottom:2em"><canvas id="dl-hour-chart" height="80"></canvas></div>
@@ -76,6 +86,43 @@
     data: {
       labels: {{$hour_labels | safe}},
       datasets: [{ label: 'ダウンロード数', data: {{$hour_counts | safe}}, backgroundColor: '#f0a500' }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('dl-monthly-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{$monthly_labels | safe}},
+      datasets: [{ label: 'ダウンロード数', data: {{$monthly_counts | safe}}, borderColor: '#1b9e77', backgroundColor: 'rgba(27,158,119,0.1)', fill: true, tension: 0.3 }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+  new Chart(document.getElementById('dl-weekly-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{$weekly_labels | safe}},
+      datasets: [{ label: 'ダウンロード数', data: {{$weekly_counts | safe}}, borderColor: '#7570b3', backgroundColor: 'rgba(117,112,179,0.1)', fill: true, tension: 0.3 }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+  var wnako3VersionSeries = {{$wnako3_version_series | safe}};
+  var wnako3Versions = Object.keys(wnako3VersionSeries);
+  new Chart(document.getElementById('dl-wnako3-version-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: {{$monthly_labels | safe}},
+      datasets: wnako3Versions.map(function(version, index) {
+        var hue = (index * 47) % 360;
+        return {
+          label: version,
+          data: wnako3VersionSeries[version],
+          borderColor: 'hsl(' + hue + ', 65%, 42%)',
+          backgroundColor: 'hsla(' + hue + ', 65%, 42%, 0.12)',
+          fill: false,
+          tension: 0.3
+        };
+      })
     },
     options: { responsive: true, scales: { y: { beginAtZero: true } } }
   });

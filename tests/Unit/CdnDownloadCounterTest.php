@@ -167,3 +167,41 @@ test('ダッシュボードは週間・月間・時間・バージョン・フ�
         ->and(array_sum($data['daily_counts']))->toBe(3)
         ->and(array_sum($data['hour_counts']))->toBe(3);
 });
+
+test('ダッシュボードは月別・週別・wnako3.jsのバージョン別推移と年間合計を返す', function () {
+    $records = [
+        ['2025-12-31 12:00:00', 'release/wnako3.js', '3.8.6', 1],
+        ['2026-01-05 12:00:00', 'release/wnako3.js', '3.8.7', 2],
+        ['2026-01-11 12:00:00', 'release/plugin_system.js', '3.8.7', 3],
+        ['2026-02-02 12:00:00', 'release/wnako3.js', '3.8.7', 4],
+        ['2026-02-16 12:00:00', 'release/plugin_system.js', '3.9.0', 5],
+    ];
+    foreach ($records as $record) {
+        for ($i = 0; $i < $record[3]; $i++) {
+            n3s_record_cdn_download($record[1], $record[2], strtotime($record[0]) + $i, 'GET');
+        }
+    }
+    n3s_aggregate_cdn_downloads();
+
+    $data = n3s_get_cdn_download_dashboard(strtotime('2026-03-10 12:00:00'));
+
+    expect($data['month_total'])->toBe(0)
+        ->and($data['year_total'])->toBe(14)
+        ->and($data['year'])->toBe('2026')
+        ->and($data['monthly_labels'])->toBe(['2025-12', '2026-01', '2026-02', '2026-03'])
+        ->and($data['monthly_counts'])->toBe([1, 5, 9, 0])
+        ->and($data['wnako3_version_series'])->toBe([
+            '3.8.6' => [1, 0, 0, 0],
+            '3.8.7' => [0, 2, 4, 0],
+        ]);
+
+    $jan_week = array_search('2026-01-05', $data['weekly_labels'], true);
+    $empty_week = array_search('2026-01-19', $data['weekly_labels'], true);
+    $feb_week = array_search('2026-02-02', $data['weekly_labels'], true);
+    expect($jan_week)->not->toBeFalse()
+        ->and($data['weekly_counts'][$jan_week])->toBe(5)
+        ->and($empty_week)->not->toBeFalse()
+        ->and($data['weekly_counts'][$empty_week])->toBe(0)
+        ->and($feb_week)->not->toBeFalse()
+        ->and($data['weekly_counts'][$feb_week])->toBe(4);
+});
