@@ -27,7 +27,12 @@ function n3s_web_broken()
             n3s_error('報告に失敗しました', $res);
             return;
         }
-        n3s_broken_template($app, 1, '');
+        // 1: 報告した / 2: 既に報告済み
+        n3s_broken_template($app, $res['added'] ? 1 : 2, '');
+        return;
+    }
+    if (n3s_broken_is_reported($app_id, n3s_get_user_id())) {
+        n3s_broken_template($app, 2, '');
         return;
     }
     n3s_broken_template($app, 0, n3s_getEditToken());
@@ -64,7 +69,15 @@ function n3s_api_broken()
     }
 }
 
-// 「動かない」報告を1件記録する。成功時は報告後の件数(int)、失敗時はエラーメッセージ(string)を返す
+// ログインユーザーが既にこの作品を「動かない」報告済みか
+function n3s_broken_is_reported($app_id, $user_id)
+{
+    $r = db_get1('SELECT broken_report_id FROM broken_reports WHERE app_id=? AND user_id=?', [$app_id, $user_id]);
+    return !empty($r);
+}
+
+// 「動かない」報告を1件記録する。報告者は broken_reports に記録し、1ユーザー1作品につき1回だけ数える。
+// 成功時は ['count' => 報告後の件数, 'added' => 今回加算したか]、失敗時はエラーメッセージ(string)を返す
 function n3s_broken_report($app_id)
 {
     // 報告はDBを更新するため、CSRF対策としてPOST + edit_tokenを必須にする
@@ -74,35 +87,37 @@ function n3s_broken_report($app_id)
     if (! n3s_checkEditToken()) {
         return 'ページの有効期限が切れました。もう一度報告ボタンからやり直してください。';
     }
-    if (! n3s_is_login()) {
+    $user_id = n3s_get_user_id();
+    if (! n3s_is_login() || $user_id <= 0) {
         return 'ログインしてください。';
     }
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+    $began = false;
     try {
-        $r = db_get1('SELECT broken_report,broken_lastip FROM apps WHERE app_id=?', [$app_id]);
+        db_begin();
+        $began = true;
+        $r = db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$app_id]);
         if (!$r) {
+            db_rollback();
             return '作品が見つかりません。';
         }
-        $ip = $_SERVER["REMOTE_ADDR"];
-        // for test ?
-        $ip_a = explode('.', $ip.'.0.0.0.0');
-        if (($ip_a[0] === '192' && $ip_a[1] === '168') ||
-            ($ip_a[0] === '100' && $ip_a[1] === '115')) {
-            $ip = (string) time(); // かぶらないように
-        }
-        if (n3s_is_admin()) {
-            $ip = (string) time();
-        }
-        if ($r['broken_lastip'] !== $ip) {
+        // UNIQUE(app_id, user_id) により、同時に報告されても二重には記録されない
+        db_exec('INSERT OR IGNORE INTO broken_reports (app_id, user_id, ip, ctime) VALUES (?,?,?,?)',
+            [$app_id, $user_id, $ip, time()]);
+        $c = db_get1('SELECT changes() AS c');
+        $added = ($c && intval($c['c']) > 0);
+        if ($added) {
             // 管理者の報告は一発で+3
             $up_count = n3s_is_admin() ? 3 : 1;
-            db_begin();
             db_exec('UPDATE apps SET broken_report=broken_report+? WHERE app_id=?', [$up_count, $app_id]);
-            db_exec('UPDATE apps SET broken_lastip=? WHERE app_id=?', [$ip, $app_id]);
-            $r = db_get1('SELECT broken_report,broken_lastip FROM apps WHERE app_id=?', [$app_id]);
-            db_commit();
+            $r = db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$app_id]);
         }
-        return intval($r['broken_report']);
+        db_commit();
+        return ['count' => intval($r['broken_report']), 'added' => $added];
     } catch (Exception $e) {
+        if ($began) {
+            try { db_rollback(); } catch (Exception $e2) { /* ignore */ }
+        }
         // 例外の詳細(パスやSQLを含みうる)はサーバーログにのみ記録し、利用者へは返さない
         error_log('n3s_broken error: ' . $e->getMessage());
         return 'サーバーエラーが発生しました。';

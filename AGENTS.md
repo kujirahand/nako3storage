@@ -115,6 +115,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `apps`: 投稿メタ情報。タイトル、作者、ユーザー ID、公開状態、タグ、ライセンス、閲覧数、いいね数など。
 - `comments`: コメント。
 - `comment_user_blocks`: AI審査でNGになったユーザー別回数とコメント投稿ブロック状態。既存DBは `n3s_db_migrate_comments()` で追加・初期集計する。
+- `broken_reports`: 「動かない」報告の記録 (`app_id`, `user_id`, `ip`, `ctime`)。`UNIQUE(app_id, user_id)` で1ユーザー1作品につき1回だけ `apps.broken_report` に加算する(管理者は+3)。既存DBは `n3s_db_migrate_apps()` で作成する。`apps.broken_lastip` は旧方式の名残で未使用 (#267)。
 - `images`: アップロードファイルのメタ情報。
 - `bookmarks`: ユーザーのブックマーク。
 

@@ -8,7 +8,11 @@
   <p>作品ID: <a href="id.php?{{ $broken_app_id }}">{{ $broken_app_id }}</a></p>
   {{ endif }}
   {{ if $broken_done }}
+  {{ if $broken_done == 2 }}
+  <p>この作品は既に報告済みです。ありがとうございました。</p>
+  {{ else }}
   <p>ありがとうございました。報告しました。</p>
+  {{ endif }}
   <p><a href="id.php?{{ $broken_app_id }}">作品ページに戻る</a></p>
   {{ else }}
   <p>この作品がエラーが出て動かないことを報告しますか？</p>
