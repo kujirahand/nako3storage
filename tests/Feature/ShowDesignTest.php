@@ -46,8 +46,7 @@ test('作品表示ページは共通デザインと既存の操作契約を維�
         ->toContain('id="comment_template"')
         ->toContain('<option value="42">設定から生成したコメント</option>')
         ->toContain('id="comment_list_area"')
-        ->toContain('class="pure-button n3s-show-x-share"')
-        ->toContain('class="n3s-show-x-icon" aria-hidden="true">X</span>')
-        ->toContain('<span>Xへ投稿</span>')
+        ->not->toContain('n3s-show-x-share')
+        ->not->toContain('Xへ投稿')
         ->toContain("window.app_id = {$appId};");
 });
