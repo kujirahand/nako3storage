@@ -31,6 +31,10 @@ if (!n3s_get_config('nadesiko3hub_enabled', FALSE)) {
     echo "[INFO] nadesiko3hub_enabled が無効なため、処理をスキップしました。\n";
     exit(0);
 }
+if (n3s_get_config('nadesiko3hub_dir', '') == '') {
+    echo "[ERROR] nadesiko3hub_dir が未設定です。\n";
+    exit(1);
+}
 
 // スキャン期間(日数)をオプションで指定する
 $days_arg = isset($argv[1]) ? trim($argv[1]) : '';
@@ -47,5 +51,6 @@ if ($days_arg !== '') {
 }
 
 $result = n3s_nadesiko3hub_sync($since_ts);
-echo "[INFO] 対象 {$result['total']} 件 / 保存 {$result['saved']} 件 / スキップ(既存) {$result['skipped']} 件\n";
+echo "[INFO] 対象 {$result['total']} 件 / 保存 {$result['saved']} 件"
+    . " / スキップ(既存) {$result['skipped']} 件 / 未保存(本文なし・ライセンス未指定など) {$result['not_saved']} 件\n";
 echo "[SUCCESS] nadesiko3hubへの補完バッチが完了しました。\n";
