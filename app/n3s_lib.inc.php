@@ -1655,12 +1655,30 @@ function n3s_setInfoTag($key, $tag)
     n3s_setInfo($key, 0, $tag);
 }
 
-function n3s_nadesiko3hub_save($app_id, $data)
+// nadesiko3hubへの出力先ファイルパスを返す (dirは作成しない)。
+// nadesiko3hub_dir が未設定の場合は空文字を返す。
+function n3s_nadesiko3hub_get_savefile($app_id)
+{
+    $nadesiko3hub_dir = n3s_get_config('nadesiko3hub_dir', '');
+    if ($nadesiko3hub_dir == '') {
+        return '';
+    }
+    // 保存先を決定(フォルダ1つずつに500件)
+    $dirno = floor($app_id / 500) * 500;
+    $dirname = sprintf('%05d', $dirno);
+    return $nadesiko3hub_dir . '/' . $dirname . '/' . $app_id . '.nako3';
+}
+
+function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
 {
     // ライセンスを確認して問題なければ、nadesiko3hubに保存
     $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
-    $nadesiko3hub_dir = n3s_get_config('nadesiko3hub_dir', '');
-    if (!$nadesiko3hub_enabled || $nadesiko3hub_dir == '') {
+    $savefile = n3s_nadesiko3hub_get_savefile($app_id);
+    if (!$nadesiko3hub_enabled || $savefile == '') {
+        return;
+    }
+    // 既にファイルがある場合は処理をスキップする (#270 定期バッチの取りこぼし補完用)
+    if ($skip_if_exists && file_exists($savefile)) {
         return;
     }
     // プログラムが空ならばスキップ
@@ -1670,14 +1688,10 @@ function n3s_nadesiko3hub_save($app_id, $data)
     if ($copyright == '未指定' || $copyright == '自分用') {
         $copyright = '';
     } // 未指定と自分用は保存しない
-    // 保存先を決定(フォルダ1つずつに500件)
-    $dirno = floor($app_id / 500) * 500;
-    $dirname = sprintf('%05d', $dirno);
-    $savedir = $nadesiko3hub_dir . '/' . $dirname;
+    $savedir = dirname($savefile);
     if (!file_exists($savedir)) {
         @mkdir($savedir);
     }
-    $savefile = $savedir . '/' . $app_id . '.nako3';
     // 非公開であれば保存しない(また非公開にされたり、著作権を自分用にされたら削除)
     if ($data['is_private'] == 1 || $body == '' || $copyright == '') {
         if (file_exists($savefile)) {
@@ -1737,6 +1751,46 @@ function n3s_nadesiko3hub_update_all()
         echo "update mtime app_id=$app_id $title\n";
     }
     */
+}
+
+// nadesiko3hubへの取りこぼし補完バッチ (#270)。
+// 1日1回程度 cron から実行することを想定し、既に出力済み(.nako3が存在する)の
+// 投稿はスキップして未出力の公開投稿だけを書き出す。
+// $since_ts を指定すると、投稿日時(ctime)または更新日時(mtime)がそれ以降の
+// 作品のみをスキャン対象にする(0の場合は全期間)。
+function n3s_nadesiko3hub_sync($since_ts = 0)
+{
+    $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
+    if (!$nadesiko3hub_enabled) {
+        return ['total' => 0, 'saved' => 0, 'skipped' => 0];
+    }
+    $sql = 'SELECT app_id FROM apps WHERE is_private=0';
+    $params = [];
+    if ($since_ts > 0) {
+        $sql .= ' AND (ctime >= ? OR mtime >= ?)';
+        $params = [$since_ts, $since_ts];
+    }
+    $sql .= ' ORDER BY app_id DESC';
+    $rows = db_get($sql, $params);
+    $saved = 0;
+    $skipped = 0;
+    foreach ($rows as $row) {
+        $app_id = $row['app_id'];
+        $savefile = n3s_nadesiko3hub_get_savefile($app_id);
+        if ($savefile != '' && file_exists($savefile)) {
+            $skipped++;
+            continue;
+        }
+        $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
+        if (!$a) {
+            continue;
+        }
+        $body = n3s_getMaterialData($app_id);
+        $a['body'] = empty($body['body']) ? '' : $body['body'];
+        n3s_nadesiko3hub_save($app_id, $a, true);
+        $saved++;
+    }
+    return ['total' => count($rows), 'saved' => $saved, 'skipped' => $skipped];
 }
 
 function n3s_list_setIcon(&$list)

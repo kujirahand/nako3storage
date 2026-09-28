@@ -62,3 +62,10 @@ app-count:
 # release/* CDNダウンロードログの集計バッチを実行する (1時間に1回程度)
 cdn-download-count:
     php scripts/cdn_download_count.php
+
+# nadesiko3hubへの投稿取りこぼし補完バッチを実行する (1日1回程度 cron 想定。
+# 既に出力済み(.nako3が存在する)の投稿はスキップする)
+# 例: just nadesiko3hub-sync         (全期間をスキャン)
+#     just nadesiko3hub-sync 7       (直近7日分のみスキャン)
+nadesiko3hub-sync DAYS='':
+    php scripts/nadesiko3hub_sync.php {{DAYS}}
