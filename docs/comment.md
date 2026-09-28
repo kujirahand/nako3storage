@@ -71,7 +71,7 @@
 - **実行コマンド**: `just comment-audit`（内部で `php scripts/comment_audit.php` を実行）
 - **審査仕様**:
   - `status = 'pending'` のコメントを取得し、OpenRouter API を使って誹謗中傷やスパムなどを審査します。
-  - **モデル**: 既定値は `google/gemini-3.1-flash-lite`。`comment_audit_model` で変更できます。
+  - **モデル**: 既定値は `google/gemma-3-12b-it`。`comment_audit_model` で変更できます。
   - **タイムアウト設定**: API 呼び出しの curl 接続に、**接続タイムアウト（10秒）** と **実行全体タイムアウト（30秒）** を設定し、API サーバー無応答時に cron 実行がハングアップするのを防ぎます。
   - **バージョン互換解放**: PHP 8.0 未満の古い環境でのみ明示的に `curl_close()` を呼ぶように制御し、PHP 8.5 以降での Deprecated 警告を回避しつつ、旧 PHP バージョンでも確実に curl リソースを解放します。
   - **一時的エラー発生時の保留**: APIサーバーからモデル終了等のエラーレスポンス（code: 404など）や通信エラーが返ってきた場合は、そのコメントを「不承認」にするのではなく、ステータスを `pending` のまま維持して処理を保留します。

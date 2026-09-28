@@ -93,7 +93,7 @@ $n3s_config['google_oauth_redirect_uri'] = 'https://n3s.example.com/index.php?ac
 ```php
 // OpenRouter API の設定
 $n3s_config['openrouter_api_key'] = '(取得したOpenRouter APIキー)';
-$n3s_config['comment_audit_model'] = 'google/gemini-3.1-flash-lite'; // 任意の対応モデルに変更可
+$n3s_config['comment_audit_model'] = 'google/gemma-3-12b-it'; // 任意の対応モデルに変更可
 
 // (オプション) AI審査を行わずすべて無条件で自動承認(公開)にする場合は true
 $n3s_config['comment_audit_auto_approve'] = false;
