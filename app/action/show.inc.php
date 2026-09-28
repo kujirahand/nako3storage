@@ -264,7 +264,8 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     if (substr($sandbox_url, -1) !== "/") {
         $sandbox_url .= "/";
     }
-    $wurl_run_allow = $sandbox_url."widget.php?$app_id&run=1&allow=1&nakotype=$nakotype";
+    // ui=1: 貯蔵庫のヘッダ・フッタ付きで実行画面を表示する (#250)
+    $wurl_run_allow = $sandbox_url."widget.php?$app_id&run=1&allow=1&ui=1&nakotype=$nakotype";
     $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";

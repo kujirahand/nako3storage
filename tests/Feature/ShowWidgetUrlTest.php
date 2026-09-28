@@ -30,7 +30,7 @@ test('sandbox_url未設定・サブディレクトリ配置でも widget_url_run
     $a = n3s_show_get('show', 'web', true, true);
 
     expect($a['widget_url_run_allow'])
-        ->toBe("http://localhost:7450/repos/nako3storage/widget.php?{$app_id}&run=1&allow=1&nakotype=wnako");
+        ->toBe("http://localhost:7450/repos/nako3storage/widget.php?{$app_id}&run=1&allow=1&ui=1&nakotype=wnako");
 });
 
 test('sandbox_urlが設定されていれば、そのURLを使って widget_url_run_allow を組み立てる', function () {
@@ -48,5 +48,5 @@ test('sandbox_urlが設定されていれば、そのURLを使って widget_url_
     $a = n3s_show_get('show', 'web', true, true);
 
     expect($a['widget_url_run_allow'])
-        ->toBe("https://sandbox.example.com/widget.php?{$app_id}&run=1&allow=1&nakotype=wnako");
+        ->toBe("https://sandbox.example.com/widget.php?{$app_id}&run=1&allow=1&ui=1&nakotype=wnako");
 });

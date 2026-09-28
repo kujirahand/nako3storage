@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <title>{{$title | check_mudai}} by {{$author | check_nanasi}} - なでしこv{{ $version }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="skin/def/pure-min.css">
+    {{ if $ui eq 1 }}
+    <link rel="stylesheet" href="index.php?action=file&page=basic.css&m={{ $n3s_css_mtime }}">
+    {{ endif }}
     <style>
         #iframe_contents {
             margin: 0px;
@@ -14,10 +18,177 @@
             overflow-x: auto;
             overflow-y: auto;
         }
+        /* ui=1: 貯蔵庫のヘッダ・フッタ付き表示 (#250) */
+        body.n3s-widget-ui {
+            margin: 0;
+            background: var(--n3s-sakura-bg);
+        }
+        .n3s-widget-ui #n3s_header .n3s-widget-author {
+            margin-left: 0.5em;
+            color: #8a6672;
+            font-size: 0.7em;
+        }
+        .n3s-widget-ui #n3s_header {
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 2px 12px rgba(59, 49, 52, 0.06);
+        }
+        .n3s-widget-ui #n3s_footer {
+            margin-top: 0;
+        }
+        /* 作品を載せる舞台: ヘッダ・フッタと分けるため背景に淡いグラデーション */
+        .n3s-widget-ui .n3s-widget-stage {
+            padding: 40px 0 56px;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(229, 163, 179, 0.28), transparent 60%),
+                linear-gradient(180deg, var(--n3s-sakura-bg), #fbeef2);
+        }
+        /* 浮き上がる作品実行パネル */
+        .n3s-widget-ui .n3s-widget-panel {
+            overflow: hidden;
+            border: 1px solid rgba(232, 211, 218, 0.9);
+            border-radius: 16px;
+            background: #fff;
+            box-shadow:
+                0 1px 2px rgba(59, 49, 52, 0.06),
+                0 8px 20px rgba(209, 71, 122, 0.10),
+                0 24px 60px rgba(209, 71, 122, 0.16);
+            animation: n3s-panel-rise 0.5s ease-out both;
+        }
+        @keyframes n3s-panel-rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .n3s-widget-ui .n3s-widget-panel { animation: none; }
+        }
+        .n3s-widget-ui .n3s-widget-panel-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--n3s-border);
+            background: linear-gradient(180deg, #fff, var(--n3s-sakura-band));
+            color: #8a6672;
+            font-size: 0.8em;
+        }
+        .n3s-widget-ui .n3s-widget-dots {
+            display: flex;
+            gap: 6px;
+        }
+        .n3s-widget-ui .n3s-widget-dots span {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--n3s-sakura-soft);
+        }
+        .n3s-widget-ui .n3s-widget-dots span:first-child { background: var(--n3s-sakura-accent); }
+        .n3s-widget-ui .n3s-widget-dots span:last-child { background: var(--n3s-gold); }
+        .n3s-widget-ui .n3s-widget-panel-label {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .n3s-widget-ui .n3s-widget-reload {
+            padding: 2px 12px;
+            border: 1px solid var(--n3s-border);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--n3s-sumi);
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .n3s-widget-ui .n3s-widget-reload:hover {
+            border-color: var(--n3s-sakura-accent);
+            color: var(--n3s-sakura-accent);
+        }
+        .n3s-widget-ui #iframe_contents {
+            display: block;
+            width: 100%;
+            height: 70vh;
+            min-height: 420px;
+            background: #fff;
+        }
+        @media (max-width: 600px) {
+            .n3s-widget-ui .n3s-widget-stage { padding: 20px 0 32px; }
+            .n3s-widget-ui .n3s-widget-panel { border-radius: 12px; }
+        }
     </style>
   </head>
+  {{ if $ui eq 1 }}
+  <body class="n3s-widget-ui">
+    <div id="n3s_header">
+      <div class="n3s-inner">
+        <div class="n3s-header-breadcrumb memo setumei">
+          <a href="https://nadesi.com/">🌸 なでしこ</a>
+          <span>&gt;</span>
+          <a href="{{ $app_root_url }}index.php">🍯 貯蔵庫</a>
+        </div>
+        <div class="n3s-header-main">
+          <h1 class="title">
+            {{ if $w_noname }}
+            <a href="{{ $app_root_url }}id.php?{{ $app_id }}">作品</a>
+            {{ else }}
+            <a href="{{ $app_root_url }}id.php?{{ $app_id }}">{{ $title | check_mudai }}</a>
+            {{ if $mute_name eq 0 }}<span class="n3s-widget-author">by {{ $author | check_nanasi }}</span>{{ endif }}
+            {{ endif }}
+          </h1>
+          <div class="header-right">
+            <a href="{{ $app_root_url }}id.php?{{ $app_id }}" class="pure-button">📄作品ページ</a>
+            <a href="{{ $app_root_url }}index.php?page=all&amp;action=list" class="pure-button">📒一覧</a>
+            <a href="{{ $app_root_url }}index.php?page=new&amp;action=edit" class="pure-button">🌟新規</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <main class="n3s-widget-stage">
+      <div class="n3s-inner">
+        <div class="n3s-widget-panel">
+          <div class="n3s-widget-panel-bar">
+            <div class="n3s-widget-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="n3s-widget-panel-label"></div>
+            <button type="button" id="n3s_widget_reload" class="n3s-widget-reload">↻ 再実行</button>
+          </div>
+          <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
+        </div>
+      </div>
+    </main>
+    <div id="n3s_footer">
+      <div class="n3s-inner">
+        <div class="applink">
+          <a href="{{ $app_root_url }}index.php">なでしこ3貯蔵庫</a>
+          <a href="https://github.com/kujirahand/nako3storage/">v.{{$nako3storage_version}}</a>
+          <span class="n3s-footer-sep">・</span>
+          <a href="{{ $app_root_url }}index.php?action=kiyaku">利用規約</a>
+          <span class="n3s-footer-sep">・</span>
+          <a href="https://nadesi.com/cgi/kaizen3/">不具合の報告</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      // 作品側(widget.html)が通知する高さに合わせて iframe を伸ばす
+      (function() {
+        var frame = document.getElementById('iframe_contents');
+        window.addEventListener('message', function(e) {
+          if (e.source !== frame.contentWindow) { return; }
+          var d = e.data;
+          if (!Array.isArray(d) || d[0] !== 'setFrameHeight') { return; }
+          var h = parseInt(d[1], 10);
+          if (!isFinite(h) || h <= 0) { return; }
+          if (h > frame.clientHeight) { frame.style.height = h + 'px'; }
+        });
+        // 再実行: iframe を読み込み直す
+        document.getElementById('n3s_widget_reload').onclick = function() {
+          frame.src = frame.src;
+        };
+      })();
+    </script>
+  </body>
+  {{ else }}
   <body>
     <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
   </body>
+  {{ endif }}
 </html>
-
