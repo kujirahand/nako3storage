@@ -120,8 +120,10 @@ test('作品とアクセス実績がある場合、ダッシュボードのメ�
         ->toContain('🚀 直近1ヶ月の急上昇ベスト5')
         ->toContain('直近 30 回')
         ->toContain('直近 15 回')
-        ->toContain('id="mypage-access-chart"')
-        ->toContain('chart.min.js')
+        ->toContain('class="n3s-mypage-ranking-badge rank-0">1</span>')
+        ->toContain('class="n3s-mypage-ranking-badge rank-1">2</span>')
+        ->not->toContain('{{$')
+        ->not->toContain('{{ $')
         ->toContain('👀 200') // 作品行のアクセス数表示
         ->toContain('👀 100');
 });

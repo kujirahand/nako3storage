@@ -476,6 +476,11 @@ function n3s_mypage_get_dashboard_data($user_id)
         return $b['app_id'] <=> $a['app_id'];
     });
     $top_all_time = array_slice($top_all_time, 0, 5);
+    foreach ($top_all_time as $i => &$item) {
+        $item['rank'] = $i + 1;
+        $item['rank_index'] = $i;
+    }
+    unset($item);
 
     // 2. ログDBからのアクセス集計 (500件ずつ分割クエリ)
     $chunks = array_chunk($app_ids, 500);
@@ -532,6 +537,8 @@ function n3s_mypage_get_dashboard_data($user_id)
         if (isset($app_map[$aid])) {
             $top_surging[] = array_merge($app_map[$aid], [
                 'period_views' => $p_views,
+                'rank' => $surging_count + 1,
+                'rank_index' => $surging_count,
             ]);
             $surging_count++;
             if ($surging_count >= 5) {

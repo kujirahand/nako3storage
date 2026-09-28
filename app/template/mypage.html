@@ -93,9 +93,9 @@
         </div>
         {{ if $dashboard.top_all_time }}
         <ol class="n3s-mypage-ranking-list">
-          {{ for $dashboard.top_all_time as $idx => $item }}
+          {{ for $dashboard.top_all_time as $item }}
           <li class="n3s-mypage-ranking-item">
-            <span class="n3s-mypage-ranking-badge rank-{{ $idx }}">{{ $idx + 1 }}</span>
+            <span class="n3s-mypage-ranking-badge rank-{{ $item.rank_index }}">{{ $item.rank }}</span>
             <div class="n3s-mypage-ranking-main">
               <a class="n3s-mypage-ranking-title" href="id.php?{{ $item.app_id }}">{{ $item.title | check_mudai }}</a>
               <div class="n3s-mypage-ranking-meta">
@@ -118,9 +118,9 @@
         </div>
         {{ if $dashboard.top_surging }}
         <ol class="n3s-mypage-ranking-list">
-          {{ for $dashboard.top_surging as $idx => $item }}
+          {{ for $dashboard.top_surging as $item }}
           <li class="n3s-mypage-ranking-item">
-            <span class="n3s-mypage-ranking-badge rank-{{ $idx }}">{{ $idx + 1 }}</span>
+            <span class="n3s-mypage-ranking-badge rank-{{ $item.rank_index }}">{{ $item.rank }}</span>
             <div class="n3s-mypage-ranking-main">
               <a class="n3s-mypage-ranking-title" href="id.php?{{ $item.app_id }}">{{ $item.title | check_mudai }}</a>
               <div class="n3s-mypage-ranking-meta">
