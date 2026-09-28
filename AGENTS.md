@@ -44,7 +44,7 @@ AIエージェントがこのリポジトリで作業する時は、まずこの
 - `index.php`: Web 版の入口。設定を読み、`$n3s_config['agent'] = 'web'` を設定して `app/index.inc.php` を実行する。
 - `api.php`: API 版の入口。`$n3s_config['agent'] = 'api'` を設定して同じディスパッチへ入る。
 - `image.php`: アップロードファイル配信用の入口。`agent=api`、`action=image` を強制し、`app/action/image.inc.php` へ流す。
-- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。
+- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。`&ui=1` を付けると貯蔵庫のヘッダ・フッタ付きで作品を中央に表示する(作品ページの「プログラムを実行」はこれを使う)。`ui` 未指定/0 は従来通り作品と作品ページへのリンクだけ(iframe 埋め込み用)。ヘッダのリンクはサンドボックスオリジンで表示されるため `app_root_url` の絶対URLにしている (#250)。
 - `id.php`: 作品 ID のショートカット。
 - `cdn.php`: なでしこ本体・プラグイン・CSS・map などを jsDelivr から取得し、必要に応じて `cache-cdn/` に保存して返す。
 - `nadesiko3hub_update.php`: `nadesiko3hub` 連携用。

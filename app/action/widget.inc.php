@@ -18,6 +18,14 @@ function n3s_web_widget()
     $mute_name = $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
     $mute_title = $a['mute_title'] = isset($_GET['mute_title']) ? intval($_GET['mute_title']) : 0;
     $page = $a['page'] = isset($_GET['page']) ? intval($_GET['page']) : 0;
+    // ui=1 なら貯蔵庫のヘッダ・フッタ付きで作品を表示する (#250)
+    // ui=0 (既定) は従来通り、作品と作品ページへのリンクだけを表示する (iframe埋め込み用)
+    $ui = $a['ui'] = n3s_widget_ui_mode($_GET);
+    if ($ui === 1) {
+        // タイトルと作者はヘッダに表示するので、作品内の表示は省略する
+        $mute_title = $a['mute_title'] = 1;
+    }
+    $a['w_noname'] = n3s_widget_is_noname($a);
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
     $api_token = n3s_getAPIToken();
     $_SESSION["api_token::$api_token"] = $page;
