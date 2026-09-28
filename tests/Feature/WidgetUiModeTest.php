@@ -23,3 +23,25 @@ test('タグに w_noname を含む作品を判定できる', function () {
     expect(n3s_widget_is_noname(['tag' => 'ゲーム,w_nonamex']))->toBeFalse();
     expect(n3s_widget_is_noname([]))->toBeFalse();
 });
+
+test('UI付き実行画面には全画面切替と作品ページへ戻る操作がある', function () {
+    $template = file_get_contents(N3S_TEST_ROOT . '/app/template/widget_frame.html');
+
+    expect($template)
+        ->toContain('id="n3s_widget_fullscreen"')
+        ->toContain('aria-label="全画面にする"')
+        ->toContain('aria-label="作品ページに戻る"')
+        ->toContain('n3s-widget-fullscreen')
+        ->toContain("e.key === 'Escape'");
+});
+
+test('作品iframeにフォーカスがあるときもEscで全画面解除を通知する', function () {
+    $parent = file_get_contents(N3S_TEST_ROOT . '/app/template/widget_frame.html');
+    $child = file_get_contents(N3S_TEST_ROOT . '/app/template/widget.html');
+
+    expect($child)->toContain("window.parent.postMessage(['exitFullscreen'], '*')");
+    expect($parent)
+        ->toContain('if (e.source !== frame.contentWindow) { return; }')
+        ->toContain("if (d[0] === 'exitFullscreen')")
+        ->toContain('setFullscreen(false)');
+});

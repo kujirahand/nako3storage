@@ -179,6 +179,12 @@
         // console.log('setFrameHeight', scHeight)
         window.parent.postMessage(["setFrameHeight", scHeight], "*")
       }
+      // 作品にフォーカスがあるとキーイベントは親へ届かないため、Esc を通知する。
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && window.parent !== window) {
+          window.parent.postMessage(['exitFullscreen'], '*');
+        }
+      }, true);
       // window.onload = function() { postFrameHeight() }
     </script>
   </div><!-- /.showblock -->
