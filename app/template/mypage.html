@@ -206,11 +206,20 @@
             <time>{{$r.mtime | date2}}</time>
             <span class="n3s-mypage-stat-item" title="お気に入り数">{{$r.fav | star}} {{$r.fav}}</span>
             <span class="n3s-mypage-stat-item" title="総アクセス数">👀 {{$r.view | number_format}}</span>
+            {{if $r.broken_report > 0}}
+            <span class="n3s-mypage-broken-badge">バグ報告({{$r.broken_report}}件)</span>
+            {{endif}}
           </p>
         </div>
         <div class="n3s-mypage-app-actions">
           <a class="pure-button" href="id.php?{{$r.app_id}}">表示</a>
           <a class="pure-button" href="index.php?action=edit&amp;page={{$r.app_id}}">編集</a>
+          {{if $r.broken_report > 0}}
+          <form method="POST" action="index.php?action=save&amp;page={{$r.app_id}}&amp;mode=reset_broken" class="n3s-mypage-broken-reset-form" onsubmit="return confirm('「動かない」報告をリセットしますか？');">
+            <input name="edit_token" type="hidden" value="{{$edit_token}}">
+            <button type="submit" class="pure-button">バグ報告をリセット</button>
+          </form>
+          {{endif}}
         </div>
       </article>
       {{endfor}}

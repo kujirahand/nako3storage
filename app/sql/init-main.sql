@@ -35,6 +35,8 @@ CREATE TABLE apps (
   canvas_h    INTEGER DEFAULT 300,
   copyright   TEXT DEFAULT '',
   bad         INTEGER DEFAULT 0,
+  broken_report INTEGER DEFAULT 0, /* 「動かない」報告の数。3以上でトップページから除外 #267 */
+  broken_lastip TEXT DEFAULT '', /* 最後に「動かない」報告した人のIP */
   prog_hash   TEXT DEFAULT '', /* プログラムのハッシュ(公開プログラムで同一の投稿はできないようにする) */
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0,
@@ -98,6 +100,10 @@ CREATE TABLE comment_user_blocks (
 );
 
 /*
+2026/09/29 (#267) 「動かない」報告カラムを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)
+ALTER TABLE apps ADD COLUMN broken_report INTEGER DEFAULT 0;
+ALTER TABLE apps ADD COLUMN broken_lastip TEXT DEFAULT '';
+
 2026/07/15 images テーブルに説明カラムを追加 (既存DBは n3s_db_migrate_images() が自動マイグレーション)
 ALTER TABLE images ADD COLUMN description TEXT DEFAULT '';
 

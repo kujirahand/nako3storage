@@ -1240,6 +1240,16 @@ ul.devblock span.lbl {
   gap: 2px;
 }
 
+.n3s-mypage-broken-badge {
+  color: #d1223a;
+  font-weight: bold;
+}
+
+.n3s-mypage-broken-reset-form {
+  display: inline-block;
+  margin: 0;
+}
+
 
 .n3s-mypage-section {
   padding: 22px 0 28px;

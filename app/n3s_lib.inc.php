@@ -169,6 +169,12 @@ function n3s_db_migrate_apps()
         db_exec("ALTER TABLE apps ADD COLUMN comment_count INTEGER DEFAULT 0", [], 'main');
         db_exec("UPDATE apps SET comment_count = (SELECT count(*) FROM comments WHERE comments.app_id = apps.app_id AND comments.status = 'approved')", [], 'main');
     }
+    if (!in_array('broken_report', $names, true)) {
+        db_exec("ALTER TABLE apps ADD COLUMN broken_report INTEGER DEFAULT 0", [], 'main');
+    }
+    if (!in_array('broken_lastip', $names, true)) {
+        db_exec("ALTER TABLE apps ADD COLUMN broken_lastip TEXT DEFAULT ''", [], 'main');
+    }
 }
 
 // log DB にアクセス統計まわりのテーブルが無ければ作成する

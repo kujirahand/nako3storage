@@ -36,6 +36,40 @@
         .n3s-widget-ui #n3s_footer {
             margin-top: 0;
         }
+        /* 作品パネル下部のステータスバー (#267) */
+        .n3s-widget-statusbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 26px;
+            box-sizing: border-box;
+            padding: 3px 12px;
+            border-top: 1px solid var(--n3s-border);
+            background: linear-gradient(180deg, var(--n3s-sakura-band), #fff);
+            color: #a08a90;
+            font-size: 11px;
+        }
+        .n3s-widget-statusbar-info {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .n3s-widget-broken-button {
+            flex-shrink: 0;
+            border: none;
+            background: none;
+            padding: 2px 4px;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+        }
+        .n3s-widget-broken-button:hover,
+        .n3s-widget-broken-button:focus-visible {
+            color: var(--n3s-sakura-accent);
+            text-decoration: underline;
+        }
         /* 作品を載せる舞台: ヘッダ・フッタと分けるため背景に淡いグラデーション */
         .n3s-widget-ui .n3s-widget-stage {
             padding: 24px 0 40px;
@@ -263,6 +297,12 @@
             </div>
           </div>
           <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
+          <div class="n3s-widget-statusbar">
+            <span class="n3s-widget-statusbar-info">なでしこ v{{ $version }}</span>
+            {{ if n3s_is_login() }}
+            <button type="button" id="n3s_widget_broken_button" class="n3s-widget-broken-button">⚠️ エラーが出て動かないことを報告</button>
+            {{ endif }}
+          </div>
         </div>
       </div>
     </main>
@@ -348,6 +388,39 @@
         });
       })();
     </script>
+    {{ if n3s_is_login() }}
+    <script>
+      // 「動かない」報告 (#267)
+      (function() {
+        var brokenButton = document.getElementById('n3s_widget_broken_button');
+        if (!brokenButton) { return; }
+        brokenButton.onclick = function() {
+          if (!confirm('この作品が動かないことを報告しますか？')) { return; }
+          brokenButton.disabled = true;
+          var body = new URLSearchParams();
+          body.set('page', '{{ $app_id }}');
+          body.set('q', 'up');
+          body.set('edit_token', '{{ $edit_token }}');
+          fetch('{{ $app_root_url }}index.php?action=broken', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+          }).then(function(res) {
+            if (!res.ok) { throw new Error('HTTP ' + res.status); }
+            return res.text();
+          }).then(function(txt) {
+            // 成功時は報告後の件数(数字)だけが返る。それ以外はエラー
+            if (!/^\d+$/.test(txt.trim())) { throw new Error(txt); }
+            alert('ありがとうございました。報告しました。');
+          }).catch(function() {
+            brokenButton.disabled = false;
+            alert('報告に失敗しました。ページを再読み込みして、ログイン状態を確認してから再度お試しください。');
+          });
+        };
+      })();
+    </script>
+    {{ endif }}
   </body>
   {{ else }}
   <body>
