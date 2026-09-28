@@ -33,9 +33,19 @@ just test            # 以降は composer.phar を自動的に使う
 just test-filter tests/Unit/UserModelTest.php   # 特定ファイルだけ実行
 just test-filter tests/Feature                  # 特定ディレクトリだけ実行
 just lint                                        # PHP構文チェック (AGENTS.md #13 と同等)
+just test-openrouter                             # OpenRouter の実モデル判定 (APIキー・通信・料金が必要)
 ```
 
 `just` 単体 (引数なし) は `just test` と同じです(`Justfile` の `default` レシピ)。
+
+`tests-openrouter/` は通常の Pest テストとは独立しています。`just test-openrouter` は
+`OPENROUTER_API_KEY`（またはローカルの `n3s_config.ini.php` の `openrouter_api_key`）で
+実際に API を呼び出し、固定した日本語コメントの期待判定と JSON 応答を確認します。
+既定ではコメント審査に設定されたモデル（標準では Gemma 3 12B）を確認します。
+`OPENROUTER_MODELS=google/gemini-3.1-flash-lite,google/gemma-3-12b-it just test-openrouter`
+のように、任意のモデルをカンマ区切りで比較できます。
+通信に失敗した場合、または期待判定と異なる場合は終了コード 1 を返します。
+通常の `just test` と CI の Pest テストには含めません。
 
 ### just を使わない場合
 

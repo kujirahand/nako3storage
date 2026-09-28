@@ -39,6 +39,10 @@ test: install
 test-filter FILTER: install
     php vendor/bin/pest {{FILTER}}
 
+# 実際の OpenRouter API でコメント判定を確認する (通常の test には含めない)
+test-openrouter:
+    php tests-openrouter/comment_models.php
+
 # PHP構文チェック (AGENTS.md #13 と同等)
 lint:
     find . -path './app/fw_simple/.git' -prune -o -path './nadesiko3hub/.git' -prune -o -path './vendor' -prune -o -name '*.php' -print -exec php -l {} \;
