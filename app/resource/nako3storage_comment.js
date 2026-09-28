@@ -311,6 +311,24 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     };
     
+    function showCommentPostError(data, fallback) {
+        if (!data.contact_email) {
+            alert(data.msg || fallback);
+            return;
+        }
+        const msgArea = document.getElementById("comment_info_message");
+        if (!msgArea) {
+            alert(data.msg || fallback);
+            return;
+        }
+        msgArea.textContent = (data.msg || fallback) + " ";
+        const link = document.createElement("a");
+        link.href = "mailto:" + encodeURIComponent(data.contact_email);
+        link.textContent = data.contact_email;
+        msgArea.appendChild(link);
+        msgArea.style.display = "block";
+    }
+
     function submitNewComment(form, templateId, onComplete) {
         const formData = new FormData(form);
         formData.set("editkey", editKey);
@@ -338,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 // 投稿したら再読み込み
                 loadComments();
             } else {
-                alert(data.msg || "送信に失敗しました。");
+                showCommentPostError(data, "送信に失敗しました。");
             }
         })
         .catch(err => {
@@ -380,7 +398,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 hideReplyForm(parentId);
                 loadComments();
             } else {
-                alert(data.msg || "返信の送信に失敗しました。");
+                showCommentPostError(data, "返信の送信に失敗しました。");
             }
         })
         .catch(err => {

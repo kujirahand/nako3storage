@@ -128,6 +128,25 @@ function n3s_db_migrate_comments()
       reason      TEXT DEFAULT '',
       ctime       INTEGER DEFAULT 0
     )", [], 'main');
+
+    $block_table = db_get1("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'comment_user_blocks'", [], 'main');
+    db_exec("CREATE TABLE IF NOT EXISTS comment_user_blocks (
+      user_id INTEGER PRIMARY KEY,
+      ng_count INTEGER NOT NULL DEFAULT 0,
+      blocked INTEGER NOT NULL DEFAULT 0,
+      mtime INTEGER NOT NULL DEFAULT 0
+    )", [], 'main');
+    if (!$block_table) {
+        db_exec("INSERT INTO comment_user_blocks (user_id, ng_count, blocked, mtime)
+          SELECT user_id, COUNT(*), CASE WHEN COUNT(*) >= 3 THEN 1 ELSE 0 END, MAX(mtime)
+          FROM comments WHERE status = 'ng' AND user_id > 0 GROUP BY user_id", [], 'main');
+    }
+}
+
+function n3s_comment_block_contact()
+{
+    $email = n3s_get_config('admin_email', '');
+    return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
 }
 
 // init-main.sql 作成後の既存DBに apps の追加カラムが無ければ追加する。

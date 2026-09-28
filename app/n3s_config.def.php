@@ -87,8 +87,9 @@ $n3s_config = [
     // 例: "https://n3s.nadesi.com/index.php?action=login&page=google_callback"
     "google_oauth_redirect_uri" => "",
     // -----------------------------------------------------
-    // Gemini APIキー (コメント審査用)
-    "gemini_api_key" => "",
+    // OpenRouter APIキーとモデル (コメント審査用)
+    "openrouter_api_key" => "",
+    "comment_audit_model" => "google/gemini-3.1-flash-lite",
     // コメント審査の自動承認モード (true: 審査をスキップして自動承認、false: 審査を行う)
     "comment_audit_auto_approve" => false,
 ];

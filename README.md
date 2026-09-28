@@ -83,16 +83,17 @@ $n3s_config['google_oauth_redirect_uri'] = 'https://n3s.example.com/index.php?ac
 
 `n3s_config.ini.php` はサイト固有の設定ファイルであり(`.gitignore`対象)、リポジトリにはコミットされません。クライアントシークレットも含むため、第三者に共有しないよう管理してください。
 
-## コメント自動審査（Gemini API）を設定する場合
+## コメント自動審査（OpenRouter）を設定する場合
 
-作品へのコメント投稿時、いたずらやスパム、誹謗中傷などを防ぐために Gemini API を利用した自動審査バッチを設定できます。
+作品へのコメント投稿時、いたずらやスパム、誹謗中傷などを防ぐために OpenRouter を利用した自動審査バッチを設定できます。
 （設定しない場合、AI審査は行われませんが、コメントは `pending` のまま保存され、`scripts/comment_audit.php` の実行時に自動承認（公開）されます）
-1. [Google AI Studio](https://aistudio.google.com/)等で Gemini API キーを取得する。
+1. [OpenRouter](https://openrouter.ai/) で API キーを取得する。
 2. `n3s_config.ini.php` に、取得した API キーを追加する。
 
 ```php
-// Gemini API の設定
-$n3s_config['gemini_api_key'] = '(取得したGemini APIキー)';
+// OpenRouter API の設定
+$n3s_config['openrouter_api_key'] = '(取得したOpenRouter APIキー)';
+$n3s_config['comment_audit_model'] = 'google/gemini-3.1-flash-lite'; // 任意の対応モデルに変更可
 
 // (オプション) AI審査を行わずすべて無条件で自動承認(公開)にする場合は true
 $n3s_config['comment_audit_auto_approve'] = false;

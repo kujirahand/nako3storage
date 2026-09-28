@@ -6,11 +6,14 @@ declare(strict_types=1);
 
 require_once N3S_TEST_ROOT . '/app/action/comment.inc.php';
 
-if (!function_exists('check_comment_with_gemini')) {
-    function check_comment_with_gemini($body, $api_key)
+if (!function_exists('check_comment_with_openrouter')) {
+    function check_comment_with_openrouter($body, $api_key, $model)
     {
         if ($api_key === 'trigger-error') {
             return 'error';
+        }
+        if ($api_key === 'trigger-ng') {
+            return 'ng';
         }
         return 'approved';
     }
@@ -20,6 +23,70 @@ beforeEach(function () {
     n3s_test_setup();
     // 共通テスト用の公開作品 (app_id = 1) を挿入
     db_insert("INSERT INTO apps (app_id, user_id, title, author, is_private, editkey, ctime, mtime) VALUES (1, 1, 'テスト作品1', '太郎', 0, 'editkey1', 123, 123)", [], 'main');
+});
+
+test('NGが3回でコメント投稿をブロックし、管理者が解除できる', function () {
+    require_once N3S_TEST_ROOT . '/app/action/admin.inc.php';
+    global $n3s_config;
+    n3s_test_add_legacy_user('admin@example.com', 'password123', '管理者');
+    $user_id = n3s_test_add_legacy_user('blocked@example.com', 'password123', '投稿者');
+    $n3s_config['openrouter_api_key'] = 'trigger-ng';
+    $n3s_config['comment_audit_auto_approve'] = false;
+    $n3s_config['admin_email'] = 'admin@example.com';
+    foreach (['NGその1', 'NGその2', 'NGその3'] as $body) {
+        db_insert("INSERT INTO comments (user_id, app_id, body, status, ctime, mtime) VALUES (?, 1, ?, 'pending', ?, ?)", [$user_id, $body, time(), time()], 'main');
+    }
+    n3s_test_capture(function () { include N3S_TEST_ROOT . '/scripts/comment_audit.php'; });
+    $n3s_config['admin_email'] = 'admin@example.com';
+    $block = db_get1('SELECT ng_count, blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main');
+    expect(intval($block['ng_count']))->toBe(3);
+    expect(intval($block['blocked']))->toBe(1);
+
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $user_id;
+    $_SESSION['n3s_login_info'] = ['user_id' => $user_id, 'name' => '投稿者', 'email' => 'blocked@example.com'];
+    $_POST = ['app_id' => '1', 'body' => '新しい投稿', 'template_id' => '1', 'edit_token' => n3s_getEditToken()];
+    $_GET = ['mode' => 'add'];
+    $_REQUEST = array_merge($_GET, $_POST);
+    $res = json_decode(n3s_test_capture(fn() => n3s_api_comment()), true);
+    expect($res['result'])->toBe(false);
+    expect($res['contact_email'])->toBe('admin@example.com');
+    expect(db_get1("SELECT COUNT(*) AS n FROM comments WHERE body = '新しい投稿'", [], 'main')['n'])->toBe(0);
+
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_POST = ['mode' => 'unblock_comment', 'user_id' => (string)$user_id, 'edit_token' => n3s_getEditToken()];
+    $_REQUEST = array_merge($_GET, $_POST);
+    n3s_test_capture(fn() => n3s_web_admin());
+    expect(intval(db_get1('SELECT blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main')['blocked']))->toBe(1);
+
+    $_SESSION['user_id'] = 1;
+    $_SESSION['n3s_login_info'] = ['user_id' => 1, 'name' => '管理者', 'email' => 'admin@example.com'];
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $html = n3s_test_capture(fn() => n3s_web_admin());
+    expect($html)->toContain('NGその1');
+    expect($html)->toContain('ブロック解除');
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST['edit_token'] = 'invalid';
+    n3s_test_capture(fn() => n3s_web_admin());
+    expect(intval(db_get1('SELECT blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main')['blocked']))->toBe(1);
+    $_REQUEST['edit_token'] = $_POST['edit_token'];
+    n3s_test_capture(fn() => n3s_web_admin());
+    $block = db_get1('SELECT ng_count, blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main');
+    expect(intval($block['ng_count']))->toBe(0);
+    expect(intval($block['blocked']))->toBe(0);
+});
+
+test('既存のNGコメントを初回マイグレーションで集計する', function () {
+    $user_id = n3s_test_add_legacy_user('old-ng@example.com', 'password123', '投稿者');
+    db_exec('DROP TABLE comment_user_blocks', [], 'main');
+    for ($i = 0; $i < 3; $i++) {
+        db_insert("INSERT INTO comments (user_id, app_id, body, status, ctime, mtime) VALUES (?, 1, ?, 'ng', ?, ?)", [$user_id, 'NG履歴' . $i, time(), time()], 'main');
+    }
+    n3s_db_migrate_comments();
+    n3s_db_migrate_comments();
+    $block = db_get1('SELECT ng_count, blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main');
+    expect(intval($block['ng_count']))->toBe(3);
+    expect(intval($block['blocked']))->toBe(1);
 });
 
 test('未ログインでのコメント投稿・いいねは拒否される', function () {
@@ -281,7 +348,7 @@ test('自動審査バッチ処理 - APIキー未指定時にパスして承認�
     $c2 = db_insert("INSERT INTO comments (user_id, app_id, parent_id, name, body, status, fav, ctime) VALUES (1, 1, 0, '次郎', 'APIキー無しコメント', 'pending', 0, ?)", [$now], 'main');
     
     global $n3s_config;
-    $n3s_config['gemini_api_key'] = '';
+    $n3s_config['openrouter_api_key'] = '';
     $n3s_config['comment_audit_auto_approve'] = false;
     
     // scripts/comment_audit.php をシミュレート
@@ -425,7 +492,7 @@ test('自動審査バッチ処理 - キャッシュ機能の動作検証', funct
     
     // APIキーを指定し、自動承認はオフ
     global $n3s_config;
-    $n3s_config['gemini_api_key'] = 'mock-key';
+    $n3s_config['openrouter_api_key'] = 'mock-key';
     $n3s_config['comment_audit_auto_approve'] = false;
     
     // テスト用のダミーの審査結果をキャッシュテーブルに事前に手動でインサートしておく
@@ -501,7 +568,7 @@ test('自動審査バッチ処理 - エラー発生時に保留すること、�
     
     // APIキーに trigger-error を指定してエラーを発生させる
     global $n3s_config;
-    $n3s_config['gemini_api_key'] = 'trigger-error';
+    $n3s_config['openrouter_api_key'] = 'trigger-error';
     $n3s_config['comment_audit_auto_approve'] = false;
     $n3s_config['admin_email'] = 'admin@example.com';
     
