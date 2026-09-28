@@ -38,16 +38,22 @@
         }
         /* 作品を載せる舞台: ヘッダ・フッタと分けるため背景に淡いグラデーション */
         .n3s-widget-ui .n3s-widget-stage {
-            padding: 40px 0 56px;
+            padding: 24px 0 40px;
             background:
                 radial-gradient(ellipse at 50% 0%, rgba(229, 163, 179, 0.28), transparent 60%),
                 linear-gradient(180deg, var(--n3s-sakura-bg), #fbeef2);
         }
+        .n3s-widget-ui .n3s-widget-stage > .n3s-inner {
+            max-width: none;
+            padding: 0;
+        }
         /* 浮き上がる作品実行パネル */
         .n3s-widget-ui .n3s-widget-panel {
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            border: 1px solid rgba(232, 211, 218, 0.9);
-            border-radius: 16px;
+            border-top: 1px solid rgba(232, 211, 218, 0.9);
+            border-bottom: 1px solid rgba(232, 211, 218, 0.9);
             background: #fff;
             box-shadow:
                 0 1px 2px rgba(59, 49, 52, 0.06),
@@ -65,25 +71,46 @@
         .n3s-widget-ui .n3s-widget-panel-bar {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
+            gap: 16px;
+            min-height: 48px;
+            box-sizing: border-box;
+            padding: 7px 16px;
             border-bottom: 1px solid var(--n3s-border);
             background: linear-gradient(180deg, #fff, var(--n3s-sakura-band));
             color: #8a6672;
-            font-size: 0.8em;
+            font-size: 13px;
         }
         .n3s-widget-ui .n3s-widget-dots {
             display: flex;
-            gap: 6px;
+            align-items: center;
+            gap: 8px;
         }
-        .n3s-widget-ui .n3s-widget-dots span {
-            width: 11px;
-            height: 11px;
+        .n3s-widget-ui .n3s-widget-dot {
+            display: grid;
+            place-items: center;
+            width: 14px;
+            height: 14px;
+            padding: 0;
+            border: 1px solid rgba(0, 0, 0, 0.12);
             border-radius: 50%;
-            background: var(--n3s-sakura-soft);
+            color: rgba(48, 40, 43, 0.8);
+            cursor: pointer;
         }
-        .n3s-widget-ui .n3s-widget-dots span:first-child { background: var(--n3s-sakura-accent); }
-        .n3s-widget-ui .n3s-widget-dots span:last-child { background: var(--n3s-gold); }
+        .n3s-widget-ui .n3s-widget-dot svg {
+            width: 9px;
+            height: 9px;
+            opacity: 0;
+        }
+        .n3s-widget-ui .n3s-widget-dots:hover .n3s-widget-dot svg,
+        .n3s-widget-ui .n3s-widget-dot:focus-visible svg { opacity: 1; }
+        .n3s-widget-ui .n3s-widget-dot:focus-visible,
+        .n3s-widget-ui .n3s-widget-action:focus-visible {
+            outline: 2px solid var(--n3s-sakura-accent);
+            outline-offset: 3px;
+        }
+        .n3s-widget-ui .n3s-widget-dot-close { background: #ff6059; }
+        .n3s-widget-ui .n3s-widget-dot-minimize { background: #ffbd2e; }
+        .n3s-widget-ui .n3s-widget-dot-fullscreen { background: #28c840; }
         .n3s-widget-ui .n3s-widget-panel-label {
             flex: 1;
             min-width: 0;
@@ -91,18 +118,47 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        .n3s-widget-ui .n3s-widget-reload {
-            padding: 2px 12px;
-            border: 1px solid var(--n3s-border);
-            border-radius: 999px;
-            background: #fff;
-            color: var(--n3s-sumi);
-            font-size: 1em;
-            cursor: pointer;
+        .n3s-widget-ui .n3s-widget-window-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .n3s-widget-ui .n3s-widget-reload:hover {
+        .n3s-widget-ui .n3s-widget-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 32px;
+            height: 32px;
+            box-sizing: border-box;
+            padding: 0 9px;
+            border: 1px solid var(--n3s-border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--n3s-sumi);
+            font: inherit;
+            line-height: 1;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .n3s-widget-ui .n3s-widget-action svg {
+            display: block;
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .n3s-widget-ui .n3s-widget-action:hover {
             border-color: var(--n3s-sakura-accent);
             color: var(--n3s-sakura-accent);
+            background: #fff;
+        }
+        .n3s-widget-ui .n3s-widget-window-close:hover {
+            border-color: #c44;
+            color: #c44;
         }
         .n3s-widget-ui #iframe_contents {
             display: block;
@@ -111,9 +167,46 @@
             min-height: 420px;
             background: #fff;
         }
+        .n3s-widget-minimized #iframe_contents { display: none; }
+        /* 全画面時は操作バーだけを残し、作品を表示領域いっぱいに広げる (#256) */
+        body.n3s-widget-fullscreen {
+            overflow: hidden;
+            background: #fff;
+        }
+        .n3s-widget-fullscreen #n3s_header,
+        .n3s-widget-fullscreen #n3s_footer {
+            display: none;
+        }
+        .n3s-widget-fullscreen .n3s-widget-stage {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            padding: 0;
+            background: #fff;
+        }
+        .n3s-widget-fullscreen .n3s-widget-stage > .n3s-inner,
+        .n3s-widget-fullscreen .n3s-widget-panel {
+            width: 100%;
+            max-width: none;
+            height: 100%;
+        }
+        .n3s-widget-fullscreen .n3s-widget-panel {
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            animation: none;
+        }
+        .n3s-widget-fullscreen #iframe_contents {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: auto;
+        }
         @media (max-width: 600px) {
-            .n3s-widget-ui .n3s-widget-stage { padding: 20px 0 32px; }
-            .n3s-widget-ui .n3s-widget-panel { border-radius: 12px; }
+            .n3s-widget-ui:not(.n3s-widget-fullscreen) .n3s-widget-stage { padding: 16px 0 28px; }
+            .n3s-widget-ui .n3s-widget-panel-bar { gap: 8px; padding: 7px 10px; }
+            .n3s-widget-ui .n3s-widget-window-controls { gap: 5px; }
+            .n3s-widget-ui .n3s-widget-action { padding: 0 7px; }
+            .n3s-widget-ui .n3s-widget-reload span { display: none; }
         }
     </style>
   </head>
@@ -147,9 +240,17 @@
       <div class="n3s-inner">
         <div class="n3s-widget-panel">
           <div class="n3s-widget-panel-bar">
-            <div class="n3s-widget-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="n3s-widget-dots" aria-label="ウィンドウ操作">
+              <button type="button" class="n3s-widget-dot n3s-widget-dot-close" aria-label="作品ページに戻る" title="作品ページに戻る" data-widget-action="close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3L3 9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+              <button type="button" id="n3s_widget_minimize" class="n3s-widget-dot n3s-widget-dot-minimize" aria-label="作品を折りたたむ" aria-expanded="true" title="作品を折りたたむ"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+              <button type="button" class="n3s-widget-dot n3s-widget-dot-fullscreen" aria-label="全画面にする" title="全画面にする" data-widget-action="fullscreen"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9l6-6M5 3h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            </div>
             <div class="n3s-widget-panel-label"></div>
-            <button type="button" id="n3s_widget_reload" class="n3s-widget-reload">↻ 再実行</button>
+            <div class="n3s-widget-window-controls">
+              <button type="button" id="n3s_widget_reload" class="n3s-widget-action n3s-widget-reload" title="再実行"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 8A6.5 6.5 0 1 0 17 11M16.5 3.5V8H12"/></svg><span>再実行</span></button>
+              <button type="button" id="n3s_widget_fullscreen" class="n3s-widget-action" aria-label="全画面にする" aria-pressed="false" title="全画面にする" data-widget-action="fullscreen"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3.5" y="3.5" width="13" height="13" rx="1.5"/></svg></button>
+              <a href="{{ $app_root_url }}id.php?{{ $app_id }}" id="n3s_widget_close" class="n3s-widget-action n3s-widget-window-close" aria-label="作品ページに戻る" title="作品ページに戻る"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></a>
+            </div>
           </div>
           <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
         </div>
@@ -171,18 +272,65 @@
       // 作品側(widget.html)が通知する高さに合わせて iframe を伸ばす
       (function() {
         var frame = document.getElementById('iframe_contents');
+        var requestedHeight = 0;
         window.addEventListener('message', function(e) {
           if (e.source !== frame.contentWindow) { return; }
           var d = e.data;
           if (!Array.isArray(d) || d[0] !== 'setFrameHeight') { return; }
           var h = parseInt(d[1], 10);
           if (!isFinite(h) || h <= 0) { return; }
-          if (h > frame.clientHeight) { frame.style.height = h + 'px'; }
+          requestedHeight = Math.max(requestedHeight, h);
+          if (!document.body.classList.contains('n3s-widget-fullscreen') && requestedHeight > frame.clientHeight) {
+            frame.style.height = requestedHeight + 'px';
+          }
         });
         // 再実行: iframe を読み込み直す
         document.getElementById('n3s_widget_reload').onclick = function() {
+          requestedHeight = 0;
+          frame.style.height = '';
           frame.src = frame.src;
         };
+        // 全画面: 親ページのヘッダ・フッタを隠し、作品に表示領域を渡す。
+        var fullscreenButton = document.getElementById('n3s_widget_fullscreen');
+        var greenButton = document.querySelector('.n3s-widget-dot-fullscreen');
+        var minimizeButton = document.getElementById('n3s_widget_minimize');
+        var closeLink = document.getElementById('n3s_widget_close');
+        function setMinimized(enabled) {
+          document.body.classList.toggle('n3s-widget-minimized', enabled);
+          minimizeButton.setAttribute('aria-expanded', enabled ? 'false' : 'true');
+          minimizeButton.setAttribute('aria-label', enabled ? '作品を表示する' : '作品を折りたたむ');
+          minimizeButton.setAttribute('title', enabled ? '作品を表示する' : '作品を折りたたむ');
+        }
+        function setFullscreen(enabled) {
+          if (enabled) { setMinimized(false); }
+          document.body.classList.toggle('n3s-widget-fullscreen', enabled);
+          frame.style.height = '';
+          if (!enabled && requestedHeight > frame.clientHeight) {
+            frame.style.height = requestedHeight + 'px';
+          }
+          fullscreenButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+          fullscreenButton.setAttribute('aria-label', enabled ? '全画面を解除する' : '全画面にする');
+          fullscreenButton.setAttribute('title', enabled ? '全画面を解除する' : '全画面にする');
+          greenButton.setAttribute('aria-label', enabled ? '全画面を解除する' : '全画面にする');
+          greenButton.setAttribute('title', enabled ? '全画面を解除する' : '全画面にする');
+        }
+        function toggleFullscreen() {
+          setFullscreen(!document.body.classList.contains('n3s-widget-fullscreen'));
+        }
+        fullscreenButton.onclick = toggleFullscreen;
+        greenButton.onclick = toggleFullscreen;
+        minimizeButton.onclick = function() {
+          if (document.body.classList.contains('n3s-widget-fullscreen')) { setFullscreen(false); }
+          setMinimized(!document.body.classList.contains('n3s-widget-minimized'));
+        };
+        document.querySelector('.n3s-widget-dot-close').onclick = function() {
+          window.location.href = closeLink.href;
+        };
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && document.body.classList.contains('n3s-widget-fullscreen')) {
+            setFullscreen(false);
+          }
+        });
       })();
     </script>
   </body>
