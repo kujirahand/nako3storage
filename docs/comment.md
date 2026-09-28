@@ -34,11 +34,19 @@
 - `ctime`: INTEGER (作成タイム)
 - `UNIQUE(user_id, comment_id)` 制約による二重いいねの防止
 
-#### 3. `comment_audit_cache` テーブル (Gemini API 料金節約用キャッシュ)
+#### 3. `comment_audit_cache` テーブル (OpenRouter API 料金節約用キャッシュ)
 - `body_hash`: TEXT PRIMARY KEY (コメント本文の SHA-256 ハッシュ値)
 - `result`: TEXT DEFAULT '' (判定結果: `approved` / `ng`)
 - `reason`: TEXT DEFAULT '' (判定理由)
 - `ctime`: INTEGER (キャッシュ作成タイム)
+
+#### 4. `comment_user_blocks` テーブル
+- `user_id`: INTEGER PRIMARY KEY (投稿者ID)
+- `ng_count`: INTEGER (管理者による解除以降のNG判定回数)
+- `blocked`: INTEGER (3回以上で1)
+- `mtime`: INTEGER (最終判定・解除時刻)
+
+既存DBでは初回マイグレーション時に保存済みのNGコメントを集計してブロック状態を作成します。
 
 ### 自動マイグレーション
 `app/n3s_lib.inc.php` 内の `n3s_db_init()` 実行時に自動的に `n3s_db_migrate_comments()` がトリガーされ、稼働中のDBに対しても上記テーブルの作成やカラム追加が自動で行われます。
@@ -55,23 +63,25 @@
 - コメント API アクション（一覧取得、投稿、いいね、削除）のすべてにおいて、対象の作品が非公開 (`is_private = 1`) または限定公開 (`is_private = 2`) であるかを検証します。
 - `n3s_private_access_allowed()` を用いた閲覧権限チェックを行い、権限のない第三者からのアクセスに対しては `{"result":false,"msg":"この作品の閲覧権限がありません。"}` と JSON 形式で拒否します。これにより、URL 直叩きによるコメントの漏洩を完全に防ぎます。
 
-### 3. 生成AI（Gemini API）による自動審査バッチ
+### 3. 生成AI（OpenRouter API）による自動審査バッチ
 投稿された直後のコメントはすべて `status = 'pending'`（審査中）として登録され、即座には一般公開されません。
 定期実行（cron等）により以下の審査バッチを起動して公開可否を判定します。
 
 - **バッチスクリプト**: `scripts/comment_audit.php`
 - **実行コマンド**: `just comment-audit`（内部で `php scripts/comment_audit.php` を実行）
 - **審査仕様**:
-  - `status = 'pending'` のコメントを取得し、Gemini API を使って誹謗中傷やスパムなどを審査します。
-  - **最新の安価なAIモデル**: 高速・軽量でコストパフォーマンスに優れた最新モデル **`gemini-3.1-flash-lite`** を使用して判定を行います。
+  - `status = 'pending'` のコメントを取得し、OpenRouter API を使って誹謗中傷やスパムなどを審査します。
+  - **モデル**: 既定値は `google/gemini-3.1-flash-lite`。`comment_audit_model` で変更できます。
   - **タイムアウト設定**: API 呼び出しの curl 接続に、**接続タイムアウト（10秒）** と **実行全体タイムアウト（30秒）** を設定し、API サーバー無応答時に cron 実行がハングアップするのを防ぎます。
   - **バージョン互換解放**: PHP 8.0 未満の古い環境でのみ明示的に `curl_close()` を呼ぶように制御し、PHP 8.5 以降での Deprecated 警告を回避しつつ、旧 PHP バージョンでも確実に curl リソースを解放します。
   - **一時的エラー発生時の保留**: APIサーバーからモデル終了等のエラーレスポンス（code: 404など）や通信エラーが返ってきた場合は、そのコメントを「不承認」にするのではなく、ステータスを `pending` のまま維持して処理を保留します。
-  - **管理者へのエラーメール通知**: 審査対象のコメントがある中で、バッチ実行した全ての件数がエラー（404等）になった場合は、管理者の `admin_email` 宛てに `Gemini APIの状態を確認するようにして。(スクリプトパス)(サーバー名)` という警告メールを送信します。
-  - **APIキー未設定時のフォールバック**: 設定ファイルで `gemini-api-key` が設定されていない場合、または `comment_audit_auto_approve` が有効な場合は、AI審査をパスして自動で `approved` に自動承認（公開）されます。
+  - **管理者へのエラーメール通知**: 審査対象のコメントがある中で、バッチ実行した全ての件数がエラーになった場合は、管理者の `admin_email` 宛てに警告メールを送信します。
+  - **APIキー未設定時のフォールバック**: 設定ファイルで `openrouter_api_key` が設定されていない場合、または `comment_audit_auto_approve` が有効な場合は、AI審査をパスして `approved` に自動承認（公開）されます。
+
+AI審査でNGとなった回数をユーザーIDごとに数え、3回目からコメント投稿を拒否します。ひな形や返信も対象です。拒否時は設定済みの `admin_email` を `mailto:` リンクとして表示します。管理者ページでは最近のNGコメント、ブロック中のユーザーを確認でき、CSRFトークン付きフォームでブロック解除できます。解除するとNG回数は0に戻ります。
 
 ### 4. API料金節約用キャッシュ
-自動審査バッチが Gemini API を呼び出す際、同一のコメント本文が再度投稿された場合にAPI料金を浪費しないよう、審査結果を `comment_audit_cache` にキャッシュします。
+自動審査バッチが OpenRouter API を呼び出す際、同一のコメント本文が再度投稿された場合にAPI料金を浪費しないよう、審査結果を `comment_audit_cache` にキャッシュします。
 2回目以降の同一本文の判定は、APIを呼び出すことなくキャッシュ結果が即時に適用されます（APIキー未設定時の自動承認時はキャッシュされません）。
 
 ### 5. 審査中・不承認コメントのマスク処理

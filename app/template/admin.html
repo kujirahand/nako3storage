@@ -6,6 +6,32 @@
         <a href="index.php?action=stats" class="pure-button">📊 アクセス統計を見る</a>
         <a href="index.php?action=dlcounter" class="pure-button">📦 CDNダウンロード統計を見る</a>
     </p>
+    {{if $notice}}<p>{{$notice}}</p>{{endif}}
+    <h2>コメント投稿ブロック中のユーザー</h2>
+    <table class="pure-table pure-table-striped">
+        <thead><tr><th>ユーザー</th><th>NG回数</th><th>操作</th></tr></thead>
+        <tbody>
+        {{for $blocked_users as $user}}
+            <tr><td>{{$user.user_name}} (ID: {{$user.user_id}})</td><td>{{$user.ng_count}}</td>
+            <td><form method="post" action="index.php?action=admin">
+                <input type="hidden" name="mode" value="unblock_comment">
+                <input type="hidden" name="user_id" value="{{$user.user_id}}">
+                <input type="hidden" name="edit_token" value="{{$edit_token}}">
+                <button type="submit" class="pure-button">ブロック解除</button>
+            </form></td></tr>
+        {{endfor}}
+        </tbody>
+    </table>
+    <h2>最近のNGコメント（最大100件）</h2>
+    <table class="pure-table pure-table-striped">
+        <thead><tr><th>日時</th><th>ユーザー</th><th>作品</th><th>本文</th></tr></thead>
+        <tbody>
+        {{for $ng_comments as $comment}}
+            <tr><td>{{$comment.ctime | datetime}}</td><td>{{$comment.user_name}} (ID: {{$comment.user_id}})</td>
+            <td><a href="index.php?action=show&amp;page={{$comment.app_id}}">{{$comment.app_id}}</a></td><td>{{$comment.body}}</td></tr>
+        {{endfor}}
+        </tbody>
+    </table>
     <h2>ログ</h2>
     <div>
         <ul>

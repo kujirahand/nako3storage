@@ -196,6 +196,17 @@ function comment_api_add()
         n3s_api_output(false, ['msg' => 'トークンが一致しません。リロードして再度お試しください。']);
         return;
     }
+
+    $user_id = n3s_get_user_id();
+    $block = db_get1('SELECT blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main');
+    if ($block && intval($block['blocked']) === 1) {
+        $email = n3s_comment_block_contact();
+        n3s_api_output(false, [
+            'msg' => 'コメントの投稿がブロックされています。管理者にブロックを解除してください。',
+            'contact_email' => $email,
+        ]);
+        return;
+    }
     
     $app_id = intval(empty($_POST['app_id']) ? '0' : $_POST['app_id']);
     $parent_id = intval(empty($_POST['parent_id']) ? '0' : $_POST['parent_id']);
@@ -282,7 +293,6 @@ function comment_api_add()
         }
     }
     
-    $user_id = n3s_get_user_id();
     $login_info = n3s_get_login_info();
     $name = isset($login_info['name']) ? $login_info['name'] : '名無し';
     

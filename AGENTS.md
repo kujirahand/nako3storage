@@ -114,6 +114,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `info`: システム設定や内部状態。
 - `apps`: 投稿メタ情報。タイトル、作者、ユーザー ID、公開状態、タグ、ライセンス、閲覧数、いいね数など。
 - `comments`: コメント。
+- `comment_user_blocks`: AI審査でNGになったユーザー別回数とコメント投稿ブロック状態。既存DBは `n3s_db_migrate_comments()` で追加・初期集計する。
 - `images`: アップロードファイルのメタ情報。
 - `bookmarks`: ユーザーのブックマーク。
 
@@ -337,6 +338,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `custom_head`、`memo`、`body`、`image_name`、`app_name` は XSS・パストラバーサル・公開範囲に関わりやすい。
 - Discord Webhook は `n3s_discord_webhook()` で `exec('curl ... &')` を使う。URL と JSON は `escapeshellarg()` されているが、変更時はシェル引数化を崩さないこと。
 - `n3s_config.ini.php` に `admin_users`、`discord_webhook_url`、メール設定などが入る可能性がある。秘密情報をログやドキュメントに出さないこと。
+- コメント審査には `openrouter_api_key` と `comment_audit_model` を使う。キーは環境固有設定にのみ置き、NG3回で投稿ブロック、管理者ページで解除する。
 
 ---
 

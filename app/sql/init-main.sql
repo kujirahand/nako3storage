@@ -90,6 +90,13 @@ CREATE TABLE comment_likes (
   UNIQUE(user_id, comment_id)
 );
 
+CREATE TABLE comment_user_blocks (
+  user_id    INTEGER PRIMARY KEY,
+  ng_count   INTEGER NOT NULL DEFAULT 0,
+  blocked    INTEGER NOT NULL DEFAULT 0,
+  mtime      INTEGER NOT NULL DEFAULT 0
+);
+
 /*
 2026/07/15 images テーブルに説明カラムを追加 (既存DBは n3s_db_migrate_images() が自動マイグレーション)
 ALTER TABLE images ADD COLUMN description TEXT DEFAULT '';

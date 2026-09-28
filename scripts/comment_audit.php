@@ -18,20 +18,21 @@ require_once __DIR__ . '/../app/n3s_lib.inc.php';
 n3s_db_init();
 
 global $n3s_config;
-$api_key = isset($n3s_config['gemini_api_key']) ? $n3s_config['gemini_api_key'] : '';
+$api_key = isset($n3s_config['openrouter_api_key']) ? $n3s_config['openrouter_api_key'] : '';
+$model = n3s_get_config('comment_audit_model', 'google/gemini-3.1-flash-lite');
 $auto_approve = isset($n3s_config['comment_audit_auto_approve']) ? $n3s_config['comment_audit_auto_approve'] : false;
 
 // APIキーが空、または自動承認（auto_approve）が有効な場合は審査をパスする
 $skip_ai_and_approve = empty($api_key) || $auto_approve;
 
-if (!function_exists('check_comment_with_gemini')) {
+if (!function_exists('check_comment_with_openrouter')) {
     /**
-     * Gemini API を使ってコメントを審査する関数
+     * OpenRouter API を使ってコメントを審査する関数
      * 戻り値: 'approved' | 'ng' | 'error'
      */
-    function check_comment_with_gemini($body, $api_key)
+    function check_comment_with_openrouter($body, $api_key, $model)
     {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" . urlencode($api_key);
+        $url = 'https://openrouter.ai/api/v1/chat/completions';
         
         $prompt = "以下のコメントが、プログラミング投稿共有サイトのコメントとして適切か判断してください。いたずら、スパム、他者への誹謗中傷、不適切な言葉、過度な個人情報などが含まれる場合は不承認としてください。\n\n" .
                   "コメント内容:\n\"\"\"\n" . $body . "\n\"\"\"\n\n" .
@@ -39,16 +40,9 @@ if (!function_exists('check_comment_with_gemini')) {
                   "{\"approved\": true} または {\"approved\": false}";
 
         $data = [
-            "contents" => [
-                [
-                    "parts" => [
-                        ["text" => $prompt]
-                    ]
-                ]
-            ],
-            "generationConfig" => [
-                "responseMimeType" => "application/json"
-            ]
+            'model' => $model,
+            'messages' => [['role' => 'user', 'content' => $prompt]],
+            'temperature' => 0,
         ];
 
         $ch = curl_init($url);
@@ -56,12 +50,14 @@ if (!function_exists('check_comment_with_gemini')) {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json'
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $api_key,
         ]);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10); // 接続タイムアウト 10秒
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);        // 全体タイムアウト 30秒
         
         $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         
         $curl_error = curl_errno($ch);
         $curl_error_msg = curl_error($ch);
@@ -76,23 +72,22 @@ if (!function_exists('check_comment_with_gemini')) {
         }
         
         $res_data = json_decode($response, true);
-        if (isset($res_data['error'])) {
+        if ($http_code < 200 || $http_code >= 300 || !is_array($res_data) || isset($res_data['error'])) {
             $code = isset($res_data['error']['code']) ? $res_data['error']['code'] : 500;
             $msg = isset($res_data['error']['message']) ? $res_data['error']['message'] : 'Unknown error';
-            echo "[ERROR] APIエラーレスポンス (code: {$code}): {$msg}\n";
+            echo "[ERROR] APIエラーレスポンス (HTTP {$http_code}, code: {$code}): {$msg}\n";
             return 'error';
         }
         
-        if (isset($res_data['candidates'][0]['content']['parts'][0]['text'])) {
-            $text = trim($res_data['candidates'][0]['content']['parts'][0]['text']);
+        if (isset($res_data['choices'][0]['message']['content']) && is_string($res_data['choices'][0]['message']['content'])) {
+            $text = trim($res_data['choices'][0]['message']['content']);
             $json = json_decode($text, true);
-            if (isset($json['approved'])) {
+            if (is_array($json) && isset($json['approved']) && is_bool($json['approved'])) {
                 return $json['approved'] ? 'approved' : 'ng';
             }
         }
         
-        $snippet = substr($response, 0, 500);
-        echo "[WARNING] API応答が解析できませんでした。応答(先頭500文字):\n" . $snippet . "\n";
+        echo "[WARNING] API応答が解析できませんでした。\n";
         return 'error';
     }
 }
@@ -121,7 +116,7 @@ foreach ($comments as $c) {
     $approved = false;
     if ($skip_ai_and_approve) {
         if (empty($api_key)) {
-            echo "[INFO] gemini_api_key が設定されていないため、審査をパスして自動承認（公開）します。\n";
+            echo "[INFO] openrouter_api_key が設定されていないため、審査をパスして自動承認（公開）します。\n";
         } else {
             echo "[INFO] 自動承認モードが有効なため、無条件で承認します。\n";
         }
@@ -139,8 +134,8 @@ foreach ($comments as $c) {
             echo "[INFO] キャッシュされた審査結果を適用します。(結果: {$cache['result']})\n";
             $approved = ($cache['result'] === 'approved');
         } else {
-            // キャッシュがなければGemini APIを叩く
-            $audit_res = check_comment_with_gemini($body, $api_key);
+            // キャッシュがなければOpenRouter APIを叩く
+            $audit_res = check_comment_with_openrouter($body, $api_key, $model);
             
             if ($audit_res === 'error') {
                 $error_count++;
@@ -183,6 +178,18 @@ foreach ($comments as $c) {
                 [$c['app_id']],
                 'main'
             );
+        } elseif (intval($c['user_id']) > 0) {
+            db_exec(
+                'INSERT INTO comment_user_blocks (user_id, ng_count, blocked, mtime) VALUES (?, 1, 0, ?) ' .
+                'ON CONFLICT(user_id) DO UPDATE SET ng_count = ng_count + 1, mtime = excluded.mtime',
+                [$c['user_id'], time()],
+                'main'
+            );
+            db_exec(
+                'UPDATE comment_user_blocks SET blocked = 1 WHERE user_id = ? AND ng_count >= 3',
+                [$c['user_id']],
+                'main'
+            );
         }
         db_commit();
         echo "[SUCCESS] ステータスを '{$status}' に更新しました。\n";
@@ -201,11 +208,11 @@ if ($total_processed > 0 && $error_count === $total_processed) {
             "From: $mail_from\r\n".
             "Reply-To: $admin_email\r\n".
             "Content-Transfer-Encoding: 8bit\r\n";
-        $subject = "[nako3storage] Gemini API 審査エラー通知";
+        $subject = "[nako3storage] OpenRouter API 審査エラー通知";
         
         $script_path = __FILE__;
         $server_name = gethostname();
-        $body = "Gemini APIの状態を確認するようにして。({$script_path})({$server_name})\n";
+        $body = "OpenRouter APIの状態を確認してください。({$script_path})({$server_name})\n";
         
         @mb_send_mail($admin_email, $subject, $body, $header);
         echo "[INFO] すべての判定がエラーになったため、管理者にアラートメールを送信しました。\n";
