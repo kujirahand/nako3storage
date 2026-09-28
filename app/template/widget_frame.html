@@ -36,24 +36,39 @@
         .n3s-widget-ui #n3s_footer {
             margin-top: 0;
         }
-        .n3s-widget-broken-report {
-            padding: 4px 0 0;
-            text-align: center;
-        }
-        .n3s-widget-broken-button {
-            border: none;
-            background: none;
-            padding: 2px 6px;
+        /* 作品パネル下部のステータスバー (#267) */
+        .n3s-widget-statusbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 26px;
+            box-sizing: border-box;
+            padding: 3px 12px;
+            border-top: 1px solid var(--n3s-border);
+            background: linear-gradient(180deg, var(--n3s-sakura-band), #fff);
             color: #a08a90;
             font-size: 11px;
+        }
+        .n3s-widget-statusbar-info {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .n3s-widget-broken-button {
+            flex-shrink: 0;
+            border: none;
+            background: none;
+            padding: 2px 4px;
+            color: inherit;
+            font: inherit;
             cursor: pointer;
-            text-decoration: underline;
         }
-        .n3s-widget-broken-button:hover {
+        .n3s-widget-broken-button:hover,
+        .n3s-widget-broken-button:focus-visible {
             color: var(--n3s-sakura-accent);
-        }
-        .n3s-widget-fullscreen .n3s-widget-broken-report {
-            display: none;
+            text-decoration: underline;
         }
         /* 作品を載せる舞台: ヘッダ・フッタと分けるため背景に淡いグラデーション */
         .n3s-widget-ui .n3s-widget-stage {
@@ -282,14 +297,15 @@
             </div>
           </div>
           <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
+          <div class="n3s-widget-statusbar">
+            <span class="n3s-widget-statusbar-info">なでしこ v{{ $version }}</span>
+            {{ if n3s_is_login() }}
+            <button type="button" id="n3s_widget_broken_button" class="n3s-widget-broken-button">⚠️ エラーが出て動かないことを報告</button>
+            {{ endif }}
+          </div>
         </div>
       </div>
     </main>
-    {{ if n3s_is_login() }}
-    <div class="n3s-widget-broken-report">
-      <button type="button" id="n3s_widget_broken_button" class="n3s-widget-broken-button">⚠️ エラーが出て動かないことを報告</button>
-    </div>
-    {{ endif }}
     <div id="n3s_footer">
       <div class="n3s-inner">
         <div class="applink">

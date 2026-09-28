@@ -208,6 +208,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     }
     $a['url'] = $url;
     if (empty($a['bad'])) { $a['bad'] = 0; }
+    $a['broken_report'] = empty($a['broken_report']) ? 0 : intval($a['broken_report']);
     // get link url
     $a['newNakoVersion'] = NAKO_DEFAULT_VERSION;
     $a['badlink'] = n3s_getURL('about', 'bad');
