@@ -286,6 +286,17 @@
       <input class="pure-button" type="submit" value="通報値変更">
     </form>
   </section>
+  {{if $app_id gt 0}}
+  <section class="n3s-save-danger" aria-labelledby="save-broken-title">
+    <p class="n3s-save-section-label">管理者</p>
+    <h2 id="save-broken-title">「動かない」報告のリセット</h2>
+    <p>現在の報告数: {{$broken_report}}件 (3件以上でトップページから除外)</p>
+    <form method="POST" action="index.php?action=save&amp;page={{$app_id}}&amp;mode=reset_broken">
+      <input name="edit_token" type="hidden" value="{{$edit_token}}">
+      <input class="pure-button" type="submit" value="0にリセット">
+    </form>
+  </section>
+  {{endif}}
   {{endif}}
 </main>
 

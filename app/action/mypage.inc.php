@@ -221,6 +221,7 @@ function n3s_web_mypage()
         'dashboard' => ($page == 0) ? n3s_mypage_get_dashboard_data($user_id) : [],
         'link_material' => $link_materil,
         'link_logout' => $logout_url,
+        'edit_token' => n3s_getEditToken(),
     ]);
 }
 

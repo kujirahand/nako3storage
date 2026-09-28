@@ -53,7 +53,7 @@ function n3s_list_get()
     // オプションを確認して条件などを設定
     // --------------------------------------------------------
     // list (app_id for list pager)
-    $wheres = array('show_list = 1'); // 一覧掲載フラグ (#202)
+    $wheres = array('show_list = 1', 'broken_report < 3'); // 一覧掲載フラグ (#202) / 「動かない」報告が3以上は除外 (#267)
     $where_params = []; // $wheres の "?" に対応する値を、出現順に積んでいく
     $statements = [];
     // check nofilter parameters
@@ -137,7 +137,7 @@ function n3s_list_get()
 
         // 全期間を取得
         $ranking_all = db_get('SELECT * FROM apps '.
-            'WHERE (bad < 2) AND (fav >= 3) AND (is_private = 0) AND (show_list = 1)'.
+            'WHERE (bad < 2) AND (broken_report < 3) AND (fav >= 3) AND (is_private = 0) AND (show_list = 1)'.
             'ORDER BY fav DESC LIMIT 30', []);
 
         // 直近3ヶ月のアクセスランキングを取得 (人気の投稿)
@@ -280,7 +280,7 @@ function n3s_list_get_access_ranking($months, $limit)
     $app_ids = array_map('intval', array_column($access_ranking, 'app_id'));
     $ph = implode(',', array_fill(0, count($app_ids), '?'));
     $rows = db_get(
-        "SELECT * FROM apps WHERE app_id IN ($ph) AND (bad < 2) AND (is_private = 0) AND (show_list = 1)",
+        "SELECT * FROM apps WHERE app_id IN ($ph) AND (bad < 2) AND (broken_report < 3) AND (is_private = 0) AND (show_list = 1)",
         $app_ids
     );
     $rows_by_id = [];

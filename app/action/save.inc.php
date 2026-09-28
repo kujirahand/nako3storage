@@ -18,6 +18,8 @@ function n3s_web_save()
             return n3s_action_save_delete($_POST, 'web');
         case 'reset_bad': // 迷惑投稿をリセット
             return n3s_action_save_reset_bad($_POST, 'web');
+        case 'reset_broken': // 「動かない」報告をリセット (#267)
+            return n3s_action_save_reset_broken($_POST, 'web');
         default:
             // なでしこ簡易エディタなどからの投稿
             return n3s_show_save_form($mode);
@@ -528,6 +530,45 @@ function n3s_action_save_reset_bad($params)
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",
+    ]);
+}
+
+// 「動かない」報告 (broken_report) を0にリセットする。本人または管理者のみ実行可能 (#267)
+function n3s_action_save_reset_broken($params)
+{
+    // トークンのチェック
+    if (!n3s_checkEditToken()) {
+        n3s_error('トークンが無効', '再度実行してください。');
+    }
+    // check app id
+    $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
+    if ($app_id <= 0) {
+        n3s_error('IDの不正', 'IDのエラー');
+        exit;
+    }
+    // check app_id exists
+    $a = db_get1('SELECT * FROM apps WHERE app_id=?', [$app_id]);
+    if (!$a) {
+        n3s_error('指定のIDのアプリがありません', 'IDのエラー');
+        exit;
+    }
+    // 本人または管理者のみリセット可能
+    $user = n3s_get_login_info();
+    $user_id = $user['user_id'];
+    if (n3s_is_admin()) {
+        // ok
+    } elseif ($user_id > 0 && $user_id == $a['user_id']) {
+        // ok
+    } else {
+        n3s_error('リセット失敗', '本人または管理者のみリセットできます。');
+        exit;
+    }
+    // リセット
+    $time = time();
+    db_exec('UPDATE apps SET broken_report=0,broken_lastip=?,mtime=? WHERE app_id=?', ['', $time, $app_id]);
+    // 情報
+    n3s_template_fw('basic.html', [
+        'contents' => "{$app_id} の「動かない」報告をリセットしました。",
     ]);
 }
 
