@@ -406,10 +406,17 @@
             credentials: 'include',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: body.toString()
-          }).finally(function() {
+          }).then(function(res) {
+            if (!res.ok) { throw new Error('HTTP ' + res.status); }
+            return res.text();
+          }).then(function(txt) {
+            // 成功時は報告後の件数(数字)だけが返る。それ以外はエラー
+            if (!/^\d+$/.test(txt.trim())) { throw new Error(txt); }
+            alert('ありがとうございました。報告しました。');
+          }).catch(function() {
             brokenButton.disabled = false;
+            alert('報告に失敗しました。ページを再読み込みして、ログイン状態を確認してから再度お試しください。');
           });
-          alert('ありがとうございました。報告しました。');
         };
       })();
     </script>

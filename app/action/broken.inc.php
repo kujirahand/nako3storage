@@ -17,13 +17,13 @@ function echo_broken()
     $app_id = (int) (empty($_REQUEST['page']) ? '0' : $_REQUEST['page']);
     $q = empty($_REQUEST['q']) ? 'view' : $_REQUEST['q'];
     if ($app_id <= 0) {
-        echo "0";
+        echo ($q === 'up') ? "error, invalid id." : "0";
         return;
     }
     try {
         $r = db_get1('SELECT broken_report,broken_lastip FROM apps WHERE app_id=?', [$app_id]);
         if (!$r) {
-            echo "0";
+            echo ($q === 'up') ? "error, app not found." : "0";
             return;
         }
         if ($q === 'up') {
@@ -66,6 +66,6 @@ function echo_broken()
     } catch (Exception $e) {
         // 例外の詳細(パスやSQLを含みうる)はサーバーログにのみ記録し、利用者へは返さない
         error_log('n3s_broken error: ' . $e->getMessage());
-        echo "0";
+        echo ($q === 'up') ? "error, server error." : "0";
     }
 }
