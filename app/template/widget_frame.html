@@ -83,20 +83,30 @@
         .n3s-widget-ui .n3s-widget-dots {
             display: flex;
             align-items: center;
-            gap: 8px;
         }
         .n3s-widget-ui .n3s-widget-dot {
+            position: relative;
             display: grid;
             place-items: center;
-            width: 14px;
-            height: 14px;
+            width: 30px;
+            height: 30px;
             padding: 0;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            border-radius: 50%;
+            border: 0;
+            background: transparent;
             color: rgba(48, 40, 43, 0.8);
             cursor: pointer;
         }
+        .n3s-widget-ui .n3s-widget-dot::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
         .n3s-widget-ui .n3s-widget-dot svg {
+            position: relative;
             width: 9px;
             height: 9px;
             opacity: 0;
@@ -108,9 +118,9 @@
             outline: 2px solid var(--n3s-sakura-accent);
             outline-offset: 3px;
         }
-        .n3s-widget-ui .n3s-widget-dot-close { background: #ff6059; }
-        .n3s-widget-ui .n3s-widget-dot-minimize { background: #ffbd2e; }
-        .n3s-widget-ui .n3s-widget-dot-fullscreen { background: #28c840; }
+        .n3s-widget-ui .n3s-widget-dot-close::before { background: #ff6059; }
+        .n3s-widget-ui .n3s-widget-dot-minimize::before { background: #ffbd2e; }
+        .n3s-widget-ui .n3s-widget-dot-fullscreen::before { background: #28c840; }
         .n3s-widget-ui .n3s-widget-panel-label {
             flex: 1;
             min-width: 0;
@@ -276,7 +286,12 @@
         window.addEventListener('message', function(e) {
           if (e.source !== frame.contentWindow) { return; }
           var d = e.data;
-          if (!Array.isArray(d) || d[0] !== 'setFrameHeight') { return; }
+          if (!Array.isArray(d)) { return; }
+          if (d[0] === 'exitFullscreen') {
+            if (document.body.classList.contains('n3s-widget-fullscreen')) { setFullscreen(false); }
+            return;
+          }
+          if (d[0] !== 'setFrameHeight') { return; }
           var h = parseInt(d[1], 10);
           if (!isFinite(h) || h <= 0) { return; }
           requestedHeight = Math.max(requestedHeight, h);

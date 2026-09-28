@@ -34,3 +34,14 @@ test('UI付き実行画面には全画面切替と作品ページへ戻る操作
         ->toContain('n3s-widget-fullscreen')
         ->toContain("e.key === 'Escape'");
 });
+
+test('作品iframeにフォーカスがあるときもEscで全画面解除を通知する', function () {
+    $parent = file_get_contents(N3S_TEST_ROOT . '/app/template/widget_frame.html');
+    $child = file_get_contents(N3S_TEST_ROOT . '/app/template/widget.html');
+
+    expect($child)->toContain("window.parent.postMessage(['exitFullscreen'], '*')");
+    expect($parent)
+        ->toContain('if (e.source !== frame.contentWindow) { return; }')
+        ->toContain("if (d[0] === 'exitFullscreen')")
+        ->toContain('setFullscreen(false)');
+});
