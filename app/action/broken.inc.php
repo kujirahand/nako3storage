@@ -8,9 +8,15 @@ header('X-Frame-Options: SAMEORIGIN');
 function n3s_web_broken()
 {
     $app_id = (int) (empty($_REQUEST['page']) ? '0' : $_REQUEST['page']);
-    $app = ($app_id > 0) ? db_get1('SELECT app_id,title,is_private FROM apps WHERE app_id=?', [$app_id]) : null;
+    $app = ($app_id > 0) ? db_get1('SELECT app_id,title,is_private,user_id,editkey FROM apps WHERE app_id=?', [$app_id]) : null;
     if (!$app) {
         n3s_error('作品が見つかりません', '報告する作品が見つかりませんでした。');
+        return;
+    }
+    // 閲覧できない非公開・限定公開作品には報告させない (限定公開は実行画面から渡された editkey で判定)
+    $editkey = (isset($_REQUEST['editkey']) && is_string($_REQUEST['editkey'])) ? $_REQUEST['editkey'] : '';
+    if (! n3s_private_access_allowed($app, $editkey)) {
+        n3s_error('報告できません', 'この作品は閲覧できないため報告できません。');
         return;
     }
     if (! n3s_is_login()) {
@@ -35,10 +41,10 @@ function n3s_web_broken()
         n3s_broken_template($app, 2, '');
         return;
     }
-    n3s_broken_template($app, 0, n3s_getEditToken());
+    n3s_broken_template($app, 0, n3s_getEditToken(), $editkey);
 }
 
-function n3s_broken_template($app, $done, $edit_token)
+function n3s_broken_template($app, $done, $edit_token, $editkey = '')
 {
     global $n3s_config;
     $params = [
@@ -47,6 +53,7 @@ function n3s_broken_template($app, $done, $edit_token)
         'broken_title' => ($app['is_private'] == 0) ? $app['title'] : '',
         'broken_done' => $done,
         'broken_edit_token' => $edit_token,
+        'broken_editkey' => $editkey,
     ];
     // n3s_template_fw() は $n3s_config (GETパラメータを含む) を優先するため、
     // ?broken_done=1 などで上書きされないよう $n3s_config 側にも強制する
@@ -61,8 +68,10 @@ function n3s_api_broken()
 {
     $app_id = (int) (empty($_REQUEST['page']) ? '0' : $_REQUEST['page']);
     try {
-        $r = ($app_id > 0) ? db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$app_id]) : null;
-        echo $r ? intval($r['broken_report']) : 0;
+        $r = ($app_id > 0) ? db_get1('SELECT broken_report,is_private,user_id,editkey FROM apps WHERE app_id=?', [$app_id]) : null;
+        $editkey = (isset($_REQUEST['editkey']) && is_string($_REQUEST['editkey'])) ? $_REQUEST['editkey'] : '';
+        // 閲覧できない作品の件数は返さない
+        echo ($r && n3s_private_access_allowed($r, $editkey)) ? intval($r['broken_report']) : 0;
     } catch (Exception $e) {
         error_log('n3s_broken error: ' . $e->getMessage());
         echo "0";
