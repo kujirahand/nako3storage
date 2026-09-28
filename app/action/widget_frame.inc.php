@@ -19,6 +19,7 @@ function n3s_web_widget_frame()
     $a['mute_title'] = isset($_GET['mute_title']) ? intval($_GET['mute_title']) : 0;
     $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
     $a['w_noname'] = n3s_widget_is_noname($a);
+    n3s_widget_force_config('w_noname', $a['w_noname']);
     $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
 
     // ウィジェット実行統計を記録 (Issue #217)
@@ -65,6 +66,20 @@ function n3s_widget_is_noname($a)
 {
     $tags = isset($a['tag']) ? explode(',', $a['tag']) : [];
     return in_array('w_noname', array_map('trim', $tags), true);
+}
+
+// $key の値を $n3s_config に強制的に設定する。
+// n3s_parseURI() は $_GET の全キーを無条件に $n3s_config へコピーしており、
+// n3s_template_fw() は $n3s_config + $params ($n3s_config優先) でテンプレートへ渡す変数を
+// 作るため、テンプレート側に渡す計算済みの値(例: $a['w_noname'])と同名のGETパラメータ
+// (例: ?w_noname=0)が飛んできても、GET側の値がそのまま採用されてしまう。
+// これにより w_noname タグの秘匿判定のような、GETから改ざんされてはならない値が
+// 上書き可能になるため、テンプレートに渡す直前に計算済みの値で $n3s_config 側を
+// 上書きし直して、GETからの偽装を無効化する。
+function n3s_widget_force_config($key, $value)
+{
+    global $n3s_config;
+    $n3s_config[$key] = $value;
 }
 
 // widget_frame が配信に使う nakotype を決定する。必ずDBの保存値($a['nakotype'])を

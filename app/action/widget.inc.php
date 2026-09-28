@@ -25,7 +25,11 @@ function n3s_web_widget()
         // タイトルと作者はヘッダに表示するので、作品内の表示は省略する
         $mute_title = $a['mute_title'] = 1;
     }
+    // 注意: w_noname はテンプレート(widget_frame.html)でタイトル・作者の秘匿に使うため、
+    // ?w_noname=... のようなGETパラメータで上書きされないよう $n3s_config 側も強制する
+    // (n3s_template_fw() の $n3s_config + $params マージでは $n3s_config が優先されるため)。
     $a['w_noname'] = n3s_widget_is_noname($a);
+    n3s_widget_force_config('w_noname', $a['w_noname']);
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
     $api_token = n3s_getAPIToken();
     $_SESSION["api_token::$api_token"] = $page;
