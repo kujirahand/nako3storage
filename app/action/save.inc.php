@@ -486,7 +486,11 @@ function n3s_action_save_delete($params)
     }
     // 削除
     n3s_unset_cover_image($app_id);
+    db_begin();
     db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
+    // 「動かない」報告者の記録も削除 (残すとapp_id再利用時に新作品を報告できなくなる #267)
+    db_exec('DELETE FROM broken_reports WHERE app_id=?', [$app_id]);
+    db_commit();
     // 本文も削除 (残すとapp_id再利用時にmaterialsの主キー衝突が起きる)
     $dbname = n3s_getMaterialDB($app_id);
     db_exec('DELETE FROM materials WHERE material_id=?', [$app_id], $dbname);
@@ -565,7 +569,11 @@ function n3s_action_save_reset_broken($params)
     }
     // リセット
     $time = time();
+    db_begin();
     db_exec('UPDATE apps SET broken_report=0,broken_lastip=?,mtime=? WHERE app_id=?', ['', $time, $app_id]);
+    // 報告者の記録も消し、修正後に再び動かなくなった場合に同じユーザーが再報告できるようにする (#267)
+    db_exec('DELETE FROM broken_reports WHERE app_id=?', [$app_id]);
+    db_commit();
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} の「動かない」報告をリセットしました。",

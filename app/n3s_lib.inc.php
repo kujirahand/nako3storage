@@ -175,6 +175,15 @@ function n3s_db_migrate_apps()
     if (!in_array('broken_lastip', $names, true)) {
         db_exec("ALTER TABLE apps ADD COLUMN broken_lastip TEXT DEFAULT ''", [], 'main');
     }
+    // 「動かない」報告者の記録 (#267)
+    db_exec("CREATE TABLE IF NOT EXISTS broken_reports (
+        broken_report_id INTEGER PRIMARY KEY,
+        app_id     INTEGER NOT NULL,
+        user_id    INTEGER NOT NULL,
+        ip         TEXT DEFAULT '',
+        ctime      INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(app_id, user_id)
+    )", [], 'main');
 }
 
 // log DB にアクセス統計まわりのテーブルが無ければ作成する

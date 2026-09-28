@@ -44,7 +44,7 @@ AIエージェントがこのリポジトリで作業する時は、まずこの
 - `index.php`: Web 版の入口。設定を読み、`$n3s_config['agent'] = 'web'` を設定して `app/index.inc.php` を実行する。
 - `api.php`: API 版の入口。`$n3s_config['agent'] = 'api'` を設定して同じディスパッチへ入る。
 - `image.php`: アップロードファイル配信用の入口。`agent=api`、`action=image` を強制し、`app/action/image.inc.php` へ流す。
-- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。`&ui=1` を付けると貯蔵庫のヘッダ・フッタ付きで作品を中央に表示する(作品ページの「プログラムを実行」はこれを使う)。`ui` 未指定/0 は従来通り作品と作品ページへのリンクだけ(iframe 埋め込み用)。ヘッダのリンクはサンドボックスオリジンで表示されるため `app_root_url` の絶対URLにしている (#250)。
+- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。`&ui=1` を付けると貯蔵庫のヘッダ・フッタ付きで作品を中央に表示する(作品ページの「プログラムを実行」はこれを使う)。`ui` 未指定/0 は従来通り作品と作品ページへのリンクだけ(iframe 埋め込み用)。ヘッダのリンクはサンドボックスオリジンで表示されるため `app_root_url` の絶対URLにしている (#250)。サンドボックスオリジンでは本体のログインセッションが使えないため、ステータスバーの「動かない報告」ボタンはログイン判定せず常に表示し、本体オリジンの確認ページ `index.php?action=broken&page=<id>` (ログイン確認・POST+edit_token) を開く (#267)。
 - `id.php`: 作品 ID のショートカット。
 - `cdn.php`: なでしこ本体・プラグイン・CSS・map などを jsDelivr から取得し、必要に応じて `cache-cdn/` に保存して返す。
 - `nadesiko3hub_update.php`: `nadesiko3hub` 連携用。
@@ -115,6 +115,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `apps`: 投稿メタ情報。タイトル、作者、ユーザー ID、公開状態、タグ、ライセンス、閲覧数、いいね数など。
 - `comments`: コメント。
 - `comment_user_blocks`: AI審査でNGになったユーザー別回数とコメント投稿ブロック状態。既存DBは `n3s_db_migrate_comments()` で追加・初期集計する。
+- `broken_reports`: 「動かない」報告の記録 (`app_id`, `user_id`, `ip`, `ctime`)。`UNIQUE(app_id, user_id)` で1ユーザー1作品につき1回だけ `apps.broken_report` に加算する(管理者は+3)。既存DBは `n3s_db_migrate_apps()` で作成する。作品削除 (`n3s_action_save_delete()`) と報告リセット (`n3s_action_save_reset_broken()`) では同じトランザクションで該当 `app_id` の行も削除する(残すと再報告やID再利用時の報告ができなくなる)。報告の確認ページは `n3s_private_access_allowed()` で閲覧権限を判定し、限定公開は実行画面から `editkey` を引き継ぐ。`apps.broken_lastip` は旧方式の名残で未使用 (#267)。
 - `images`: アップロードファイルのメタ情報。
 - `bookmarks`: ユーザーのブックマーク。
 

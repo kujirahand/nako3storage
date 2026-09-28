@@ -36,7 +36,7 @@ CREATE TABLE apps (
   copyright   TEXT DEFAULT '',
   bad         INTEGER DEFAULT 0,
   broken_report INTEGER DEFAULT 0, /* 「動かない」報告の数。3以上でトップページから除外 #267 */
-  broken_lastip TEXT DEFAULT '', /* 最後に「動かない」報告した人のIP */
+  broken_lastip TEXT DEFAULT '', /* (未使用) 旧: 最後に「動かない」報告した人のIP。報告者は broken_reports に記録する */
   prog_hash   TEXT DEFAULT '', /* プログラムのハッシュ(公開プログラムで同一の投稿はできないようにする) */
   ctime       INTEGER DEFAULT 0,
   mtime       INTEGER DEFAULT 0,
@@ -99,7 +99,19 @@ CREATE TABLE comment_user_blocks (
   mtime      INTEGER NOT NULL DEFAULT 0
 );
 
+/* 「動かない」報告の記録。誰がどの作品を報告したか (1ユーザー1作品につき1件) #267 */
+CREATE TABLE broken_reports (
+  broken_report_id INTEGER PRIMARY KEY,
+  app_id     INTEGER NOT NULL,
+  user_id    INTEGER NOT NULL,
+  ip         TEXT DEFAULT '',
+  ctime      INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(app_id, user_id)
+);
+
 /*
+2026/09/29 (#267) 「動かない」報告者を記録する broken_reports テーブルを追加 (既存DBは n3s_db_migrate_apps() が自動作成)
+
 2026/09/29 (#267) 「動かない」報告カラムを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)
 ALTER TABLE apps ADD COLUMN broken_report INTEGER DEFAULT 0;
 ALTER TABLE apps ADD COLUMN broken_lastip TEXT DEFAULT '';

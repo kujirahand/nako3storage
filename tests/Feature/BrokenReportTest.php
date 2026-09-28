@@ -1,0 +1,190 @@
+<?php
+// tests/Feature/BrokenReportTest.php
+// 「作品が動かない」報告 (#267) のテスト。
+// 実行画面(widget)はサンドボックスオリジンで表示されログイン状態が分からないため、
+// 報告ボタンは常に表示し、本体オリジンの確認ページ(action=broken)で報告する。
+
+declare(strict_types=1);
+
+require_once N3S_TEST_ROOT . '/app/action/broken.inc.php';
+
+function n3s_test_broken_login(int $userId): void
+{
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = $userId;
+    $_SESSION['n3s_login_info'] = ['user_id' => $userId, 'name' => '報告者', 'email' => 'broken@example.com'];
+}
+
+function n3s_test_broken_app(): int
+{
+    $now = time();
+    return (int) db_insert(
+        'INSERT INTO apps (title, author, user_id, is_private, nakotype, ctime, mtime) VALUES (?,?,?,?,?,?,?)',
+        ['動かない作品', '作者', 0, 0, 'wnako', $now, $now]
+    );
+}
+
+test('実行画面の報告ボタンはログイン判定なしで本体オリジンの確認ページへリンクする', function () {
+    $template = file_get_contents(N3S_TEST_ROOT . '/app/template/widget_frame.html');
+    expect($template)
+        ->toContain('href="{{ $broken_url }}"')
+        ->not->toContain('{{ if n3s_is_login() }}');
+});
+
+test('未ログインでは確認ページにログイン案内を表示し、件数は増えない', function () {
+    $appId = n3s_test_broken_app();
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up'];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('ログインが必要です');
+    $r = db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId]);
+    expect(intval($r['broken_report']))->toBe(0);
+});
+
+test('ログイン時はGETで確認フォームを表示し、POST+edit_tokenで報告できる', function () {
+    $appId = n3s_test_broken_app();
+    n3s_add_user('admin@example.com', 'password123', '管理者'); // user_id=1 は管理者
+    $userId = n3s_add_user('broken@example.com', 'password123', '報告者');
+    n3s_test_broken_login((int) $userId);
+
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_REQUEST = ['page' => (string) $appId];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告する')->toContain('動かない作品');
+
+    // トークンなしのPOSTは拒否
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['REMOTE_ADDR'] = '203.0.113.5';
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up'];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告に失敗しました');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(0);
+
+    // 正しいトークンで報告
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告しました');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(1);
+
+    // 報告者の user_id が broken_reports に記録される
+    $rows = db_get('SELECT app_id, user_id, ip FROM broken_reports WHERE app_id=?', [$appId]);
+    expect($rows)->toHaveCount(1);
+    expect(intval($rows[0]['user_id']))->toBe((int) $userId);
+    expect($rows[0]['ip'])->toBe('203.0.113.5');
+
+    // 同じユーザーの再報告は(別IPからでも)加算しない
+    $_SERVER['REMOTE_ADDR'] = '198.51.100.7';
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('既に報告済み');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(1);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(1);
+
+    // 報告済みならGETでもフォームは出さない
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_REQUEST = ['page' => (string) $appId];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('既に報告済み')->not->toContain('value="報告する"');
+
+    // 同じIPでも別ユーザーの報告は加算する
+    $user2 = n3s_add_user('broken2@example.com', 'password123', '報告者2');
+    n3s_test_broken_login((int) $user2);
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['REMOTE_ADDR'] = '203.0.113.5';
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    n3s_test_capture(fn() => n3s_web_broken());
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(2);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(2);
+});
+
+test('管理者の報告は+3で、管理者も1作品につき1回だけ数える', function () {
+    $appId = n3s_test_broken_app();
+    $adminId = n3s_add_user('admin@example.com', 'password123', '管理者'); // user_id=1 は管理者
+    n3s_test_broken_login((int) $adminId);
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['REMOTE_ADDR'] = '203.0.113.9';
+    for ($i = 0; $i < 2; $i++) {
+        $_REQUEST = ['page' => (string) $appId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+        n3s_test_capture(fn() => n3s_web_broken());
+    }
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(3);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(1);
+});
+
+// 指定ユーザーとして作品を1回報告する
+function n3s_test_broken_report_as(int $userId, int $appId): void
+{
+    n3s_test_broken_login($userId);
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['REMOTE_ADDR'] = '203.0.113.20';
+    $_REQUEST = ['page' => (string) $appId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    n3s_test_capture(fn() => n3s_web_broken());
+}
+
+test('報告をリセットすると報告者の記録も消え、同じユーザーが再報告できる', function () {
+    require_once N3S_TEST_ROOT . '/app/action/save.inc.php';
+    $appId = n3s_test_broken_app();
+    $adminId = (int) n3s_add_user('admin@example.com', 'password123', '管理者');
+    n3s_test_broken_report_as($adminId, $appId);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(1);
+
+    $_GET = ['page' => (string) $appId];
+    $_REQUEST = ['page' => (string) $appId, 'edit_token' => n3s_getEditToken()];
+    n3s_test_capture(fn() => n3s_action_save_reset_broken([]));
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(0);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(0);
+
+    n3s_test_broken_report_as($adminId, $appId);
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$appId])['broken_report']))->toBe(3);
+});
+
+test('作品を削除すると報告者の記録も消え、再利用されたIDの新作品を報告できる', function () {
+    require_once N3S_TEST_ROOT . '/app/action/save.inc.php';
+    $appId = n3s_test_broken_app();
+    $adminId = (int) n3s_add_user('admin@example.com', 'password123', '管理者');
+    n3s_test_broken_report_as($adminId, $appId);
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(1);
+
+    $_GET = ['page' => (string) $appId];
+    $_POST = ['yesno' => 'yes'];
+    $_REQUEST = ['page' => (string) $appId, 'yesno' => 'yes', 'edit_token' => n3s_getEditToken()];
+    n3s_test_capture(fn() => n3s_action_save_delete([]));
+    expect(db_get1('SELECT app_id FROM apps WHERE app_id=?', [$appId]))->toBeFalsy();
+    expect(db_get('SELECT * FROM broken_reports WHERE app_id=?', [$appId]))->toHaveCount(0);
+});
+
+test('閲覧できない非公開・限定公開作品には報告できない', function () {
+    $now = time();
+    $ownerId = (int) n3s_add_user('owner@example.com', 'password123', '作者'); // user_id=1 (管理者)
+    $userId = (int) n3s_add_user('broken@example.com', 'password123', '報告者');
+    $privateId = (int) db_insert(
+        'INSERT INTO apps (title, author, user_id, is_private, editkey, nakotype, ctime, mtime) VALUES (?,?,?,?,?,?,?,?)',
+        ['非公開作品', '作者', $ownerId, 1, 'secret', 'wnako', $now, $now]
+    );
+    $limitedId = (int) db_insert(
+        'INSERT INTO apps (title, author, user_id, is_private, editkey, nakotype, ctime, mtime) VALUES (?,?,?,?,?,?,?,?)',
+        ['限定公開作品', '作者', $ownerId, 2, 'limitkey', 'wnako', $now, $now]
+    );
+    n3s_test_broken_login($userId);
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_SERVER['REMOTE_ADDR'] = '203.0.113.30';
+
+    // 非公開: editkey を付けても報告できない
+    $_REQUEST = ['page' => (string) $privateId, 'q' => 'up', 'editkey' => 'secret', 'edit_token' => n3s_getEditToken()];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告できません');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$privateId])['broken_report']))->toBe(0);
+
+    // 限定公開: editkey なしでは報告できない
+    $_REQUEST = ['page' => (string) $limitedId, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告できません');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$limitedId])['broken_report']))->toBe(0);
+
+    // 限定公開: 正しい editkey なら報告できる
+    $_REQUEST = ['page' => (string) $limitedId, 'q' => 'up', 'editkey' => 'limitkey', 'edit_token' => n3s_getEditToken()];
+    $out = n3s_test_capture(fn() => n3s_web_broken());
+    expect($out)->toContain('報告しました');
+    expect(intval(db_get1('SELECT broken_report FROM apps WHERE app_id=?', [$limitedId])['broken_report']))->toBe(1);
+    expect(db_get('SELECT * FROM broken_reports'))->toHaveCount(1);
+});

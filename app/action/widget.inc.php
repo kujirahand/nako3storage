@@ -30,9 +30,13 @@ function n3s_web_widget()
     // (n3s_template_fw() の $n3s_config + $params マージでは $n3s_config が優先されるため)。
     $a['w_noname'] = n3s_widget_is_noname($a);
     n3s_widget_force_config('w_noname', $a['w_noname']);
-    // 「動かない」報告ボタン用のCSRFトークン (#267)
-    $a['edit_token'] = n3s_getEditToken();
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
+    // 「動かない」報告の確認ページ(本体オリジン)。限定公開の作品は editkey を引き継いで閲覧権限を判定する (#267)
+    $broken_url = n3s_get_config('app_root_url', '') . "index.php?action=broken&page={$page}";
+    if (is_string($editkey) && $editkey !== '') {
+        $broken_url .= '&editkey=' . urlencode($editkey);
+    }
+    n3s_widget_force_config('broken_url', $broken_url);
     $api_token = n3s_getAPIToken();
     $_SESSION["api_token::$api_token"] = $page;
     $nakotype = isset($a['nakotype']) ? $a['nakotype'] : 'wnako';

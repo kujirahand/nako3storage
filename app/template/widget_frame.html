@@ -63,6 +63,7 @@
             padding: 2px 4px;
             color: inherit;
             font: inherit;
+            text-decoration: none;
             cursor: pointer;
         }
         .n3s-widget-broken-button:hover,
@@ -299,9 +300,8 @@
           <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
           <div class="n3s-widget-statusbar">
             <span class="n3s-widget-statusbar-info">なでしこ v{{ $version }}</span>
-            {{ if n3s_is_login() }}
-            <button type="button" id="n3s_widget_broken_button" class="n3s-widget-broken-button">⚠️ エラーが出て動かないことを報告</button>
-            {{ endif }}
+            {{# 実行画面はサンドボックスオリジンで表示されログイン状態が分からないため、常に表示して本体側の確認ページを開く }}
+            <a href="{{ $broken_url }}" id="n3s_widget_broken_button" class="n3s-widget-broken-button" target="_blank" rel="noopener">⚠️ エラーが出て動かないことを報告</a>
           </div>
         </div>
       </div>
@@ -388,39 +388,6 @@
         });
       })();
     </script>
-    {{ if n3s_is_login() }}
-    <script>
-      // 「動かない」報告 (#267)
-      (function() {
-        var brokenButton = document.getElementById('n3s_widget_broken_button');
-        if (!brokenButton) { return; }
-        brokenButton.onclick = function() {
-          if (!confirm('この作品が動かないことを報告しますか？')) { return; }
-          brokenButton.disabled = true;
-          var body = new URLSearchParams();
-          body.set('page', '{{ $app_id }}');
-          body.set('q', 'up');
-          body.set('edit_token', '{{ $edit_token }}');
-          fetch('{{ $app_root_url }}index.php?action=broken', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
-          }).then(function(res) {
-            if (!res.ok) { throw new Error('HTTP ' + res.status); }
-            return res.text();
-          }).then(function(txt) {
-            // 成功時は報告後の件数(数字)だけが返る。それ以外はエラー
-            if (!/^\d+$/.test(txt.trim())) { throw new Error(txt); }
-            alert('ありがとうございました。報告しました。');
-          }).catch(function() {
-            brokenButton.disabled = false;
-            alert('報告に失敗しました。ページを再読み込みして、ログイン状態を確認してから再度お試しください。');
-          });
-        };
-      })();
-    </script>
-    {{ endif }}
   </body>
   {{ else }}
   <body>
