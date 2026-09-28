@@ -30,8 +30,6 @@ function n3s_web_widget()
     // (n3s_template_fw() の $n3s_config + $params マージでは $n3s_config が優先されるため)。
     $a['w_noname'] = n3s_widget_is_noname($a);
     n3s_widget_force_config('w_noname', $a['w_noname']);
-    // 「動かない」報告ボタン用のCSRFトークン (#267)
-    $a['edit_token'] = n3s_getEditToken();
     $editkey = isset($_GET['editkey']) ? $_GET['editkey'] : '';
     $api_token = n3s_getAPIToken();
     $_SESSION["api_token::$api_token"] = $page;
