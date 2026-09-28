@@ -502,9 +502,16 @@ function n3s_mypage_get_dashboard_data($user_id)
         }
     }
 
-    // 直近30日間の急上昇作品ベスト5 & グラフ用日別データ
+    // 直近30日間の日付リスト (29日前〜今日までの30日間)
     $days = 30;
-    $since = date('Y-m-d', strtotime("-{$days} days"));
+    $date_labels = [];
+    $date_short_labels = [];
+    for ($i = $days - 1; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-{$i} days"));
+        $date_labels[] = $d;
+        $date_short_labels[] = date('n/j', strtotime($d));
+    }
+    $since = $date_labels[0];
 
     // 急上昇: 直近30日の作品別アクセス数
     $period_app_views = [];
@@ -545,15 +552,6 @@ function n3s_mypage_get_dashboard_data($user_id)
                 break;
             }
         }
-    }
-
-    // グラフデータ生成 (直近30日間)
-    $date_labels = [];
-    $date_short_labels = [];
-    for ($i = $days - 1; $i >= 0; $i--) {
-        $d = date('Y-m-d', strtotime("-{$i} days"));
-        $date_labels[] = $d;
-        $date_short_labels[] = date('n/j', strtotime($d));
     }
 
     // 全作品の日別合計
@@ -664,8 +662,8 @@ function n3s_mypage_get_dashboard_data($user_id)
         'public_apps' => $public_apps,
         'top_all_time' => $top_all_time,
         'top_surging' => $top_surging,
-        'chart_labels' => json_encode($date_short_labels, JSON_UNESCAPED_UNICODE),
-        'chart_datasets' => json_encode($datasets, JSON_UNESCAPED_UNICODE),
+        'chart_labels' => json_encode($date_short_labels, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+        'chart_datasets' => json_encode($datasets, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
         'has_chart_data' => $has_any_access,
     ];
 }

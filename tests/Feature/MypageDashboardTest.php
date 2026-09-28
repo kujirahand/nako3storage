@@ -140,3 +140,77 @@ test('マイページの2ページ目以降ではダッシュボードが表示�
         ->not->toContain('🏆 これまでの人気作品ベスト5')
         ->not->toContain('mypage-access-chart');
 });
+
+test('タイトルにスクリプトタグが含まれる作品でもグラフJSONが安全にエスケープされる（XSS防止）', function () {
+    $userId = n3s_add_user('dash-xss@example.com', 'password1', 'XSSテスト太郎');
+    expect(n3s_login('dash-xss@example.com', 'password1'))->toBeTrue();
+    $now = time();
+
+    // 悪意のあるタイトルを含む作品を2件登録
+    $aid1 = db_insert(
+        'INSERT INTO apps (title, author, memo, user_id, is_private, nakotype, copyright, tag, version, view, fav, ctime, mtime) ' .
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        ['</script><script>alert("xss")</script>', 'XSSテスト太郎', '説明', $userId, 0, 'wnako', 'MIT', 'テスト', '3.7.2', 10, 0, $now, $now]
+    );
+    $aid2 = db_insert(
+        'INSERT INTO apps (title, author, memo, user_id, is_private, nakotype, copyright, tag, version, view, fav, ctime, mtime) ' .
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        ['通常作品', 'XSSテスト太郎', '説明', $userId, 0, 'wnako', 'MIT', 'テスト', '3.7.2', 5, 0, $now, $now]
+    );
+
+    // アクセスログを追加してグラフを有効化
+    $today = date('Y-m-d');
+    db_insert(
+        'INSERT INTO access_stats (date, kind, app_id, count) VALUES (?,?,?,?)',
+        [$today, 'show', $aid1, 5],
+        'log'
+    );
+
+    $_GET['page'] = '0';
+    $out = n3s_test_capture(fn() => n3s_web_mypage());
+
+    // 生の </script> タグが script タグ内に注入されず、\u003C/script\u003E にエスケープされていること
+    expect($out)
+        ->toContain('id="mypage-access-chart"')
+        ->toContain('\u003C\/script\u003E')
+        ->not->toContain('</script><script>alert("xss")</script>');
+});
+
+test('集計範囲（since）とグラフの日付配列は同一の30日間（29日前〜今日）に完全に一致する', function () {
+    $userId = n3s_add_user('dash-range@example.com', 'password1', '期間テスト太郎');
+    expect(n3s_login('dash-range@example.com', 'password1'))->toBeTrue();
+    $now = time();
+
+    $aid = db_insert(
+        'INSERT INTO apps (title, author, memo, user_id, is_private, nakotype, copyright, tag, version, view, fav, ctime, mtime) ' .
+        'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        ['期間作品', '期間テスト太郎', '説明', $userId, 0, 'wnako', 'MIT', 'テスト', '3.7.2', 10, 0, $now, $now]
+    );
+
+    // 29日前（グラフの最左端日、ちょうど30日前境界）にアクセス
+    $date29DaysAgo = date('Y-m-d', strtotime('-29 days'));
+    // 30日前（グラフ範囲外の日）にアクセス
+    $date30DaysAgo = date('Y-m-d', strtotime('-30 days'));
+
+    db_insert(
+        'INSERT INTO access_stats (date, kind, app_id, count) VALUES (?,?,?,?)',
+        [$date29DaysAgo, 'show', $aid, 8],
+        'log'
+    );
+    db_insert(
+        'INSERT INTO access_stats (date, kind, app_id, count) VALUES (?,?,?,?)',
+        [$date30DaysAgo, 'show', $aid, 100],
+        'log'
+    );
+
+    $dash = n3s_mypage_get_dashboard_data($userId);
+    // グラフ範囲外（30日前）の100回は含まれず、ちょうど29日前（30日分）の8回が集計される
+    expect($dash['top_surging'])->toHaveCount(1)
+        ->and($dash['top_surging'][0]['period_views'])->toBe(8)
+        ->and($dash['has_chart_data'])->toBeTrue();
+
+    // グラフのデータセットでも最初の要素（29日前）が 8 であること
+    $datasets = json_decode($dash['chart_datasets'], true);
+    expect($datasets[0]['data'][0])->toBe(8);
+});
+
