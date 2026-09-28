@@ -64,8 +64,8 @@ function echo_broken()
             echo $r['broken_report'];
         }
     } catch (Exception $e) {
-        echo "<pre>";
-        print_r($e);
+        // 例外の詳細(パスやSQLを含みうる)はサーバーログにのみ記録し、利用者へは返さない
+        error_log('n3s_broken error: ' . $e->getMessage());
         echo "0";
     }
 }
