@@ -102,12 +102,6 @@
       {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#fav"); }}
       <span class="n3s-show-login-note"><a href="index.php?action=login&amp;back={{ $backurl }}">ログイン</a>するとお気に入りに追加できます。</span>
       {{ endif }}
-      {{if isset($screen_name) && $screen_name != '' }}
-      <a class="pure-button n3s-show-x-share" href="https://twitter.com/share?url={{$n3s_baseurl}}/id.php?{{$app_id}}&amp;text=@{{$screen_name}}%20{{$title}}%20#なでしこさん" target="_blank" rel="noopener">
-        <span class="n3s-show-x-icon" aria-hidden="true">X</span>
-        <span>Xへ投稿</span>
-      </a>
-      {{endif}}
     </div>
     {{ endif }}
   </section>

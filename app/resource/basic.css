@@ -3304,38 +3304,6 @@ ul.devblock span.lbl {
   text-align: center;
 }
 
-.n3s-show-page .n3s-show-x-share {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 7px;
-  margin-left: auto;
-  color: #fff;
-  border-color: #1d1d1f;
-  background: #1d1d1f;
-  font-weight: bold;
-}
-
-.n3s-show-page .n3s-show-x-share:hover,
-.n3s-show-page .n3s-show-x-share:focus {
-  color: #fff;
-  border-color: #000;
-  background: #000;
-}
-
-.n3s-show-x-icon {
-  display: inline-grid;
-  width: 17px;
-  height: 17px;
-  place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 2px;
-  font-family: Arial, sans-serif;
-  font-size: 0.72em;
-  font-weight: bold;
-  line-height: 1;
-}
-
 .n3s-show-accordion-trigger {
   display: flex;
   width: 100%;
@@ -3574,10 +3542,6 @@ ul.devblock span.lbl {
   .n3s-show-reactions .pure-button {
     box-sizing: border-box;
     white-space: normal;
-  }
-
-  .n3s-show-page .n3s-show-x-share {
-    margin-left: 0;
   }
 
   .n3s-show-meta > div {
