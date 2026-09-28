@@ -7,6 +7,9 @@
 //  - n3s_nadesiko3hub_sync() は is_private=0 の作品のみを対象に、
 //    既に .nako3 が存在する作品はスキップし、未出力の作品だけ保存する
 //  - n3s_nadesiko3hub_sync() の $since_ts はスキャン対象を ctime/mtime で絞り込む
+//  - n3s_nadesiko3hub_save() は実際に .nako3 を書き出した場合のみ true を返す
+//    (レビュー指摘: 出力先未設定・本文なし・ライセンス未指定でも saved 件数が
+//    増えてしまわないことの回帰防止)
 
 declare(strict_types=1);
 
@@ -100,6 +103,35 @@ test('n3s_nadesiko3hub_save() は $skip_if_exists=false (既定) だと上書き
     expect(file_get_contents($file))->toContain('更新された本文');
 });
 
+test('n3s_nadesiko3hub_save() は実際に書き出した場合のみ true を返す', function () {
+    _hub_setup_dir();
+    $base = [
+        'app_id' => 102, 'title' => 'A', 'author' => 'author', 'user_id' => 1,
+        'copyright' => 'MIT', 'memo' => '', 'version' => '3.6.0', 'url' => '',
+        'nakotype' => 'wnako', 'tag' => '', 'is_private' => 0,
+        'body' => '本文', 'ctime' => time(), 'mtime' => time(),
+    ];
+    expect(n3s_nadesiko3hub_save(102, $base))->toBeTrue();
+
+    // 出力先(nadesiko3hub_dir)が未設定なら false
+    global $n3s_config;
+    $n3s_config['nadesiko3hub_dir'] = '';
+    expect(n3s_nadesiko3hub_save(103, $base))->toBeFalse();
+    _hub_setup_dir();
+
+    // 本文が空なら false
+    $empty_body = array_merge($base, ['app_id' => 104, 'body' => '']);
+    expect(n3s_nadesiko3hub_save(104, $empty_body))->toBeFalse();
+
+    // ライセンスが未指定/自分用なら false
+    $no_license = array_merge($base, ['app_id' => 105, 'copyright' => '未指定']);
+    expect(n3s_nadesiko3hub_save(105, $no_license))->toBeFalse();
+
+    // 非公開なら false
+    $private = array_merge($base, ['app_id' => 106, 'is_private' => 1]);
+    expect(n3s_nadesiko3hub_save(106, $private))->toBeFalse();
+});
+
 // ------------------------------------------------
 // n3s_nadesiko3hub_sync()
 // ------------------------------------------------
@@ -108,7 +140,7 @@ test('n3s_nadesiko3hub_sync() は nadesiko3hub_enabled が無効なら何もし�
     global $n3s_config;
     $n3s_config['nadesiko3hub_enabled'] = false;
     $r = n3s_nadesiko3hub_sync();
-    expect($r)->toBe(['total' => 0, 'saved' => 0, 'skipped' => 0]);
+    expect($r)->toBe(['total' => 0, 'saved' => 0, 'skipped' => 0, 'not_saved' => 0]);
 });
 
 test('n3s_nadesiko3hub_sync() は未出力の公開作品だけを保存し、非公開は対象外にする', function () {
@@ -123,8 +155,24 @@ test('n3s_nadesiko3hub_sync() は未出力の公開作品だけを保存し、�
     expect($r['total'])->toBe(1); // is_private=0 のみが対象
     expect($r['saved'])->toBe(1);
     expect($r['skipped'])->toBe(0);
+    expect($r['not_saved'])->toBe(0);
     expect(file_exists(n3s_nadesiko3hub_get_savefile($public_id)))->toBeTrue();
     expect(file_exists(n3s_nadesiko3hub_get_savefile($private_id)))->toBeFalse();
+});
+
+test('n3s_nadesiko3hub_sync() は実際に保存できなかった作品を saved に数えない (レビュー指摘の回帰防止)', function () {
+    _hub_setup_dir();
+    // ライセンス未指定のため n3s_nadesiko3hub_save() は書き出さず false を返すはず
+    $app_id = _hub_insert_app(['copyright' => '未指定']);
+    _hub_insert_material($app_id, '「本文」と表示する。');
+
+    $r = n3s_nadesiko3hub_sync();
+
+    expect($r['total'])->toBe(1);
+    expect($r['saved'])->toBe(0);
+    expect($r['not_saved'])->toBe(1);
+    expect($r['skipped'])->toBe(0);
+    expect(file_exists(n3s_nadesiko3hub_get_savefile($app_id)))->toBeFalse();
 });
 
 test('n3s_nadesiko3hub_sync() は既に .nako3 が存在する作品をスキップする', function () {
@@ -144,6 +192,7 @@ test('n3s_nadesiko3hub_sync() は既に .nako3 が存在する作品をスキッ
     expect($r2['total'])->toBe(1);
     expect($r2['saved'])->toBe(0);
     expect($r2['skipped'])->toBe(1);
+    expect($r2['not_saved'])->toBe(0);
 
     $content = file_get_contents(n3s_nadesiko3hub_get_savefile($app_id));
     expect($content)->toContain('最初');

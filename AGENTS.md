@@ -203,7 +203,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 - 保存・更新の都度呼ばれ、`nadesiko3hub_enabled` が有効な場合に公開作品を `./nadesiko3hub/<dirname>/<app_id>.nako3` へ出力する(非公開や著作権未指定の場合は既存ファイルを削除)。
 - 出力先パスは `n3s_nadesiko3hub_get_savefile($app_id)` で決める(1ディレクトリ500件単位)。
-- 何らかの理由で反映が漏れた投稿を補うため、`scripts/nadesiko3hub_sync.php` (`just nadesiko3hub-sync [DAYS]`) を1日1回程度 cron から実行する想定のバッチとして用意している (#270)。既に `.nako3` が出力済みの投稿は上書きせずスキップし、未出力の公開投稿だけを書き出す。`DAYS` を指定すると、投稿日時(`ctime`)または更新日時(`mtime`)が直近N日以内の作品だけをスキャン対象にできる(省略時は全期間)。集計本体は `n3s_nadesiko3hub_sync($since_ts)`。
+- 何らかの理由で反映が漏れた投稿を補うため、`scripts/nadesiko3hub_sync.php` (`just nadesiko3hub-sync [DAYS]`) を1日1回程度 cron から実行する想定のバッチとして用意している (#270)。既に `.nako3` が出力済みの投稿は上書きせずスキップし、未出力の公開投稿だけを書き出す。`DAYS` を指定すると、投稿日時(`ctime`)または更新日時(`mtime`)が直近N日以内の作品だけをスキャン対象にできる(省略時は全期間)。集計本体は `n3s_nadesiko3hub_sync($since_ts)`。`n3s_nadesiko3hub_save()` は実際に `.nako3` を書き出した場合のみ `true` を返す(出力先未設定・本文なし・ライセンス未指定などで書き出せなかった場合は `false`)ため、`n3s_nadesiko3hub_sync()` の結果は `saved`(実際に保存)・`skipped`(既存ファイルのため対象外)・`not_saved`(対象にしたが書き出せなかった)を区別して返す。
 - 全件を強制的に再出力したい場合は既存の `nadesiko3hub_update.php`(`n3s_nadesiko3hub_update_all()`)を使う(スキップなし・全件上書き)。
 
 公開状態:

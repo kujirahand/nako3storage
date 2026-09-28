@@ -1669,17 +1669,20 @@ function n3s_nadesiko3hub_get_savefile($app_id)
     return $nadesiko3hub_dir . '/' . $dirname . '/' . $app_id . '.nako3';
 }
 
+// nadesiko3hubへの保存を行う。実際に .nako3 ファイルを書き出した場合のみ true を返す
+// (無効化・出力先未設定・スキップ・非公開・本文なし・ライセンス未指定などで
+// 書き出さなかった場合は false)。
 function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
 {
     // ライセンスを確認して問題なければ、nadesiko3hubに保存
     $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
     $savefile = n3s_nadesiko3hub_get_savefile($app_id);
     if (!$nadesiko3hub_enabled || $savefile == '') {
-        return;
+        return false;
     }
     // 既にファイルがある場合は処理をスキップする (#270 定期バッチの取りこぼし補完用)
     if ($skip_if_exists && file_exists($savefile)) {
-        return;
+        return false;
     }
     // プログラムが空ならばスキップ
     $body = empty($data['body']) ? '' : $data['body'];
@@ -1697,7 +1700,7 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
         if (file_exists($savefile)) {
             unlink($savefile);
         }
-        return;
+        return false;
     }
     // メタ情報を追加
     $memo = empty($data['memo']) ? '' : $data['memo'];
@@ -1723,8 +1726,12 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
     // 保存
     $body = str_replace("\r\n", "\n", $body); // 改行コードを統一
     $body = str_replace("\r", "\n", $body);
-    file_put_contents($savefile, $meta . $body);
+    $written = file_put_contents($savefile, $meta . $body);
+    if ($written === false) {
+        return false;
+    }
     n3s_log("app_id={$app_id}", 'ハブ保存');
+    return true;
 }
 
 function n3s_nadesiko3hub_update_all()
@@ -1762,7 +1769,7 @@ function n3s_nadesiko3hub_sync($since_ts = 0)
 {
     $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
     if (!$nadesiko3hub_enabled) {
-        return ['total' => 0, 'saved' => 0, 'skipped' => 0];
+        return ['total' => 0, 'saved' => 0, 'skipped' => 0, 'not_saved' => 0];
     }
     $sql = 'SELECT app_id FROM apps WHERE is_private=0';
     $params = [];
@@ -1773,7 +1780,8 @@ function n3s_nadesiko3hub_sync($since_ts = 0)
     $sql .= ' ORDER BY app_id DESC';
     $rows = db_get($sql, $params);
     $saved = 0;
-    $skipped = 0;
+    $skipped = 0; // 既に .nako3 が存在するためスキャン対象から除外した件数
+    $not_saved = 0; // 出力先未設定・本文なし・ライセンス未指定などで実際には書き出せなかった件数
     foreach ($rows as $row) {
         $app_id = $row['app_id'];
         $savefile = n3s_nadesiko3hub_get_savefile($app_id);
@@ -1787,10 +1795,15 @@ function n3s_nadesiko3hub_sync($since_ts = 0)
         }
         $body = n3s_getMaterialData($app_id);
         $a['body'] = empty($body['body']) ? '' : $body['body'];
-        n3s_nadesiko3hub_save($app_id, $a, true);
-        $saved++;
+        // n3s_nadesiko3hub_save() は実際にファイルを書き出した場合のみ true を返す。
+        // 本文なし・ライセンス未指定・出力先未設定などで書き出せなかった場合は false。
+        if (n3s_nadesiko3hub_save($app_id, $a, true)) {
+            $saved++;
+        } else {
+            $not_saved++;
+        }
     }
-    return ['total' => count($rows), 'saved' => $saved, 'skipped' => $skipped];
+    return ['total' => count($rows), 'saved' => $saved, 'skipped' => $skipped, 'not_saved' => $not_saved];
 }
 
 function n3s_list_setIcon(&$list)
