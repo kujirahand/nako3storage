@@ -381,9 +381,15 @@
         brokenButton.onclick = function() {
           if (!confirm('この作品が動かないことを報告しますか？')) { return; }
           brokenButton.disabled = true;
-          fetch('{{ $app_root_url }}index.php?action=broken&page={{ $app_id }}&q=up', {
-            method: 'GET',
-            credentials: 'include'
+          var body = new URLSearchParams();
+          body.set('page', '{{ $app_id }}');
+          body.set('q', 'up');
+          body.set('edit_token', '{{ $edit_token }}');
+          fetch('{{ $app_root_url }}index.php?action=broken', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
           }).finally(function() {
             brokenButton.disabled = false;
           });

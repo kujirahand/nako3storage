@@ -14,8 +14,8 @@ function n3s_api_broken()
 
 function echo_broken()
 {
-    $app_id = (int) (empty($_GET['page']) ? '0' : $_GET['page']);
-    $q = empty($_GET['q']) ? 'view' : $_GET['q'];
+    $app_id = (int) (empty($_REQUEST['page']) ? '0' : $_REQUEST['page']);
+    $q = empty($_REQUEST['q']) ? 'view' : $_REQUEST['q'];
     if ($app_id <= 0) {
         echo "0";
         return;
@@ -27,6 +27,15 @@ function echo_broken()
             return;
         }
         if ($q === 'up') {
+            // 報告はDBを更新するため、CSRF対策としてPOST + edit_tokenを必須にする
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo "error, must use POST.";
+                return;
+            }
+            if (! n3s_checkEditToken()) {
+                echo "error, invalid token.";
+                return;
+            }
             if (! n3s_is_login()) {
                 echo "error, please login.";
                 return;
