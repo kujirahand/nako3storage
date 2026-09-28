@@ -218,6 +218,7 @@ function n3s_web_mypage()
         // 'page' は n3s_template_fw() 内で $n3s_config['page'](ルーティング用の値)に
         // 上書きされてしまうため、テンプレートの条件分岐には専用のキーを使う。
         'is_mypage_top' => ($page == 0),
+        'dashboard' => ($page == 0) ? n3s_mypage_get_dashboard_data($user_id) : [],
         'link_material' => $link_materil,
         'link_logout' => $logout_url,
     ]);
@@ -405,3 +406,260 @@ function generatePassword($length = 16)
 {
     return substr(bin2hex(random_bytes($length)), 0, $length);
 }
+
+/**
+ * マイページのダッシュボード用データを集計する
+ *
+ * @param int $user_id
+ * @return array
+ */
+function n3s_mypage_get_dashboard_data($user_id)
+{
+    $empty_result = [
+        'total_views' => 0,
+        'monthly_views' => 0,
+        'total_favs' => 0,
+        'total_apps' => 0,
+        'public_apps' => 0,
+        'top_all_time' => [],
+        'top_surging' => [],
+        'chart_labels' => '[]',
+        'chart_datasets' => '[]',
+        'has_chart_data' => false,
+    ];
+
+    // ユーザーの全作品を取得 (app_id, title, view, fav, is_private, ctime, mtime)
+    $apps = db_get(
+        'SELECT app_id, title, view, fav, is_private, ctime, mtime FROM apps WHERE user_id=? ORDER BY app_id DESC',
+        [$user_id]
+    );
+    if (!$apps) {
+        return $empty_result;
+    }
+
+    $total_apps = count($apps);
+    $public_apps = 0;
+    $total_views = 0;
+    $total_favs = 0;
+    $app_map = [];
+    $app_ids = [];
+
+    foreach ($apps as &$a) {
+        $a['app_id'] = intval($a['app_id']);
+        $a['view'] = intval($a['view']);
+        $a['fav'] = intval($a['fav']);
+        $a['is_private'] = intval($a['is_private']);
+        $aid = $a['app_id'];
+        $app_ids[] = $aid;
+        $app_map[$aid] = $a;
+        $total_views += $a['view'];
+        $total_favs += $a['fav'];
+        if ($a['is_private'] === 0) {
+            $public_apps++;
+        }
+    }
+    unset($a);
+
+    if (empty($app_ids)) {
+        return $empty_result;
+    }
+
+    // 1. これまでの人気作品ベスト5 (累計アクセス数順)
+    $top_all_time = $apps;
+    usort($top_all_time, function ($a, $b) {
+        if ($b['view'] !== $a['view']) {
+            return $b['view'] <=> $a['view'];
+        }
+        if ($b['fav'] !== $a['fav']) {
+            return $b['fav'] <=> $a['fav'];
+        }
+        return $b['app_id'] <=> $a['app_id'];
+    });
+    $top_all_time = array_slice($top_all_time, 0, 5);
+
+    // 2. ログDBからのアクセス集計 (500件ずつ分割クエリ)
+    $chunks = array_chunk($app_ids, 500);
+
+    // 今月のアクセス数 (access_stats_monthly より)
+    $current_month = date('Y-m');
+    $monthly_views = 0;
+    foreach ($chunks as $chunk) {
+        $in = implode(',', array_fill(0, count($chunk), '?'));
+        $params = array_merge([$current_month], $chunk);
+        $res = db_get1(
+            "SELECT SUM(count) AS m_count FROM access_stats_monthly
+             WHERE month=? AND app_id IN ($in) AND kind IN ('show', 'widget')",
+            $params,
+            'log'
+        );
+        if ($res && !empty($res['m_count'])) {
+            $monthly_views += intval($res['m_count']);
+        }
+    }
+
+    // 直近30日間の急上昇作品ベスト5 & グラフ用日別データ
+    $days = 30;
+    $since = date('Y-m-d', strtotime("-{$days} days"));
+
+    // 急上昇: 直近30日の作品別アクセス数
+    $period_app_views = [];
+    foreach ($chunks as $chunk) {
+        $in = implode(',', array_fill(0, count($chunk), '?'));
+        $params = array_merge([$since], $chunk);
+        $rows = db_get(
+            "SELECT app_id, SUM(count) AS period_views FROM access_stats
+             WHERE date >= ? AND app_id IN ($in) AND kind IN ('show', 'widget')
+             GROUP BY app_id",
+            $params,
+            'log'
+        );
+        if ($rows) {
+            foreach ($rows as $r) {
+                $aid = intval($r['app_id']);
+                $cnt = intval($r['period_views']);
+                if ($cnt > 0) {
+                    $period_app_views[$aid] = ($period_app_views[$aid] ?? 0) + $cnt;
+                }
+            }
+        }
+    }
+
+    // 急上昇ベスト5
+    arsort($period_app_views);
+    $top_surging = [];
+    $surging_count = 0;
+    foreach ($period_app_views as $aid => $p_views) {
+        if (isset($app_map[$aid])) {
+            $top_surging[] = array_merge($app_map[$aid], [
+                'period_views' => $p_views,
+            ]);
+            $surging_count++;
+            if ($surging_count >= 5) {
+                break;
+            }
+        }
+    }
+
+    // グラフデータ生成 (直近30日間)
+    $date_labels = [];
+    $date_short_labels = [];
+    for ($i = $days - 1; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-{$i} days"));
+        $date_labels[] = $d;
+        $date_short_labels[] = date('n/j', strtotime($d));
+    }
+
+    // 全作品の日別合計
+    $daily_total_map = [];
+    foreach ($chunks as $chunk) {
+        $in = implode(',', array_fill(0, count($chunk), '?'));
+        $params = array_merge([$since], $chunk);
+        $rows = db_get(
+            "SELECT date, SUM(count) AS total_count FROM access_stats
+             WHERE date >= ? AND app_id IN ($in) AND kind IN ('show', 'widget')
+             GROUP BY date",
+            $params,
+            'log'
+        );
+        if ($rows) {
+            foreach ($rows as $r) {
+                $d = $r['date'];
+                $daily_total_map[$d] = ($daily_total_map[$d] ?? 0) + intval($r['total_count']);
+            }
+        }
+    }
+
+    // 個別作品の系列用作品選定 (急上昇または累計人気の上位3作品)
+    $chart_app_ids = [];
+    foreach ($top_surging as $s) {
+        if (!in_array($s['app_id'], $chart_app_ids, true) && count($chart_app_ids) < 3) {
+            $chart_app_ids[] = $s['app_id'];
+        }
+    }
+    foreach ($top_all_time as $t) {
+        if (!in_array($t['app_id'], $chart_app_ids, true) && count($chart_app_ids) < 3) {
+            $chart_app_ids[] = $t['app_id'];
+        }
+    }
+
+    $daily_app_map = [];
+    if (!empty($chart_app_ids)) {
+        $in = implode(',', array_fill(0, count($chart_app_ids), '?'));
+        $params = array_merge([$since], $chart_app_ids);
+        $rows = db_get(
+            "SELECT date, app_id, SUM(count) AS count FROM access_stats
+             WHERE date >= ? AND app_id IN ($in) AND kind IN ('show', 'widget')
+             GROUP BY date, app_id",
+            $params,
+            'log'
+        );
+        if ($rows) {
+            foreach ($rows as $r) {
+                $daily_app_map[$r['app_id']][$r['date']] = intval($r['count']);
+            }
+        }
+    }
+
+    $total_counts = [];
+    $has_any_access = false;
+    foreach ($date_labels as $d) {
+        $cnt = $daily_total_map[$d] ?? 0;
+        $total_counts[] = $cnt;
+        if ($cnt > 0) {
+            $has_any_access = true;
+        }
+    }
+
+    $app_colors = [
+        ['border' => '#0984e3', 'bg' => 'rgba(9, 132, 227, 0.08)'],
+        ['border' => '#00b894', 'bg' => 'rgba(0, 184, 148, 0.08)'],
+        ['border' => '#f39c12', 'bg' => 'rgba(243, 156, 18, 0.08)'],
+    ];
+
+    $datasets = [];
+    $datasets[] = [
+        'label' => '全作品合計',
+        'data' => $total_counts,
+        'borderColor' => '#d63031',
+        'backgroundColor' => 'rgba(214, 48, 49, 0.12)',
+        'fill' => true,
+        'tension' => 0.25,
+        'borderWidth' => 2.5,
+        'pointRadius' => 2,
+    ];
+
+    if ($total_apps > 1) {
+        foreach ($chart_app_ids as $idx => $aid) {
+            $color = $app_colors[$idx % count($app_colors)];
+            $app_title = isset($app_map[$aid]) ? mb_strimwidth($app_map[$aid]['title'], 0, 20, '…') : "#{$aid}";
+            $app_data = [];
+            foreach ($date_labels as $d) {
+                $app_data[] = $daily_app_map[$aid][$d] ?? 0;
+            }
+            $datasets[] = [
+                'label' => "#{$aid} {$app_title}",
+                'data' => $app_data,
+                'borderColor' => $color['border'],
+                'backgroundColor' => $color['bg'],
+                'fill' => false,
+                'tension' => 0.25,
+                'borderWidth' => 1.8,
+                'pointRadius' => 2,
+            ];
+        }
+    }
+
+    return [
+        'total_views' => $total_views,
+        'monthly_views' => $monthly_views,
+        'total_favs' => $total_favs,
+        'total_apps' => $total_apps,
+        'public_apps' => $public_apps,
+        'top_all_time' => $top_all_time,
+        'top_surging' => $top_surging,
+        'chart_labels' => json_encode($date_short_labels, JSON_UNESCAPED_UNICODE),
+        'chart_datasets' => json_encode($datasets, JSON_UNESCAPED_UNICODE),
+        'has_chart_data' => $has_any_access,
+    ];
+}
+

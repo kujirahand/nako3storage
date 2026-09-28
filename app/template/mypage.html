@@ -28,6 +28,116 @@
   </header>
 
   {{ if $is_mypage_top }}
+  <section class="n3s-mypage-section n3s-mypage-dashboard">
+    <div class="n3s-mypage-section-head">
+      <h2 id="dashboard">ダッシュボード</h2>
+    </div>
+
+    <!-- サマリーメトリクス -->
+    <div class="n3s-mypage-stats-grid">
+      <div class="n3s-mypage-stat-card">
+        <span class="n3s-mypage-stat-icon">👀</span>
+        <div class="n3s-mypage-stat-content">
+          <span class="n3s-mypage-stat-label">総アクセス数</span>
+          <span class="n3s-mypage-stat-value">{{ $dashboard.total_views | number_format }}</span>
+        </div>
+      </div>
+      <div class="n3s-mypage-stat-card">
+        <span class="n3s-mypage-stat-icon">📅</span>
+        <div class="n3s-mypage-stat-content">
+          <span class="n3s-mypage-stat-label">今月のアクセス</span>
+          <span class="n3s-mypage-stat-value">{{ $dashboard.monthly_views | number_format }}</span>
+        </div>
+      </div>
+      <div class="n3s-mypage-stat-card">
+        <span class="n3s-mypage-stat-icon">⭐</span>
+        <div class="n3s-mypage-stat-content">
+          <span class="n3s-mypage-stat-label">獲得お気に入り</span>
+          <span class="n3s-mypage-stat-value">{{ $dashboard.total_favs | number_format }}</span>
+        </div>
+      </div>
+      <div class="n3s-mypage-stat-card">
+        <span class="n3s-mypage-stat-icon">📝</span>
+        <div class="n3s-mypage-stat-content">
+          <span class="n3s-mypage-stat-label">投稿作品数</span>
+          <span class="n3s-mypage-stat-value">{{ $dashboard.total_apps | number_format }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクセスグラフ -->
+    <div class="n3s-mypage-chart-container">
+      <div class="n3s-mypage-chart-header">
+        <h3>📈 アクセス推移（直近30日間）</h3>
+        {{ if $dashboard.has_chart_data }}
+        <p class="n3s-mypage-chart-hint">凡例をクリックして作品ごとの表示/非表示を切り替えられます</p>
+        {{ endif }}
+      </div>
+      {{ if $dashboard.has_chart_data }}
+      <div class="n3s-mypage-chart-wrapper">
+        <canvas id="mypage-access-chart"></canvas>
+      </div>
+      {{ else }}
+      <div class="n3s-mypage-chart-empty">
+        <p>直近30日間のアクセスデータがまだありません。作品が閲覧・実行されるとここに推移グラフが表示されます。</p>
+      </div>
+      {{ endif }}
+    </div>
+
+    <!-- 人気・急上昇ベスト5 -->
+    <div class="n3s-mypage-ranking-grid">
+      <!-- これまでの人気作品ベスト5 -->
+      <div class="n3s-mypage-ranking-col">
+        <div class="n3s-mypage-ranking-head">
+          <h3>🏆 これまでの人気作品ベスト5</h3>
+        </div>
+        {{ if $dashboard.top_all_time }}
+        <ol class="n3s-mypage-ranking-list">
+          {{ for $dashboard.top_all_time as $idx => $item }}
+          <li class="n3s-mypage-ranking-item">
+            <span class="n3s-mypage-ranking-badge rank-{{ $idx }}">{{ $idx + 1 }}</span>
+            <div class="n3s-mypage-ranking-main">
+              <a class="n3s-mypage-ranking-title" href="id.php?{{ $item.app_id }}">{{ $item.title | check_mudai }}</a>
+              <div class="n3s-mypage-ranking-meta">
+                <span>👀 {{ $item.view | number_format }} 回</span>
+                <span>⭐ {{ $item.fav }}</span>
+              </div>
+            </div>
+          </li>
+          {{ endfor }}
+        </ol>
+        {{ else }}
+        <p class="n3s-mypage-empty">まだ作品がありません。</p>
+        {{ endif }}
+      </div>
+
+      <!-- 直近1ヶ月の急上昇ベスト5 -->
+      <div class="n3s-mypage-ranking-col">
+        <div class="n3s-mypage-ranking-head">
+          <h3>🚀 直近1ヶ月の急上昇ベスト5</h3>
+        </div>
+        {{ if $dashboard.top_surging }}
+        <ol class="n3s-mypage-ranking-list">
+          {{ for $dashboard.top_surging as $idx => $item }}
+          <li class="n3s-mypage-ranking-item">
+            <span class="n3s-mypage-ranking-badge rank-{{ $idx }}">{{ $idx + 1 }}</span>
+            <div class="n3s-mypage-ranking-main">
+              <a class="n3s-mypage-ranking-title" href="id.php?{{ $item.app_id }}">{{ $item.title | check_mudai }}</a>
+              <div class="n3s-mypage-ranking-meta">
+                <span class="n3s-mypage-ranking-highlight">直近 {{ $item.period_views | number_format }} 回</span>
+                <span>累計 {{ $item.view | number_format }} 回</span>
+              </div>
+            </div>
+          </li>
+          {{ endfor }}
+        </ol>
+        {{ else }}
+        <p class="n3s-mypage-empty">直近1ヶ月のアクセスデータがまだありません。</p>
+        {{ endif }}
+      </div>
+    </div>
+  </section>
+
   <div class="n3s-mypage-activity-grid">
     <section class="n3s-mypage-section">
       <div class="n3s-mypage-section-head">
@@ -91,7 +201,12 @@
         </div>
         <div class="n3s-mypage-app-main">
           <h3><a href="id.php?{{$r.app_id}}">{{$r.title | check_mudai}}</a></h3>
-          <p><span>#{{$r.app_id}}</span><time>{{$r.mtime | date2}}</time><span>{{$r.fav | star}}</span></p>
+          <p>
+            <span>#{{$r.app_id}}</span>
+            <time>{{$r.mtime | date2}}</time>
+            <span class="n3s-mypage-stat-item" title="お気に入り数">{{$r.fav | star}} {{$r.fav}}</span>
+            <span class="n3s-mypage-stat-item" title="総アクセス数">👀 {{$r.view | number_format}}</span>
+          </p>
         </div>
         <div class="n3s-mypage-app-actions">
           <a class="pure-button" href="id.php?{{$r.app_id}}">表示</a>
@@ -126,5 +241,60 @@
     </div>
   </section>
 </main>
+
+{{ if $is_mypage_top }}
+{{ if $dashboard.has_chart_data }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js"
+  integrity="sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo=" crossorigin="anonymous"></script>
+<script>
+(function() {
+  var canvas = document.getElementById('mypage-access-chart');
+  if (!canvas) return;
+  var labels = {{ $dashboard.chart_labels | raw }};
+  var datasets = {{ $dashboard.chart_datasets | raw }};
+  var ctx = canvas.getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            boxWidth: 12,
+            font: { size: 12 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ' ' + context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' 回';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+})();
+</script>
+{{ endif }}
+{{ endif }}
 
 {{ include parts_html_footer.html }}
