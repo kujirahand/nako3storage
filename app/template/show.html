@@ -77,6 +77,22 @@
       <summary>ソースを表示</summary>
       <textarea id="nako3code" readonly aria-label="プログラムのソースコード">{{ $body }}</textarea>
     </details>
+    <script>
+    (function () {
+      // 折りたたんだ状態でAceエディタが初期化されると表示領域が0になるため、
+      // 開いたタイミングでresize()し直す
+      var details = document.currentScript.previousElementSibling
+      if (!details) return
+      details.addEventListener('toggle', function () {
+        if (!details.open) return
+        setTimeout(function () {
+          if (window.editorObjects && window.editorObjects.editor) {
+            window.editorObjects.editor.resize(true)
+          }
+        }, 0)
+      })
+    })()
+    </script>
     {{ else }}
     <textarea id="nako3code" readonly aria-label="プログラムのソースコード">{{ $body }}</textarea>
     {{ endif }}

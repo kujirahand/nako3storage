@@ -1697,6 +1697,9 @@ function n3s_parse_nako3_functions($body)
     }, $body);
     $lines = preg_split('/\r\n|\r|\n/', $body);
     $count = count($lines);
+    // 直後のDocString行として既に使われた行番号。前の関数の説明が次の関数に
+    // 漏れて再利用されないよう、直前コメントのフォールバックで参照させない。
+    $consumed = [];
     for ($i = 0; $i < $count; $i++) {
         $trim = trim($lines[$i]);
         if ($trim === '' || mb_substr($trim, 0, 1) !== '●') {
@@ -1747,16 +1750,22 @@ function n3s_parse_nako3_functions($body)
                 $c = n3s_nako3_comment_text($next);
                 if ($c !== null) {
                     $desc = $c;
+                    $consumed[$j] = true;
                 }
                 break;
             }
         }
 
         // それでも見つからなければ、直前に連続するコメント行を説明として使う
-        // （"//説明" を関数の直前に書くのが実際の投稿では一般的なため）
+        // （"//説明" を関数の直前に書くのが実際の投稿では一般的なため）。
+        // ただし、既に別の関数のDocStringとして使われた行に行き当たったら
+        // そこで打ち切り、説明の漏れ引き継ぎを防ぐ。
         if ($desc === '') {
             $prev_lines = [];
             for ($k = $i - 1; $k >= 0; $k--) {
+                if (isset($consumed[$k])) {
+                    break;
+                }
                 $ptrim = trim($lines[$k]);
                 if ($ptrim === '') {
                     break;
