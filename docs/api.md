@@ -66,6 +66,8 @@ base64url(JSON {"a": app_id, "u": user_id, "e": 有効期限(UNIX時刻)}) + "."
 | `astorage_token_secret` | `""` | 署名鍵。16文字以上を指定する。空ならメインDBの `info` テーブル(`key='astorage_token_secret'`)に乱数で自動生成して保存する |
 | `astorage_token_ttl` | `21600` (6時間) | トークンの有効期間(秒)。期限が切れたら作品を再実行する必要がある |
 
+既定設定・`n3s_config.ini.php` で定義済みのキーは、GET パラメータで上書きできません(`page` / `action` / `search_word` を除く。`n3s_config_merge_get()`)。以前は全 GET キーを `$n3s_config` にコピーしていたため、`?astorage_token_secret=...` で署名鍵を差し替えてトークンを偽造できました。
+
 ### 発行する場所
 
 | 画面 | オリジン | トークンの `user_id` |
@@ -76,6 +78,7 @@ base64url(JSON {"a": app_id, "u": user_id, "e": 有効期限(UNIX時刻)}) + "."
 | 上記をサンドボックスのホストで開いた場合 | サンドボックス | 常に 0(サンドボックスではログインできないため) |
 
 - 未保存の作品(`app_id=0`)にはトークンを発行しません。作品を一度保存してから使ってください。
+- 互換性のため親ページを出さずに `widget_frame` へ直接リダイレクトする作品(`n3s_widget_is_redirect_app()`、現在は 991)は、`ui=1` の保護ヘッダが最終ページに効かないため、常にゲストのトークンにします。
 - `ui=1` の実行画面には `Content-Security-Policy: frame-ancestors 'none'` と `Cross-Origin-Opener-Policy: same-origin` を付けます。他の作品がこのページを iframe に埋め込んだり `window.open` で開いたりして、中の作品が受け取ったトークンを読むことを防ぐためです。
 - `ui` なしの埋め込み用 widget は、他サイトやサンドボックス上の作品からも埋め込めます。そのためゲストのトークンしか渡しません。
 - トークンは iframe の URL に含まれるため、`widget_frame` は `Referrer-Policy: strict-origin` を返し、作品が読み込む外部リソースへフルURLが漏れないようにしています。
@@ -107,7 +110,7 @@ base64url(JSON {"a": app_id, "u": user_id, "e": 有効期限(UNIX時刻)}) + "."
 ## 5. API一覧
 
 リクエスト: `api.php?action=api&page=<メソッド名>&token=<トークン>&...`(GET/POST どちらでも可)。
-レスポンスは JSON で、必ず `result`(true/false)を含みます。失敗時は `reason` にメッセージが入ります。
+レスポンスは JSON で、必ず `result`(true/false)を含みます。エラー時は `reason` にメッセージが入ります(`is_logined` は未ログインのとき `result=false`・`logined=false` を返し、`reason` はありません)。
 
 呼び出せるメソッドは `n3s_astorage_api_pages()` の一覧に限ります。
 

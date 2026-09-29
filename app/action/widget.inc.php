@@ -54,7 +54,7 @@ function n3s_web_widget()
     $a['iframe_url'] = "{$sandbox_url}index.php?action=widget_frame&page={$page}&run={$run}&mute_name={$mute_name}&mute_title={$mute_title}&editkey={$editkey}&allow={$allow}&api_token=" . urlencode($api_token) . "&nakotype={$nakotype}";
     // -------------------------------------------------------
     // (互換性のために) 特別扱いする投稿 --- https://bit.ly/3Vpk1RI
-    if ($page == 991) {
+    if (n3s_widget_is_redirect_app($page)) {
         $url = $a['iframe_url'];
         header('location:' . $url);
         echo "<html><body><a href='$url'>$url</a>";
@@ -75,5 +75,17 @@ function n3s_widget_api_token($a, $ui)
 {
     $app_id = isset($a['app_id']) ? intval($a['app_id']) : 0;
     $user_id = ($ui === 1) ? n3s_get_user_id() : 0;
+    // 互換のため widget_frame(サンドボックス)へ直接リダイレクトする作品では、
+    // ui=1 の frame-ancestors/COOP が最終ページを守れず、他作品から iframe 経由で
+    // URL内のトークンを読まれるため、常にゲストにする
+    if (n3s_widget_is_redirect_app($app_id)) {
+        $user_id = 0;
+    }
     return n3s_astorage_token_create($app_id, $user_id);
+}
+
+// 親ページを表示せず widget_frame へ直接リダイレクトする(互換性のため特別扱いする)作品か
+function n3s_widget_is_redirect_app($app_id)
+{
+    return intval($app_id) === 991;
 }

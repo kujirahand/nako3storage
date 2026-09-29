@@ -640,6 +640,29 @@ function n3s_configure_session_cookie()
     }
 }
 
+// GETパラメータで上書きしてよい、既定設定と同名のキー
+function n3s_request_overridable_config_keys()
+{
+    return ['page', 'action', 'search_word'];
+}
+
+// $_GET を $n3s_config へ取り込んだ結果を返す(副作用なしの純粋関数)。
+// 以前は全GETキーを無条件にコピーしていたため、?astorage_token_secret=... で署名鍵を
+// 差し替えて任意のトークンを偽造したり、?sandbox_url= / ?agent= / ?dir_action= などの
+// 設定を書き換えたりできた (#194)。既定設定(n3s_config.def.php)・n3s_config.ini.php・
+// 入口ファイルで定義済みのキーは、n3s_request_overridable_config_keys() を除き上書きさせない。
+function n3s_config_merge_get($config, $get)
+{
+    $overridable = n3s_request_overridable_config_keys();
+    foreach ($get as $k => $v) {
+        if (array_key_exists($k, $config) && !in_array($k, $overridable, true)) {
+            continue;
+        }
+        $config[$k] = $v;
+    }
+    return $config;
+}
+
 function n3s_parseURI()
 {
     global $n3s_config;
@@ -647,9 +670,7 @@ function n3s_parseURI()
     $script_path = explode('?', $uri)[0];
     $n3s_config['page'] = 'all';
     $n3s_config['action'] = 'list';
-    foreach ($_GET as $k => $v) {
-        $n3s_config[$k] = $v;
-    }
+    $n3s_config = n3s_config_merge_get($n3s_config, $_GET);
     if (isset($n3s_config['status'])) {
         $n3s_config['action'] = $n3s_config['status'];
     }

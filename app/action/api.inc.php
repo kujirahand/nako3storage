@@ -183,8 +183,7 @@ function n3s_astorage_req_item_id()
 {
     $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
     if ($item_id <= 0) {
-        n3s_api_output(false, ["message" => "item_id is invalid"]);
-        exit;
+        api_error('item_id is invalid');
     }
     return $item_id;
 }
@@ -385,7 +384,7 @@ function n3s_api__deleteall_key_as_app($ctx)
 {
     n3s_astorage_require_user($ctx);
     if (!n3s_astorage_is_app_manager($ctx)) {
-        api_error('全削除は作品の作者のみ実行できます。');
+        api_error('全削除は作品の作者か管理者のみ実行できます。');
     }
     n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
     // 以前は誤って AS_USER(ユーザー領域)を削除していた (#194)
@@ -419,8 +418,7 @@ function n3s_astorage_app_item_for_modify($ctx, $key, $item_id)
 {
     $row = db_get1("SELECT user_id FROM items WHERE app_id=? AND key=? AND item_id=?", [$ctx['app_id'], $key, $item_id], AS_APP);
     if (!$row) {
-        n3s_api_output(false, ["message" => "item not found"]);
-        exit;
+        api_error('item not found');
     }
     if (!n3s_astorage_can_modify_app_row($ctx, $row['user_id'])) {
         api_error('このアイテムは他のユーザーが書き込んだため変更・削除できません。');

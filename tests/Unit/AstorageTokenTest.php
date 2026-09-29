@@ -74,6 +74,14 @@ test('widget のトークンは ui=1 のときだけログイン中の user_id �
     expect(n3s_astorage_token_verify(n3s_widget_api_token($a, 0))['user_id'])->toBe(0);
 });
 
+test('widget_frame へ直接リダイレクトする互換作品(991)は ui=1 でもゲストのトークンになる', function () {
+    $_SESSION['n3s_login'] = true;
+    $_SESSION['user_id'] = 7;
+
+    expect(n3s_widget_is_redirect_app(991))->toBeTrue();
+    expect(n3s_astorage_token_verify(n3s_widget_api_token(['app_id' => 991], 1))['user_id'])->toBe(0);
+});
+
 test('サンドボックスのホストでは ui=1 でもゲストのトークンになる', function () {
     n3s_set_config('sandbox_url', 'https://sandbox.example.com/');
     $_SERVER['HTTP_HOST'] = 'sandbox.example.com';

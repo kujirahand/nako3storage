@@ -82,7 +82,7 @@ AIエージェントがこのリポジトリで作業する時は、まずこの
 `app/index.inc.php` の `n3s_main()` が全体の基本フローです。
 
 1. `n3s_db_init()` で `main`、`log`、`users` の SQLite 接続を初期化する。
-2. `n3s_parseURI()` が `$_GET` を `$n3s_config` に取り込み、`page`、`action`、`baseurl` を決める。
+2. `n3s_parseURI()` が `$_GET` を `$n3s_config` に取り込み、`page`、`action`、`baseurl` を決める。取り込みは `n3s_config_merge_get()` で行い、既定設定・`n3s_config.ini.php`・入口ファイルで定義済みのキーは `page`/`action`/`search_word` を除き GET で上書きできない (#194)。新しい設定キーは必ず `n3s_config.def.php` に既定値を定義すること(未定義だと GET で注入できてしまう)。
 3. `n3s_action()` が `action` と `agent` を `/([^a-zA-Z0-9_]+)/` でサニタイズする。
 4. `app/action/{$action}.inc.php` を読み込む。
 5. `n3s_{$agent}_{$action}` を組み立て、存在すれば `call_user_func()` で呼ぶ。
