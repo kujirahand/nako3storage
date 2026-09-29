@@ -69,6 +69,11 @@ function n3s_api_login()
 
 function n3s_web_login()
 {
+    // サンドボックス等、許可されていないホストではログインフォームを出さない (#194)
+    if (!n3s_login_allowed_host()) {
+        n3s_web_login_host_not_allowed();
+        return;
+    }
     // set back page?
     $back = empty($_GET['back']) ? '' : $_GET['back'];
     if ($back) {
@@ -101,6 +106,21 @@ function n3s_web_login()
         n3s_web_login_trylogin();
         return;
     }
+}
+
+// 許可されていないホストでログインしようとした時の案内を表示する (#194)
+// 作品と同一オリジンのログインフォームは、作品からパスワードやセッションを
+// 盗まれる危険があるため、本体(app_root_url)のログインページへ誘導するだけにする。
+function n3s_web_login_host_not_allowed()
+{
+    $login_url = n3s_get_config('app_root_url', '') . 'index.php?action=login';
+    n3s_error(
+        'このページではログインできません',
+        '<p>安全のため、このドメインではログインできません。</p>' .
+        '<p><a class="pure-button" target="_top" rel="noopener" href="' .
+        htmlspecialchars($login_url, ENT_QUOTES) . '">なでしこ3貯蔵庫でログイン</a></p>',
+        true
+    );
 }
 
 function n3s_web_login_register()

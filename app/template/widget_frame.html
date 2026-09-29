@@ -300,7 +300,7 @@
           <iframe id="iframe_contents" src="{{ $iframe_url }}"></iframe>
           <div class="n3s-widget-statusbar">
             <span class="n3s-widget-statusbar-info">なでしこ v{{ $version }}</span>
-            {{# 実行画面はサンドボックスオリジンで表示されログイン状態が分からないため、常に表示して本体側の確認ページを開く }}
+            {{# ログイン状態に関わらず常に表示し、本体側の確認ページ(ログイン確認・POST+edit_token)を開く }}
             <a href="{{ $broken_url }}" id="n3s_widget_broken_button" class="n3s-widget-broken-button" target="_blank" rel="noopener">⚠️ エラーが出て動かないことを報告</a>
           </div>
         </div>

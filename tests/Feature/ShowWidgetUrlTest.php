@@ -33,7 +33,9 @@ test('sandbox_url未設定・サブディレクトリ配置でも widget_url_run
         ->toBe("http://localhost:7450/repos/nako3storage/widget.php?{$app_id}&run=1&allow=1&ui=1&nakotype=wnako");
 });
 
-test('sandbox_urlが設定されていれば、そのURLを使って widget_url_run_allow を組み立てる', function () {
+// #194: 実行画面の親ページは本体オリジンで開く(作品本体はサンドボックスのiframe内で動く)。
+// 親ページが本体オリジンでないと、貯蔵庫APIトークンにログイン中の user_id を含められないため。
+test('sandbox_urlが設定されていても、widget_url_run_allow の親ページは本体オリジン(baseurl)になる', function () {
     n3s_set_config('sandbox_url', 'https://sandbox.example.com/');
     n3s_set_config('baseurl', 'http://localhost:7450/repos/nako3storage');
 
@@ -48,5 +50,5 @@ test('sandbox_urlが設定されていれば、そのURLを使って widget_url_
     $a = n3s_show_get('show', 'web', true, true);
 
     expect($a['widget_url_run_allow'])
-        ->toBe("https://sandbox.example.com/widget.php?{$app_id}&run=1&allow=1&ui=1&nakotype=wnako");
+        ->toBe("http://localhost:7450/repos/nako3storage/widget.php?{$app_id}&run=1&allow=1&ui=1&nakotype=wnako");
 });

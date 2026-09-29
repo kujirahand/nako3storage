@@ -4,7 +4,8 @@ CREATE TABLE items (
     key TEXT NOT NULL,
     value TEXT NOT NULL,
     ctime INTEGER,
-    mtime INTEGER
+    mtime INTEGER,
+    user_id INTEGER DEFAULT 0 /* 書き込んだユーザー (#194) */
 );
 
 CREATE TABLE keys (
@@ -13,7 +14,8 @@ CREATE TABLE keys (
     key TEXT NOT NULL,
     value TEXT NOT NULL,
     ctime INTEGER,
-    mtime INTEGER
+    mtime INTEGER,
+    user_id INTEGER DEFAULT 0 /* 書き込んだユーザー (#194) */
 );
 
 CREATE TABLE meta (
