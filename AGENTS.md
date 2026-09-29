@@ -300,7 +300,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - テンプレートソースは `app/template/`。
 - コンパイル済みキャッシュは `cache/`。
 - 描画は `n3s_template_fw($template_name, $params)`。
-- `n3s_template_fw()` は `$n3s_config + $params` をテンプレートへ渡す。
+- `n3s_template_fw()` は `$n3s_config + $params` をテンプレートへ渡す(設定が優先)。ただし GET から取り込んだキー(`n3s_request_config_keys()`)だけは `$params` の計算値を優先する(`n3s_template_params()`)。GET で `iframe_url` などの計算値を差し替えられないようにするため (#194)。
 
 主な記法:
 

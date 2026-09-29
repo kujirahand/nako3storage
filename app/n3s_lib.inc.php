@@ -663,6 +663,33 @@ function n3s_config_merge_get($config, $get)
     return $config;
 }
 
+// n3s_parseURI() が GET から $n3s_config に取り込んだキーの一覧を記録・取得する。
+// 引数を渡すと記録し、省略すると記録済みの一覧を返す。
+function n3s_request_config_keys($keys = null)
+{
+    static $request_keys = [];
+    if ($keys !== null) {
+        $request_keys = array_values(array_map('strval', $keys));
+    }
+    return $request_keys;
+}
+
+// テンプレートへ渡す変数を作る(副作用なしの純粋関数)。
+// 基本は従来どおり $config が $params より優先されるが、GET から取り込んだキー
+// ($request_keys)だけは、アクションが計算した $params の値を優先する。
+// 以前は ?iframe_url=... などのGETで、アクションが計算した値(実行先iframeのURLや
+// トークン等)をテンプレート上で差し替えられた (#194)。
+function n3s_template_params($config, $params, $request_keys)
+{
+    $p = $config + $params;
+    foreach ($request_keys as $k) {
+        if (array_key_exists($k, $params)) {
+            $p[$k] = $params[$k];
+        }
+    }
+    return $p;
+}
+
 function n3s_parseURI()
 {
     global $n3s_config;
@@ -671,6 +698,7 @@ function n3s_parseURI()
     $n3s_config['page'] = 'all';
     $n3s_config['action'] = 'list';
     $n3s_config = n3s_config_merge_get($n3s_config, $_GET);
+    n3s_request_config_keys(array_keys($_GET));
     if (isset($n3s_config['status'])) {
         $n3s_config['action'] = $n3s_config['status'];
     }
@@ -704,7 +732,7 @@ function n3s_template_fw($name, $params)
     global $DIR_TEMPLATE_CACHE, $DIR_TEMPLATE, $FW_TEMPLATE_PARAMS;
     $DIR_TEMPLATE = $n3s_config['dir_template'];
     $DIR_TEMPLATE_CACHE = $n3s_config['dir_cache'];
-    $p = $n3s_config + $params;
+    $p = n3s_template_params($n3s_config, $params, n3s_request_config_keys());
     // IE対策のためmsieパラメータをセット
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     $agent = strtolower($useragent);

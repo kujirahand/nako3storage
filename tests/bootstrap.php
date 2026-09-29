@@ -61,6 +61,7 @@ function n3s_test_setup(array $config_overrides = []): string
     $n3s_config['login_allowed_hosts'] = [];
     $n3s_config['astorage_token_secret'] = '';
     $n3s_config['astorage_token_ttl'] = 60 * 60 * 6;
+    n3s_request_config_keys([]);
 
     foreach ($config_overrides as $key => $value) {
         $n3s_config[$key] = $value;
