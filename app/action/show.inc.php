@@ -290,5 +290,11 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // params
     n3s_action_save_check_param($a);
     n3s_action_save_load_body($a);
+    // ライブラリとして公開されている作品(app_nameあり)は、プログラム本文の代わりに
+    // 関数一覧を表示する (#276)
+    $a['func_list'] = [];
+    if (!empty($a['app_name']) && in_array($a['nakotype'], ['wnako', 'cnako'], true)) {
+        $a['func_list'] = n3s_parse_nako3_functions($a['body']);
+    }
     return $a;
 }

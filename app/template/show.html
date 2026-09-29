@@ -37,6 +37,31 @@
     {{ if $memo }}<p class="n3s-show-description">{{ $memo }}</p>{{ endif }}
   </header>
 
+  {{ if $func_list }}
+  <section id="func_list_area" class="n3s-show-section n3s-show-funclist" aria-labelledby="show-funclist-title">
+    <div class="n3s-show-section-head">
+      <div>
+        <p class="n3s-show-section-label">ライブラリ</p>
+        <h2 id="show-funclist-title">関数一覧</h2>
+      </div>
+    </div>
+    <table class="n3s-show-func-table">
+      <thead>
+        <tr><th>関数名</th><th>引数</th><th>説明</th></tr>
+      </thead>
+      <tbody>
+        {{ for $func_list as $func }}
+        <tr>
+          <td>{{ $func.name }}</td>
+          <td>{{ $func.args_str }}</td>
+          <td>{{ $func.desc }}</td>
+        </tr>
+        {{ endfor }}
+      </tbody>
+    </table>
+  </section>
+  {{ endif }}
+
   <section id="program_area" class="n3s-show-section n3s-show-program" aria-labelledby="show-program-title">
     <div class="n3s-show-section-head">
       <div>
@@ -45,7 +70,14 @@
       </div>
       <button id="sizeSwitch" type="button" class="pure-button n3s-show-size-button">高さを拡大</button>
     </div>
+    {{ if $func_list }}
+    <details class="n3s-show-source-details">
+      <summary>ソースを表示</summary>
+      <textarea id="nako3code" readonly aria-label="プログラムのソースコード">{{ $body }}</textarea>
+    </details>
+    {{ else }}
     <textarea id="nako3code" readonly aria-label="プログラムのソースコード">{{ $body }}</textarea>
+    {{ endif }}
     <button id="runButton" type="button" hidden></button>
     <button id="clearButton" type="button" hidden></button>
   </section>

@@ -3485,6 +3485,33 @@ ul.devblock span.lbl {
   font-size: 0.86em;
 }
 
+.n3s-show-func-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.92em;
+}
+
+.n3s-show-func-table th,
+.n3s-show-func-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--n3s-border);
+  vertical-align: top;
+}
+
+.n3s-show-func-table th {
+  color: #8b7b80;
+  font-size: 0.84em;
+  font-weight: bold;
+}
+
+.n3s-show-source-details summary {
+  cursor: pointer;
+  margin: 8px 0;
+  color: #8b7b80;
+}
+
 .n3s-show-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

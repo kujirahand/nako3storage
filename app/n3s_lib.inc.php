@@ -1656,6 +1656,83 @@ function n3s_getMaterialData($app_id)
     return $m;
 }
 
+// なでしこ3のプログラム本文から「●(引数)関数名とは」形式の関数定義を簡易的にスキャンし、
+// 関数名・引数・説明(DocString)の一覧を返す (#276)。あくまで作品ページに表示するための
+// 簡易パーサーであり、なでしこ本体の構文解析とは独立している。
+// 対応する記法:
+//   ●(引数の)関数名とは:
+//       ### 関数の説明
+//   ●(引数の)関数名とは
+//       ### 関数の説明
+//   ここまで
+//   ●(引数の)関数名とは: # 関数の説明
+function n3s_parse_nako3_functions($body)
+{
+    $result = [];
+    if (!is_string($body) || $body === '') {
+        return $result;
+    }
+    $lines = preg_split('/\r\n|\r|\n/', $body);
+    $count = count($lines);
+    for ($i = 0; $i < $count; $i++) {
+        $trim = trim($lines[$i]);
+        if ($trim === '' || mb_substr($trim, 0, 1) !== '●') {
+            continue;
+        }
+        $rest = mb_substr($trim, 1); // 先頭の「●」を除去
+        $pos = mb_strrpos($rest, 'とは');
+        if ($pos === false) {
+            continue;
+        }
+        $head = trim(mb_substr($rest, 0, $pos));
+        $tail = trim(mb_substr($rest, $pos + mb_strlen('とは')));
+
+        // 引数と関数名を分離する（"(Aの)(Bの)関数名" のような並びを想定。
+        // 全角括弧「（）」を使った表記にも対応する）
+        $args = [];
+        if (preg_match_all('/[\(（]([^\)）]*)[\)）]/u', $head, $mm)) {
+            $args = $mm[1];
+        }
+        $name = trim(preg_replace('/[\(（][^\)）]*[\)）]/u', '', $head));
+        if ($name === '') {
+            continue;
+        }
+
+        // 「とは:」の直後にインラインコメントがあれば説明として使う
+        // 例: ●(Aの)関数名とは: # 関数の説明
+        $tail = trim(preg_replace('/^[:：、,]+/u', '', $tail));
+        $desc = '';
+        if ($tail !== '' && mb_substr($tail, 0, 1) === '#') {
+            $desc = trim(preg_replace('/^#+\s*/u', '', $tail));
+        }
+
+        // インラインコメントがなければ、続く最初の非空行をDocStringとして扱う
+        // 例: ●(Aの)関数名とは
+        //         ### 関数の説明
+        //     ここまで
+        if ($desc === '') {
+            for ($j = $i + 1; $j < $count; $j++) {
+                $next = trim($lines[$j]);
+                if ($next === '') {
+                    continue;
+                }
+                if (mb_substr($next, 0, 1) === '#') {
+                    $desc = trim(preg_replace('/^#+\s*/u', '', $next));
+                }
+                break;
+            }
+        }
+
+        $result[] = [
+            'name' => $name,
+            'args' => $args,
+            'args_str' => implode('、', $args),
+            'desc' => $desc,
+        ];
+    }
+    return $result;
+}
+
 function n3s_saveNewProgram(&$data)
 {
     // データを $a でアクセス
