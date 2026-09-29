@@ -3485,6 +3485,57 @@ ul.devblock span.lbl {
   font-size: 0.86em;
 }
 
+.n3s-show-func-table-wrap {
+  max-height: 22em;
+  overflow: auto;
+  margin-top: 12px;
+  border: 1px solid var(--n3s-border);
+  border-radius: 6px;
+}
+
+.n3s-show-func-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+
+.n3s-show-func-table th,
+.n3s-show-func-table td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--n3s-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.n3s-show-func-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.n3s-show-func-table td:first-child,
+.n3s-show-func-table td:nth-child(2) {
+  white-space: nowrap;
+}
+
+.n3s-show-func-table td:first-child {
+  font-weight: bold;
+}
+
+.n3s-show-func-table th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  color: #8b7b80;
+  font-size: 0.84em;
+  font-weight: bold;
+}
+
+.n3s-show-source-details summary {
+  cursor: pointer;
+  margin: 8px 0;
+  color: #8b7b80;
+}
+
 .n3s-show-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
