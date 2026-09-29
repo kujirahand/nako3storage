@@ -1656,7 +1656,20 @@ function n3s_getMaterialData($app_id)
     return $m;
 }
 
-// なでしこ3のプログラム本文から「●(引数)関数名とは」形式の関数定義を簡易的にスキャンし、
+// 行がコメント行なら「#」「###」「//」などの記号を除いた本文を返す。コメント行でなければ null。
+function n3s_nako3_comment_text($line)
+{
+    $t = trim($line);
+    if ($t === '') {
+        return null;
+    }
+    if (preg_match('/^(#+|\/{2,})\s*(.*)$/u', $t, $m)) {
+        return trim($m[2]);
+    }
+    return null;
+}
+
+// なでしこ3のプログラム本文から「●」で始まる関数定義を簡易的にスキャンし、
 // 関数名・引数・説明(DocString)の一覧を返す (#276)。あくまで作品ページに表示するための
 // 簡易パーサーであり、なでしこ本体の構文解析とは独立している。
 // 対応する記法:
@@ -1666,12 +1679,21 @@ function n3s_getMaterialData($app_id)
 //       ### 関数の説明
 //   ここまで
 //   ●(引数の)関数名とは: # 関数の説明
+//   ●関数名(引数の)         # 「とは」を省略したインデント構文形式
+//     ○ 直前の連続したコメント行(#/###/// のいずれか)があればDocStringとして使う
 function n3s_parse_nako3_functions($body)
 {
     $result = [];
     if (!is_string($body) || $body === '') {
         return $result;
     }
+    // "/* ... */" のブロックコメント内は実際のコードではないため、関数定義の
+    // スキャン対象から除外する（コメント内に「●命令名(引数)」の説明一覧が
+    // 書かれているケースがあり、誤検出の原因になるため）。改行は保持して
+    // 行番号がずれないようにする。
+    $body = preg_replace_callback('/\/\*.*?\*\//s', function ($m) {
+        return str_repeat("\n", substr_count($m[0], "\n"));
+    }, $body);
     $lines = preg_split('/\r\n|\r|\n/', $body);
     $count = count($lines);
     for ($i = 0; $i < $count; $i++) {
@@ -1679,13 +1701,26 @@ function n3s_parse_nako3_functions($body)
         if ($trim === '' || mb_substr($trim, 0, 1) !== '●') {
             continue;
         }
-        $rest = mb_substr($trim, 1); // 先頭の「●」を除去
-        $pos = mb_strrpos($rest, 'とは');
-        if ($pos === false) {
+        $rest = trim(mb_substr($trim, 1)); // 先頭の「●」を除去
+        if ($rest === '') {
             continue;
         }
-        $head = trim(mb_substr($rest, 0, $pos));
-        $tail = trim(mb_substr($rest, $pos + mb_strlen('とは')));
+
+        // 行末のインラインコメント（"# ..." / "// ..."）があれば取り出す。
+        // 例: ●(Aの)関数名とは: # 説明   /   ●関数名(Aの) # 説明
+        $desc = '';
+        $head_full = $rest;
+        $scan = ' ' . $rest; // 行頭でもマッチできるよう番兵のスペースを付ける
+        $parts = preg_split('/\s(#+|\/{2,})\s*/u', $scan, 2);
+        if (count($parts) === 2) {
+            $head_full = trim($parts[0]);
+            $desc = trim($parts[1]);
+        }
+
+        // 「とは」があれば "(引数)関数名とは" 形式、無ければ "関数名(引数)" 形式とみなす。
+        $pos = mb_strrpos($head_full, 'とは');
+        $head = ($pos !== false) ? mb_substr($head_full, 0, $pos) : $head_full;
+        $head = preg_replace('/[\s:：、,]+$/u', '', $head);
 
         // 引数と関数名を分離する（"(Aの)(Bの)関数名" のような並びを想定。
         // 全角括弧「（）」を使った表記にも対応する）
@@ -1698,14 +1733,6 @@ function n3s_parse_nako3_functions($body)
             continue;
         }
 
-        // 「とは:」の直後にインラインコメントがあれば説明として使う
-        // 例: ●(Aの)関数名とは: # 関数の説明
-        $tail = trim(preg_replace('/^[:：、,]+/u', '', $tail));
-        $desc = '';
-        if ($tail !== '' && mb_substr($tail, 0, 1) === '#') {
-            $desc = trim(preg_replace('/^#+\s*/u', '', $tail));
-        }
-
         // インラインコメントがなければ、続く最初の非空行をDocStringとして扱う
         // 例: ●(Aの)関数名とは
         //         ### 関数の説明
@@ -1716,10 +1743,34 @@ function n3s_parse_nako3_functions($body)
                 if ($next === '') {
                     continue;
                 }
-                if (mb_substr($next, 0, 1) === '#') {
-                    $desc = trim(preg_replace('/^#+\s*/u', '', $next));
+                $c = n3s_nako3_comment_text($next);
+                if ($c !== null) {
+                    $desc = $c;
                 }
                 break;
+            }
+        }
+
+        // それでも見つからなければ、直前に連続するコメント行を説明として使う
+        // （"//説明" を関数の直前に書くのが実際の投稿では一般的なため）
+        if ($desc === '') {
+            $prev_lines = [];
+            for ($k = $i - 1; $k >= 0; $k--) {
+                $ptrim = trim($lines[$k]);
+                if ($ptrim === '') {
+                    break;
+                }
+                $c = n3s_nako3_comment_text($ptrim);
+                if ($c === null) {
+                    break;
+                }
+                array_unshift($prev_lines, $c);
+            }
+            $prev_lines = array_filter($prev_lines, function ($v) {
+                return $v !== '';
+            });
+            if ($prev_lines) {
+                $desc = implode(' ', $prev_lines);
             }
         }
 
