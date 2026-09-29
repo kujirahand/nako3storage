@@ -44,7 +44,7 @@ AIエージェントがこのリポジトリで作業する時は、まずこの
 - `index.php`: Web 版の入口。設定を読み、`$n3s_config['agent'] = 'web'` を設定して `app/index.inc.php` を実行する。
 - `api.php`: API 版の入口。`$n3s_config['agent'] = 'api'` を設定して同じディスパッチへ入る。
 - `image.php`: アップロードファイル配信用の入口。`agent=api`、`action=image` を強制し、`app/action/image.inc.php` へ流す。
-- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。`&ui=1` を付けると貯蔵庫のヘッダ・フッタ付きで作品を中央に表示する(作品ページの「プログラムを実行」はこれを使う)。`ui` 未指定/0 は従来通り作品と作品ページへのリンクだけ(iframe 埋め込み用)。ヘッダのリンクはサンドボックスオリジンで表示されるため `app_root_url` の絶対URLにしている (#250)。サンドボックスオリジンでは本体のログインセッションが使えないため、ステータスバーの「動かない報告」ボタンはログイン判定せず常に表示し、本体オリジンの確認ページ `index.php?action=broken&page=<id>` (ログイン確認・POST+edit_token) を開く (#267)。
+- `widget.php`: `widget.php?123` のような埋め込み用ショートカット。`action=widget`、`page=<id>` を設定して `index.php` を読み込む。`&ui=1` を付けると貯蔵庫のヘッダ・フッタ付きで作品を中央に表示する(作品ページの「プログラムを実行」はこれを使う)。`ui` 未指定/0 は従来通り作品と作品ページへのリンクだけ(iframe 埋め込み用)。ヘッダのリンクは `app_root_url` の絶対URLにしている (#250)。「プログラムを実行」の親ページ(`widget`)は本体オリジン(`baseurl`)で開き、作品本体は `widget_frame` としてサンドボックスの iframe 内で動かす。親ページで貯蔵庫APIトークンにログイン中の `user_id` を含めるためで、`ui=1` のときだけ `frame-ancestors 'none'` と COOP を付けて他作品から参照されないようにしている (#194, `docs/api.md`)。ステータスバーの「動かない報告」ボタンはログイン判定せず常に表示し、本体オリジンの確認ページ `index.php?action=broken&page=<id>` (ログイン確認・POST+edit_token) を開く (#267)。
 - `id.php`: 作品 ID のショートカット。
 - `cdn.php`: なでしこ本体・プラグイン・CSS・map などを jsDelivr から取得し、必要に応じて `cache-cdn/` に保存して返す。
 - `nadesiko3hub_update.php`: `nadesiko3hub` 連携用。
@@ -82,7 +82,7 @@ AIエージェントがこのリポジトリで作業する時は、まずこの
 `app/index.inc.php` の `n3s_main()` が全体の基本フローです。
 
 1. `n3s_db_init()` で `main`、`log`、`users` の SQLite 接続を初期化する。
-2. `n3s_parseURI()` が `$_GET` を `$n3s_config` に取り込み、`page`、`action`、`baseurl` を決める。
+2. `n3s_parseURI()` が `$_GET` を `$n3s_config` に取り込み、`page`、`action`、`baseurl` を決める。取り込みは `n3s_config_merge_get()` で行い、既定設定・`n3s_config.ini.php`・入口ファイルで定義済みのキーは `page`/`action`/`search_word` を除き GET で上書きできない (#194)。新しい設定キーは必ず `n3s_config.def.php` に既定値を定義すること(未定義だと GET で注入できてしまう)。
 3. `n3s_action()` が `action` と `agent` を `/([^a-zA-Z0-9_]+)/` でサニタイズする。
 4. `app/action/{$action}.inc.php` を読み込む。
 5. `n3s_{$agent}_{$action}` を組み立て、存在すれば `call_user_func()` で呼ぶ。
@@ -166,11 +166,11 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 `app/action/api.inc.php` の `n3s_api_astorage_db()` が作成します。
 
-- ユーザー単位: `data_astorage/users/user000001.sqlite3`
-- アプリ単位: `data_astorage/apps/app000001.sqlite3`
+- ユーザー単位: `data_astorage/users/user000001.sqlite3`(ログインユーザーのトークンでのみ作成)
+- アプリ単位: `data_astorage/apps/app000001.sqlite3`(`items`/`keys` に書き込んだ `user_id` を持つ。既存DBは `n3s_astorage_migrate_app_db()` が列を追加)
 - 初期化 SQL は `app/sql/astorage_user.sql` と `app/sql/astorage_app.sql`
 
-この API は、編集画面で発行された `api_token` とログイン済みセッションを前提にします。
+この API はセッションを使わず、実行画面(`widget`/`edit`)が発行する署名付きトークンだけで `app_id`・`user_id` を決めます。仕様と制限は `docs/api.md` を参照 (#194)。
 
 ### CDNダウンロードカウンタDB: `data/dlcounter-*.sqlite`
 
@@ -279,14 +279,13 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 
 `api.php?action=show&page=<id>` と `api.php?action=list` は公開情報の取得に使われます。
 
-一方、`api.php?action=api&page=...` 系はアプリ内ストレージ用です。
+一方、`api.php?action=api&page=...` 系はアプリ内ストレージ(貯蔵庫API)用です。詳細は `docs/api.md` (#194)。
 
-- `n3s_api_api()` は `token` を必須にする。
-- `page=is_logined` と `page=get_user` は特別扱い。
-- それ以外はログイン済みユーザーであることが必要。
-- `$_SESSION["api_token::<token>"]` に app_id が入っていることが必要。
-- この token は `app/action/edit.inc.php` の `n3s_web_edit()` で発行される。
-- `n3s_api__set_key_as_user`、`n3s_api__insert_item_as_app` など、関数名 `n3s_api__{$page}` で呼び分ける。
+- `n3s_api_api()` は `token` を必須にし、`n3s_astorage_token_verify()` で署名と期限を検証する。`app_id`・`user_id` は必ずトークンから取り出し、リクエストパラメータやセッションは使わない。
+- トークンは `n3s_astorage_token_create()` が発行する (`base64url(JSON{a,u,e}).HMAC-SHA256`)。署名鍵は `astorage_token_secret`(未設定ならメインDB `info` に自動生成)、有効期間は `astorage_token_ttl`(既定6時間)。
+- 発行箇所は `n3s_web_widget()`(`n3s_widget_api_token()`。`ui=1` のときだけログイン中の `user_id`、それ以外は0)と `n3s_web_edit()`。
+- `user_id=0`(ゲスト)は app 領域の読み取りのみ。user 領域と書き込みはログインが必要。app 領域の既存データの変更・削除は書き込んだ本人・作品の作者・管理者のみ。
+- 呼び出せる API は `n3s_astorage_api_pages()` の一覧に限り、関数名 `n3s_api__{$page}` で呼び分ける。
 
 重要: 投稿保存 API は廃止済みです。外部からプログラムを保存する機能を復活させる場合は、セキュリティ設計から見直してください。
 
@@ -301,7 +300,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - テンプレートソースは `app/template/`。
 - コンパイル済みキャッシュは `cache/`。
 - 描画は `n3s_template_fw($template_name, $params)`。
-- `n3s_template_fw()` は `$n3s_config + $params` をテンプレートへ渡す。
+- `n3s_template_fw()` は `$n3s_config + $params` をテンプレートへ渡す(設定が優先)。ただし GET から取り込んだキー(`n3s_request_config_keys()`)だけは `$params` の計算値を優先する(`n3s_template_params()`)。GET で `iframe_url` などの計算値を差し替えられないようにするため (#194)。
 
 主な記法:
 
@@ -346,6 +345,7 @@ SQLite は役割ごとに分かれています。`app/sql/*.sql` が初期化ス
 - `custom_head`、`memo`、`body`、`image_name`、`app_name` は XSS・パストラバーサル・公開範囲に関わりやすい。
 - Discord Webhook は `n3s_discord_webhook()` で `exec('curl ... &')` を使う。URL と JSON は `escapeshellarg()` されているが、変更時はシェル引数化を崩さないこと。
 - `n3s_config.ini.php` に `admin_users`、`discord_webhook_url`、メール設定などが入る可能性がある。秘密情報をログやドキュメントに出さないこと。
+- サンドボックスは本体と同一サイトで全作品が同一オリジンを共有するため、ログインさせない。`n3s_login_allowed_host()` が `sandbox_url` のホストを常に拒否し(`login_allowed_hosts` 未設定時は `app_root_url` のホストと localhost のみ許可)、`n3s_web_login()` はログインフォームを出さず、`n3s_is_login()` は残っていたセッションも未ログイン扱いにする (#194)。
 - コメント審査には `openrouter_api_key` と `comment_audit_model` を使う。キーは環境固有設定にのみ置き、NG3回で投稿ブロック、管理者ページで解除する。
 
 ---

@@ -21,6 +21,9 @@ function n3s_web_widget_frame()
     $a['w_noname'] = n3s_widget_is_noname($a);
     n3s_widget_force_config('w_noname', $a['w_noname']);
     $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
+    // URLに貯蔵庫APIトークンが含まれるため、作品が読み込む外部リソース(CDN等)へ
+    // Refererでフルパスが漏れないようにする (#194)
+    header('Referrer-Policy: strict-origin');
 
     // ウィジェット実行統計を記録 (Issue #217)
     // run=1 かつ作品オーナー本人でない場合のみカウント
@@ -115,22 +118,7 @@ function n3s_sandbox_not_configured_message()
         '<a href="' . $link . '">サンドボックスURLを設定</a>してください。</p>';
 }
 
-// ローカル開発環境からのリクエストかどうかを判定する。
-// login.inc.php の n3s_web_login_setpw_sendmail() と同じ考え方(HTTP_HOSTのホスト部分を
-// ポート番号を除いて比較)で、開発時の利便性のためlocalhost/ループバックアドレスを検出する。
-function n3s_is_localhost_request()
-{
-    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-    if (preg_match('/^\[([^\]]+)\]/', $host, $m)) {
-        // IPv6リテラルのブラケット表記 "[::1]" や "[::1]:8000"
-        $host = $m[1];
-    } elseif (strpos($host, '::') === false) {
-        // "host:port" 形式からポート番号を除去する
-        // ("::"を含む場合はブラケット無しのIPv6リテラルとみなし、ポート分離はしない)
-        $host = explode(':', $host . ':')[0];
-    }
-    return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
-}
+// n3s_is_localhost_request() は n3s_lib.inc.php へ移動した (ログインホスト判定でも使うため #194)
 
 // サンドボックスURLが未設定なら、プログラムを実行させずにエラーを表示して終了する。
 // widget の実行入口(n3s_web_widget)の先頭で呼ぶこと。

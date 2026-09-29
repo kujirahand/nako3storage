@@ -12,97 +12,105 @@ function n3s_web_api()
 {
     echo "not supported";
 }
+
+// 貯蔵庫API (アプリ内ストレージ) --- 仕様と制限は docs/api.md を参照 (#194)
+// 認証はセッションではなく、実行画面(widget/edit)が発行する署名付きトークンで行う。
+// app_id と user_id は必ずトークンから取り出し、リクエストパラメータの値は信用しない。
 function n3s_api_api()
 {
-    // get parametes
     $api_token = isset($_REQUEST['token']) ? $_REQUEST['token'] : '';
     $page = isset($_REQUEST['page']) ? $_REQUEST['page'] : '';
-    $user_id = intval(isset($_REQUEST['user_id']) ? $_REQUEST['user_id'] : '0');
-
-    // echo $app_id.":". $api_token . ":" . $page;
-    // check token
-    if ($api_token === '') {
-        api_error('token is empty'); exit;
+    if (!is_string($api_token) || $api_token === '') {
+        api_error('token is empty');
     }
-
-    // is_logined
-    if ($page === 'is_logined') {
-        $r = n3s_is_login();
-        n3s_api_output($r, ["logined"=>$r]);
-        exit;
+    $ctx = n3s_astorage_token_verify($api_token);
+    if ($ctx === null) {
+        api_error('トークンが無効か期限切れです。作品ページから実行し直してください。');
     }
-    // get_user
-    if ($page === 'get_user') {
-        if ($user_id <= 0) {
-            $user_id = n3s_get_user_id();
-        }
-        $r = n3s_getUserInfo($user_id);
-        if ($r) {
-            n3s_api_output(true, [
-                "user_id" => $r['user_id'],
-                "name" => $r['name'],
-            ]);
-        } else {
-            n3s_api_output(false, ["reason"=>"無効なユーザーID"]);
-        }
-        exit;
+    if (!is_string($page) || !in_array($page, n3s_astorage_api_pages(), true)) {
+        api_error('no page');
     }
-
-    // get common info
-    $user_id = n3s_get_user_id();
-    if ($user_id <= 0) {
-        api_error('トークンが無効です。ログインしてください。');
-        exit;
-    }
-    $app_id = isset($_SESSION["api_token::$api_token"]) ? $_SESSION["api_token::$api_token"] : -1;
-    if ($app_id === -1) {
-        api_error('トークンが無効です。ログインしてください。');
-        exit;
-    }
-
-    // call method
     $method = "n3s_api__{$page}";
-    if (function_exists($method)) {
-        call_user_func_array($method, [[
-            'app_id' => $app_id,
-            'api_token' => $api_token,
-            'page' => $page,
-            'user_id' => $user_id
-        ]]);
-        exit;
-    }
-    api_error("no page");
+    call_user_func($method, $ctx);
+    exit;
 }
 
-function n3s_api_astorage_db($app_id)
+// 呼び出し可能なAPI名の一覧 (関数名 n3s_api__{$page} に対応する)
+function n3s_astorage_api_pages()
+{
+    return [
+        'is_logined', 'get_user',
+        'list_key_as_user', 'get_key_as_user', 'set_key_as_user', 'delete_key_as_user', 'deleteall_key_as_user',
+        'insert_item_as_user', 'select_items_as_user', 'delete_item_as_user', 'update_item_as_user',
+        'list_key_as_app', 'get_key_as_app', 'set_key_as_app', 'delete_key_as_app', 'deleteall_key_as_app',
+        'insert_item_as_app', 'select_items_as_app', 'delete_item_as_app', 'update_item_as_app',
+    ];
+}
+
+// ログイン状態で発行されたトークン(user_id>0)か
+function n3s_api__is_logined($ctx)
+{
+    $r = ($ctx['user_id'] > 0);
+    n3s_api_output($r, ["logined" => $r]);
+}
+
+// user_id を指定すればそのユーザー名、省略(0)ならトークンのユーザーを返す
+function n3s_api__get_user($ctx)
+{
+    $user_id = intval(isset($_REQUEST['user_id']) ? $_REQUEST['user_id'] : '0');
+    if ($user_id <= 0) {
+        $user_id = $ctx['user_id'];
+    }
+    $r = ($user_id > 0) ? n3s_getUserInfo($user_id) : null;
+    if ($r) {
+        n3s_api_output(true, [
+            "user_id" => $r['user_id'],
+            "name" => $r['name'],
+        ]);
+    } else {
+        n3s_api_output(false, ["reason" => "無効なユーザーID"]);
+    }
+}
+
+function n3s_api_astorage_db($app_id, $user_id)
 {
     $dir_sql = n3s_get_config('dir_sql', dirname(__DIR__)."/sql");
-
-    // get db path for dir_astorage
-    $user_id = n3s_get_user_id();
     $dir_astorage = n3s_get_config('dir_astorage', '');
     if (!file_exists($dir_astorage)) {
         api_error('[SYSTEM ERROR] dir_astorage could not write...');
-        exit;
     }
-    // check dir
-    $dir_user = $dir_astorage."/users";
-    if (!file_exists($dir_user)) {
-        mkdir($dir_user, 0777, true);
+    // create user db (ゲストには作らない)
+    if ($user_id > 0) {
+        $dir_user = $dir_astorage."/users";
+        if (!file_exists($dir_user)) {
+            mkdir($dir_user, 0777, true);
+        }
+        $user_id_pad = str_pad($user_id, 6, '0', STR_PAD_LEFT);
+        $dbPathUser = $dir_user . "/user{$user_id_pad}.sqlite3";
+        database_set("sqlite:$dbPathUser", "$dir_sql/astorage_user.sql", AS_USER);
     }
+    // create app db
     $dir_apps = $dir_astorage."/apps";
     if (!file_exists($dir_apps)) {
         mkdir($dir_apps, 0777, true);
     }
-    // create user db
-    $user_id_pad = str_pad($user_id, 6, '0', STR_PAD_LEFT);
-    $dbPathUser = $dir_user . "/user{$user_id_pad}.sqlite3";
-    database_set("sqlite:$dbPathUser", "$dir_sql/astorage_user.sql", AS_USER);
-    // create app db
     $app_id_pad = str_pad($app_id, 6, '0', STR_PAD_LEFT);
     $dbPathApp = $dir_apps . "/app{$app_id_pad}.sqlite3";
     database_set("sqlite:$dbPathApp", "$dir_sql/astorage_app.sql", AS_APP);
-    return database_get(AS_USER);
+    n3s_astorage_migrate_app_db();
+}
+
+// 既存の app DB に書き込んだユーザー(user_id)の列を追加する (#194)
+// 追加前の行は user_id=0 となり、作品の作者か管理者だけが変更・削除できる。
+function n3s_astorage_migrate_app_db()
+{
+    foreach (['items', 'keys'] as $table) {
+        $cols = db_get("PRAGMA table_info($table)", [], AS_APP);
+        $names = array_map(function ($c) { return $c['name']; }, $cols ? $cols : []);
+        if (!in_array('user_id', $names, true)) {
+            db_exec("ALTER TABLE $table ADD COLUMN user_id INTEGER DEFAULT 0", [], AS_APP);
+        }
+    }
 }
 
 // astorage API の key/value がサイズ上限内かを判定する(副作用なしの純粋関数)。
@@ -131,194 +139,96 @@ function n3s_astorage_check_size($key, $value)
     }
 }
 
-// as user key
-function n3s_api__list_key_as_user($params)
+// ログイン状態で発行されたトークンでなければエラーにする
+function n3s_astorage_require_user($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $kv = db_get("SELECT key FROM keys WHERE app_id=?", [$app_id], AS_USER);
-    $keys = [];
-    foreach ($kv as $row) {
-        $keys[] = $row["key"];
-    }
-    n3s_api_output(true, [
-        'keys' => $keys,
-    ]);
-    exit;
-}
-
-function n3s_api__set_key_as_user($params)
-{
-    $app_id = $params['app_id'];
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
-    n3s_astorage_check_size($key, $val);
-    n3s_api_astorage_db($app_id);
-    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_USER);
-    db_exec("INSERT INTO keys (app_id, key, value, mtime) VALUES (?, ?, ?, ?)", [$app_id, $key, $val, time()], AS_USER);
-    n3s_api_output(true, ['message' => "saved."]);
-    exit;
-
-}
-
-function n3s_api__get_key_as_user($params)
-{
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $r = db_get1("SELECT * FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_USER);
-    if ($r === false || $r === null) {
-        n3s_api_output(true, ['value' => null, 'mtime' => 0]);
-    } else {
-        n3s_api_output(true, [
-            'value' => $r['value'],
-            'mtime' => $r['mtime'],
-        ]);
+    if ($ctx['user_id'] <= 0) {
+        api_error('この操作にはログインが必要です。貯蔵庫にログインしてから、作品ページの「プログラムを実行」で実行してください。');
     }
 }
 
-function n3s_api__delete_key_as_user($params)
+// 作品の作者か管理者か (app DB の全データを管理できる)
+function n3s_astorage_is_app_manager($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $r = db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_USER);
-    if ($r) {
-        n3s_api_output(true, ["message"=>"deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
+    if ($ctx['user_id'] <= 0) {
+        return false;
     }
-}
-
-function n3s_api__deleteall_key_as_user($params)
-{
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $r = db_exec("DELETE FROM keys WHERE app_id=?", [$app_id], AS_USER);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted all."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
+    if (n3s_is_admin_user($ctx['user_id'])) {
+        return true;
     }
+    $app = db_get1("SELECT user_id FROM apps WHERE app_id=?", [$ctx['app_id']]);
+    $owner_id = $app ? intval($app['user_id']) : 0;
+    return ($owner_id > 0 && $owner_id === $ctx['user_id']);
 }
 
-// as user items
-function n3s_api__insert_item_as_user($params)
+// app DB の行を変更・削除できるか (書き込んだ本人・作品の作者・管理者)
+function n3s_astorage_can_modify_app_row($ctx, $row_user_id)
 {
-    $app_id = $params['app_id'];
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
-    n3s_astorage_check_size($key, $val);
-    n3s_api_astorage_db($app_id);
-    $item_id = db_insert(
-        "INSERT INTO items (app_id, key, value, ctime, mtime) VALUES (?, ?, ?, ?, ?)", [
-            $app_id, $key, $val, time(), time()], AS_USER);
-    n3s_api_output(true, ['item_id' => $item_id]);
-    exit;
+    if ($ctx['user_id'] <= 0) {
+        return false;
+    }
+    if (intval($row_user_id) === $ctx['user_id']) {
+        return true;
+    }
+    return n3s_astorage_is_app_manager($ctx);
 }
 
-function n3s_api__select_items_as_user($params)
+function n3s_astorage_req_str($name)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $offset = isset($_REQUEST['offset']) ? intval($_REQUEST['offset']) : 0;
+    $v = isset($_REQUEST[$name]) ? $_REQUEST[$name] : '';
+    return is_string($v) ? $v : '';
+}
+
+function n3s_astorage_req_item_id()
+{
+    $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
+    if ($item_id <= 0) {
+        api_error('item_id is invalid');
+    }
+    return $item_id;
+}
+
+// select_items_* の共通処理
+function n3s_astorage_select_items($ctx, $dbname, $with_user_id)
+{
+    $key = n3s_astorage_req_str('key');
+    $offset = isset($_REQUEST['offset']) ? max(0, intval($_REQUEST['offset'])) : 0;
     $limit = isset($_REQUEST['limit']) ? intval($_REQUEST['limit']) : 30;
-    if ($limit > 30) { $limit = 30; }
-    $sort = isset($_REQUEST['sort']) ? strtoupper($_REQUEST['sort']) : 'ASC';
-    $sort_order = " ORDER BY item_id ASC";
-    if ($sort == 'ASC' || $sort == 'DESC') {
-        $sort_order = " ORDER BY item_id $sort";
+    if ($limit > 30 || $limit <= 0) {
+        $limit = 30;
     }
+    $sort = strtoupper(n3s_astorage_req_str('sort'));
+    $sort_order = ($sort === 'DESC') ? " ORDER BY item_id DESC" : " ORDER BY item_id ASC";
     $items = [];
-    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? {$sort_order} LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_USER);
-    if ($r === false || $r === null) {
-        // no data
-    } else {
-        foreach ($r as $row) {
-            $items[] = [
-                'item_id' => $row['item_id'],
-                'value' => $row['value'],
-                'mtime' => $row['mtime'],
-            ];
+    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? {$sort_order} LIMIT ?,?", [$ctx['app_id'], $key, $offset, $limit], $dbname);
+    foreach ($r ? $r : [] as $row) {
+        $item = [
+            'item_id' => $row['item_id'],
+            'value' => $row['value'],
+            'mtime' => $row['mtime'],
+        ];
+        if ($with_user_id) {
+            $item['user_id'] = intval($row['user_id']);
         }
+        $items[] = $item;
     }
     n3s_api_output(true, ["values" => $items]);
 }
 
-function n3s_api__delete_item_as_user($params)
+function n3s_astorage_list_keys($ctx, $dbname)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
-    if ($item_id <= 0) {
-        n3s_api_output(false, ["message" => "item_id is invalid"]);
-        exit;
-    }
-    $r = db_exec("DELETE FROM items WHERE app_id=? AND key=? AND item_id=?", [$app_id, $key, $item_id], AS_USER);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
-    }
-}
-
-function n3s_api__update_item_as_user($params)
-{
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
-    $value = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
-    n3s_astorage_check_size($key, $value);
-    if ($item_id <= 0) {
-        n3s_api_output(false, ["message" => "item_id is invalid"]);
-        exit;
-    }
-    $r = db_exec("UPDATE items SET value=? WHERE app_id=? AND key=? AND item_id=?", [$value, $app_id, $key, $item_id], AS_USER);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
-    }
-}
-
-// as app key
-function n3s_api__list_key_as_app($params)
-{
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $kv = db_get("SELECT key FROM keys WHERE app_id=?", [$app_id], AS_APP);
+    $kv = db_get("SELECT key FROM keys WHERE app_id=?", [$ctx['app_id']], $dbname);
     $keys = [];
-    foreach ($kv as $row) {
+    foreach ($kv ? $kv : [] as $row) {
         $keys[] = $row["key"];
     }
-    n3s_api_output(true, [
-        'keys' => $keys,
-    ]);
-    exit;
+    n3s_api_output(true, ['keys' => $keys]);
 }
 
-function n3s_api__set_key_as_app($params)
+function n3s_astorage_get_key($ctx, $dbname)
 {
-    $app_id = $params['app_id'];
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
-    n3s_astorage_check_size($key, $val);
-    n3s_api_astorage_db($app_id);
-    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_APP);
-    db_exec("INSERT INTO keys (app_id, key, value, mtime) VALUES (?, ?, ?, ?)", [$app_id, $key, $val, time()], AS_APP);
-    n3s_api_output(true, ['message' => "saved."]);
-    exit;
-}
-
-function n3s_api__get_key_as_app($params)
-{
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $r = db_get1("SELECT * FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_APP);
+    $key = n3s_astorage_req_str('key');
+    $r = db_get1("SELECT * FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], $dbname);
     if ($r === false || $r === null) {
         n3s_api_output(true, ['value' => null, 'mtime' => 0]);
     } else {
@@ -329,117 +239,215 @@ function n3s_api__get_key_as_app($params)
     }
 }
 
-function n3s_api__delete_key_as_app($params)
+//------------------------------------------------------------------
+// as user --- ログインユーザー × app_id 専用の領域
+//------------------------------------------------------------------
+function n3s_api__list_key_as_user($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $r = db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$app_id, $key], AS_APP);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
-    }
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_list_keys($ctx, AS_USER);
 }
 
-function n3s_api__deleteall_key_as_app($params)
+function n3s_api__set_key_as_user($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $r = db_exec("DELETE FROM keys WHERE app_id=?", [$app_id], AS_USER);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted all."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
-    }
-}
-
-// as app items
-function n3s_api__insert_item_as_app($params)
-{
-    $app_id = $params['app_id'];
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $val = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $val = n3s_astorage_req_str('value');
     n3s_astorage_check_size($key, $val);
-    n3s_api_astorage_db($app_id);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_USER);
+    db_exec("INSERT INTO keys (app_id, key, value, ctime, mtime) VALUES (?, ?, ?, ?, ?)", [$ctx['app_id'], $key, $val, time(), time()], AS_USER);
+    n3s_api_output(true, ['message' => "saved."]);
+}
+
+function n3s_api__get_key_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_get_key($ctx, AS_USER);
+}
+
+function n3s_api__delete_key_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $key = n3s_astorage_req_str('key');
+    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_USER);
+    n3s_api_output(true, ["message" => "deleted."]);
+}
+
+function n3s_api__deleteall_key_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    db_exec("DELETE FROM keys WHERE app_id=?", [$ctx['app_id']], AS_USER);
+    n3s_api_output(true, ["message" => "deleted all."]);
+}
+
+function n3s_api__insert_item_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $val = n3s_astorage_req_str('value');
+    n3s_astorage_check_size($key, $val);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
     $item_id = db_insert(
         "INSERT INTO items (app_id, key, value, ctime, mtime) VALUES (?, ?, ?, ?, ?)",
-        [
-            $app_id, $key, $val, time(), time()
-        ],
+        [$ctx['app_id'], $key, $val, time(), time()],
+        AS_USER
+    );
+    n3s_api_output(true, ['item_id' => $item_id]);
+}
+
+function n3s_api__select_items_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_select_items($ctx, AS_USER, false);
+}
+
+function n3s_api__delete_item_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $item_id = n3s_astorage_req_item_id();
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $key = n3s_astorage_req_str('key');
+    db_exec("DELETE FROM items WHERE app_id=? AND key=? AND item_id=?", [$ctx['app_id'], $key, $item_id], AS_USER);
+    n3s_api_output(true, ["message" => "deleted."]);
+}
+
+function n3s_api__update_item_as_user($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $value = n3s_astorage_req_str('value');
+    n3s_astorage_check_size($key, $value);
+    $item_id = n3s_astorage_req_item_id();
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    db_exec("UPDATE items SET value=?, mtime=? WHERE app_id=? AND key=? AND item_id=?", [$value, time(), $ctx['app_id'], $key, $item_id], AS_USER);
+    n3s_api_output(true, ["message" => "updated."]);
+}
+
+//------------------------------------------------------------------
+// as app --- app_id ごとの共有領域
+// 読み取りはゲスト(user_id=0)でも可。書き込みはログインが必要で、
+// 既存データの変更・削除は書き込んだ本人・作品の作者・管理者のみ。
+//------------------------------------------------------------------
+function n3s_api__list_key_as_app($ctx)
+{
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_list_keys($ctx, AS_APP);
+}
+
+function n3s_api__set_key_as_app($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $val = n3s_astorage_req_str('value');
+    n3s_astorage_check_size($key, $val);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $row = db_get1("SELECT user_id FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_APP);
+    if ($row && !n3s_astorage_can_modify_app_row($ctx, $row['user_id'])) {
+        api_error('このキーは他のユーザーが作成したため変更できません。');
+    }
+    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_APP);
+    db_exec(
+        "INSERT INTO keys (app_id, key, value, ctime, mtime, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+        [$ctx['app_id'], $key, $val, time(), time(), $row ? intval($row['user_id']) : $ctx['user_id']],
+        AS_APP
+    );
+    n3s_api_output(true, ['message' => "saved."]);
+}
+
+function n3s_api__get_key_as_app($ctx)
+{
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_get_key($ctx, AS_APP);
+}
+
+function n3s_api__delete_key_as_app($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $key = n3s_astorage_req_str('key');
+    $row = db_get1("SELECT user_id FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_APP);
+    if ($row && !n3s_astorage_can_modify_app_row($ctx, $row['user_id'])) {
+        api_error('このキーは他のユーザーが作成したため削除できません。');
+    }
+    db_exec("DELETE FROM keys WHERE app_id=? AND key=?", [$ctx['app_id'], $key], AS_APP);
+    n3s_api_output(true, ["message" => "deleted."]);
+}
+
+// 共有領域のキーを全削除する (作品の作者・管理者のみ)
+function n3s_api__deleteall_key_as_app($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    if (!n3s_astorage_is_app_manager($ctx)) {
+        api_error('全削除は作品の作者か管理者のみ実行できます。');
+    }
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    // 以前は誤って AS_USER(ユーザー領域)を削除していた (#194)
+    db_exec("DELETE FROM keys WHERE app_id=?", [$ctx['app_id']], AS_APP);
+    n3s_api_output(true, ["message" => "deleted all."]);
+}
+
+function n3s_api__insert_item_as_app($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $val = n3s_astorage_req_str('value');
+    n3s_astorage_check_size($key, $val);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $item_id = db_insert(
+        "INSERT INTO items (app_id, key, value, ctime, mtime, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+        [$ctx['app_id'], $key, $val, time(), time(), $ctx['user_id']],
         AS_APP
     );
     n3s_api_output(true, ['item_id' => $item_id]);
-    exit;
 }
 
-function n3s_api__select_items_as_app($params)
+function n3s_api__select_items_as_app($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $offset = isset($_REQUEST['offset']) ? intval($_REQUEST['offset']) : 0;
-    $limit = isset($_REQUEST['limit']) ? intval($_REQUEST['limit']) : 30;
-    if ($limit > 30) {
-        $limit = 30;
-    }
-    $sort = isset($_REQUEST['sort']) ? strtoupper($_REQUEST['sort']) : 'ASC';
-    $sort_order = " ORDER BY item_id ASC";
-    if ($sort == 'ASC' || $sort == 'DESC') {
-        $sort_order = " ORDER BY item_id $sort";
-    }
-    $items = [];
-    $r = db_get("SELECT * FROM items WHERE app_id=? AND key=? {$sort_order} LIMIT ?,?", [$app_id, $key, $offset, $limit], AS_APP);
-    if ($r === false || $r === null) {
-        // no data
-    } else {
-        foreach ($r as $row) {
-            $items[] = [
-                'item_id' => $row['item_id'],
-                'value' => $row['value'],
-                'mtime' => $row['mtime'],
-            ];
-        }
-    }
-    n3s_api_output(true, ["values" => $items]);
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_select_items($ctx, AS_APP, true);
 }
 
-function n3s_api__delete_item_as_app($params)
+// app DB のアイテムを取得し、変更権限が無ければエラーにする
+function n3s_astorage_app_item_for_modify($ctx, $key, $item_id)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
-    if ($item_id <= 0) {
-        n3s_api_output(false, ["message" => "item_id is invalid"]);
-        exit;
+    $row = db_get1("SELECT user_id FROM items WHERE app_id=? AND key=? AND item_id=?", [$ctx['app_id'], $key, $item_id], AS_APP);
+    if (!$row) {
+        api_error('item not found');
     }
-    $r = db_exec("DELETE FROM items WHERE app_id=? AND key=? AND item_id=?", [$app_id, $key, $item_id], AS_APP);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
+    if (!n3s_astorage_can_modify_app_row($ctx, $row['user_id'])) {
+        api_error('このアイテムは他のユーザーが書き込んだため変更・削除できません。');
     }
+    return $row;
 }
 
-function n3s_api__update_item_as_app($params)
+function n3s_api__delete_item_as_app($ctx)
 {
-    $app_id = $params['app_id'];
-    n3s_api_astorage_db($app_id);
-    $key = isset($_REQUEST['key']) ? $_REQUEST['key'] : '';
-    $item_id = isset($_REQUEST['item_id']) ? intval($_REQUEST['item_id']) : 0;
-    $value = isset($_REQUEST['value']) ? $_REQUEST['value'] : '';
+    n3s_astorage_require_user($ctx);
+    $item_id = n3s_astorage_req_item_id();
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    $key = n3s_astorage_req_str('key');
+    n3s_astorage_app_item_for_modify($ctx, $key, $item_id);
+    db_exec("DELETE FROM items WHERE app_id=? AND key=? AND item_id=?", [$ctx['app_id'], $key, $item_id], AS_APP);
+    n3s_api_output(true, ["message" => "deleted."]);
+}
+
+function n3s_api__update_item_as_app($ctx)
+{
+    n3s_astorage_require_user($ctx);
+    $key = n3s_astorage_req_str('key');
+    $value = n3s_astorage_req_str('value');
     n3s_astorage_check_size($key, $value);
-    if ($item_id <= 0) {
-        n3s_api_output(false, ["message" => "item_id is invalid"]);
-        exit;
-    }
-    $r = db_exec("UPDATE items SET value=? WHERE app_id=? AND key=? AND item_id=?", [$value, $app_id, $key, $item_id], AS_APP);
-    if ($r) {
-        n3s_api_output(true, ["message" => "deleted."]);
-    } else {
-        n3s_api_output(false, ["message" => "error"]);
-    }
+    $item_id = n3s_astorage_req_item_id();
+    n3s_api_astorage_db($ctx['app_id'], $ctx['user_id']);
+    n3s_astorage_app_item_for_modify($ctx, $key, $item_id);
+    db_exec("UPDATE items SET value=?, mtime=? WHERE app_id=? AND key=? AND item_id=?", [$value, time(), $ctx['app_id'], $key, $item_id], AS_APP);
+    n3s_api_output(true, ["message" => "updated."]);
 }
 
 // 

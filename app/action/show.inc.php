@@ -252,21 +252,11 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     $h += 120; // margin
     $wurl = "$n3s_url/widget.php?$app_id";
     $wurl_run = "$n3s_url/widget.php?$app_id&run=1";
-    // 注意: n3s_get_config() の第2引数はキーが「未設定」の場合のみ使われる。
-    // sandbox_url は n3s_config.def.php で常に '' として定義済み(=キーは存在する)ため、
-    // ここで単に n3s_get_config('sandbox_url', $n3s_url) としても既定値は効かず、
-    // 常に空文字になってしまう。sandbox_url が空のときはアプリ自身のbaseurl($n3s_url)へ
-    // フォールバックする(サブディレクトリ配置でルート相対URL "/widget.php..." に
-    // なってしまい、実行リンクが壊れる不具合の修正)。
-    $sandbox_url = trim(n3s_get_config('sandbox_url', ''));
-    if ($sandbox_url === '') {
-        $sandbox_url = $n3s_url;
-    }
-    if (substr($sandbox_url, -1) !== "/") {
-        $sandbox_url .= "/";
-    }
     // ui=1: 貯蔵庫のヘッダ・フッタ付きで実行画面を表示する (#250)
-    $wurl_run_allow = $sandbox_url."widget.php?$app_id&run=1&allow=1&ui=1&nakotype=$nakotype";
+    // 実行画面(親ページ)は本体オリジンで開き、作品本体は widget_frame としてサンドボックスの
+    // iframe 内で動かす。親ページが本体オリジンでないとログイン中の user_id を
+    // 貯蔵庫APIトークンに含められないため (#194, docs/api.md)。
+    $wurl_run_allow = "$n3s_url/widget.php?$app_id&run=1&allow=1&ui=1&nakotype=$nakotype";
     $a['is_private'] = isset($a['is_private']) ? intval($a['is_private']) : 0;
     $a['widget_url'] = $wurl;
     $a['widget_tag'] = "<iframe width=\"$w\" height=\"$h\" src=\"$wurl\"></iframe>";

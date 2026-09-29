@@ -640,6 +640,56 @@ function n3s_configure_session_cookie()
     }
 }
 
+// GETパラメータで上書きしてよい、既定設定と同名のキー
+function n3s_request_overridable_config_keys()
+{
+    return ['page', 'action', 'search_word'];
+}
+
+// $_GET を $n3s_config へ取り込んだ結果を返す(副作用なしの純粋関数)。
+// 以前は全GETキーを無条件にコピーしていたため、?astorage_token_secret=... で署名鍵を
+// 差し替えて任意のトークンを偽造したり、?sandbox_url= / ?agent= / ?dir_action= などの
+// 設定を書き換えたりできた (#194)。既定設定(n3s_config.def.php)・n3s_config.ini.php・
+// 入口ファイルで定義済みのキーは、n3s_request_overridable_config_keys() を除き上書きさせない。
+function n3s_config_merge_get($config, $get)
+{
+    $overridable = n3s_request_overridable_config_keys();
+    foreach ($get as $k => $v) {
+        if (array_key_exists($k, $config) && !in_array($k, $overridable, true)) {
+            continue;
+        }
+        $config[$k] = $v;
+    }
+    return $config;
+}
+
+// n3s_parseURI() が GET から $n3s_config に取り込んだキーの一覧を記録・取得する。
+// 引数を渡すと記録し、省略すると記録済みの一覧を返す。
+function n3s_request_config_keys($keys = null)
+{
+    static $request_keys = [];
+    if ($keys !== null) {
+        $request_keys = array_values(array_map('strval', $keys));
+    }
+    return $request_keys;
+}
+
+// テンプレートへ渡す変数を作る(副作用なしの純粋関数)。
+// 基本は従来どおり $config が $params より優先されるが、GET から取り込んだキー
+// ($request_keys)だけは、アクションが計算した $params の値を優先する。
+// 以前は ?iframe_url=... などのGETで、アクションが計算した値(実行先iframeのURLや
+// トークン等)をテンプレート上で差し替えられた (#194)。
+function n3s_template_params($config, $params, $request_keys)
+{
+    $p = $config + $params;
+    foreach ($request_keys as $k) {
+        if (array_key_exists($k, $params)) {
+            $p[$k] = $params[$k];
+        }
+    }
+    return $p;
+}
+
 function n3s_parseURI()
 {
     global $n3s_config;
@@ -647,9 +697,8 @@ function n3s_parseURI()
     $script_path = explode('?', $uri)[0];
     $n3s_config['page'] = 'all';
     $n3s_config['action'] = 'list';
-    foreach ($_GET as $k => $v) {
-        $n3s_config[$k] = $v;
-    }
+    $n3s_config = n3s_config_merge_get($n3s_config, $_GET);
+    n3s_request_config_keys(array_keys($_GET));
     if (isset($n3s_config['status'])) {
         $n3s_config['action'] = $n3s_config['status'];
     }
@@ -683,7 +732,7 @@ function n3s_template_fw($name, $params)
     global $DIR_TEMPLATE_CACHE, $DIR_TEMPLATE, $FW_TEMPLATE_PARAMS;
     $DIR_TEMPLATE = $n3s_config['dir_template'];
     $DIR_TEMPLATE_CACHE = $n3s_config['dir_cache'];
-    $p = $n3s_config + $params;
+    $p = n3s_template_params($n3s_config, $params, n3s_request_config_keys());
     // IE対策のためmsieパラメータをセット
     $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     $agent = strtolower($useragent);
@@ -732,10 +781,79 @@ function n3s_api_output($result, $data)
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
+// ローカル開発環境からのリクエストかどうかを判定する。
+// login.inc.php の n3s_web_login_setpw_sendmail() と同じ考え方(HTTP_HOSTのホスト部分を
+// ポート番号を除いて比較)で、開発時の利便性のためlocalhost/ループバックアドレスを検出する。
+function n3s_is_localhost_request()
+{
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+    if (preg_match('/^\[([^\]]+)\]/', $host, $m)) {
+        // IPv6リテラルのブラケット表記 "[::1]" や "[::1]:8000"
+        $host = $m[1];
+    } elseif (strpos($host, '::') === false) {
+        // "host:port" 形式からポート番号を除去する
+        // ("::"を含む場合はブラケット無しのIPv6リテラルとみなし、ポート分離はしない)
+        $host = explode(':', $host . ':')[0];
+    }
+    return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+}
+
+// URLから "host[:port]" を小文字で取り出す。取得できなければ ''。
+function n3s_url_host($url)
+{
+    $parts = parse_url(trim((string)$url));
+    if (!is_array($parts) || empty($parts['host'])) {
+        return '';
+    }
+    $host = strtolower($parts['host']);
+    if (!empty($parts['port'])) {
+        $host .= ':' . $parts['port'];
+    }
+    return $host;
+}
+
+// ログインフォームの表示・ログインセッションの利用を許可するホストか (#194)
+// サンドボックスは本体と同じサイト(nadesi.com)で全作品が同一オリジンを共有するため、
+// そこでログインすると、任意の作品が同一オリジンのfetchでCSRFトークンを読み取り、
+// アカウントを乗っ取れてしまう。そのため sandbox_url のホストでは常に不許可とする。
+// - login_allowed_hosts が設定されていれば、そのホストのみ許可する
+// - 未設定なら app_root_url のホストと localhost を許可する
+function n3s_login_allowed_host()
+{
+    if (!isset($_SERVER['HTTP_HOST']) || $_SERVER['HTTP_HOST'] === '') {
+        // CLI(バッチ)からの呼び出しはHTTPリクエストではないので制限しない
+        return PHP_SAPI === 'cli';
+    }
+    $host = strtolower($_SERVER['HTTP_HOST']);
+    $sandbox_host = n3s_url_host(n3s_get_config('sandbox_url', ''));
+    if ($sandbox_host !== '' && $host === $sandbox_host) {
+        return false;
+    }
+    $allowed = n3s_get_config('login_allowed_hosts', []);
+    if (is_string($allowed)) {
+        $allowed = explode(',', $allowed);
+    }
+    $allowed = array_values(array_filter(array_map(function ($h) {
+        return strtolower(trim((string)$h));
+    }, (array)$allowed), 'strlen'));
+    if (count($allowed) > 0) {
+        return in_array($host, $allowed, true);
+    }
+    $root_host = n3s_url_host(n3s_get_config('app_root_url', ''));
+    if ($root_host !== '' && $host === $root_host) {
+        return true;
+    }
+    return n3s_is_localhost_request();
+}
+
 function n3s_is_login()
 {
     // @see action/login.inc.php
     if (empty($_SESSION['n3s_login'])) {
+        return false;
+    }
+    // 許可されていないホスト(サンドボックス等)に残っているログインセッションは無効とみなす (#194)
+    if (!n3s_login_allowed_host()) {
         return false;
     }
     return true;
@@ -783,7 +901,16 @@ function n3s_get_login_info()
 
 function n3s_is_admin()
 {
-    $user_id = n3s_get_user_id();
+    return n3s_is_admin_user(n3s_get_user_id());
+}
+
+// 指定した user_id が管理者か(セッションを使わずに判定したい場合用)
+function n3s_is_admin_user($user_id)
+{
+    $user_id = intval($user_id);
+    if ($user_id <= 0) {
+        return false;
+    }
     $admin_users = n3s_get_config('admin_users', [1]);
     foreach ($admin_users as $id) {
         if ($id === $user_id) {
@@ -1077,9 +1204,97 @@ function n3s_google_find_or_create_user($claims)
     return db_get1('SELECT * FROM users WHERE user_id=?', [$user_id], 'users');
 }
 
-function n3s_getAPIToken()
+//------------------------------------------------------------------
+// 貯蔵庫API(アプリ内ストレージ)用の署名付き実行トークン (#194)
+// 形式: base64url(JSON {"a":app_id,"u":user_id,"e":有効期限}) + "." + base64url(HMAC-SHA256)
+// セッションを使わずに app_id と user_id を検証できるため、サンドボックスオリジン
+// (ログイン不可)からも利用できる。詳細は docs/api.md を参照。
+//------------------------------------------------------------------
+function n3s_base64url_encode($data)
 {
-    return bin2hex(random_bytes(16));
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+function n3s_base64url_decode($data)
+{
+    if (!is_string($data) || !preg_match('/^[A-Za-z0-9_-]*$/', $data)) {
+        return false;
+    }
+    $pad = strlen($data) % 4;
+    if ($pad > 0) {
+        $data .= str_repeat('=', 4 - $pad);
+    }
+    return base64_decode(strtr($data, '-_', '+/'), true);
+}
+
+// 署名鍵を返す。設定(astorage_token_secret)が無ければメインDBのinfoに生成して保存する。
+function n3s_astorage_token_secret()
+{
+    $secret = n3s_get_config('astorage_token_secret', '');
+    if (is_string($secret) && strlen($secret) >= 16) {
+        return $secret;
+    }
+    $secret = n3s_getInfoTag('astorage_token_secret', '');
+    if ($secret === '' || $secret === null) {
+        n3s_setInfo('astorage_token_secret', 0, bin2hex(random_bytes(32)));
+        // 同時に生成された場合でも、DBに先に入った値を全員が使うよう読み直す
+        $secret = n3s_getInfoTag('astorage_token_secret', '');
+    }
+    return (string)$secret;
+}
+
+function n3s_astorage_token_sign($payload)
+{
+    return n3s_base64url_encode(hash_hmac('sha256', "astorage:$payload", n3s_astorage_token_secret(), true));
+}
+
+// トークンを作る。app_id が無効(未保存の作品など)なら '' を返す。
+function n3s_astorage_token_create($app_id, $user_id, $ttl = null)
+{
+    $app_id = intval($app_id);
+    $user_id = max(0, intval($user_id));
+    if ($app_id <= 0) {
+        return '';
+    }
+    if ($ttl === null) {
+        $ttl = intval(n3s_get_config('astorage_token_ttl', 60 * 60 * 6));
+    }
+    $payload = n3s_base64url_encode(json_encode([
+        'a' => $app_id,
+        'u' => $user_id,
+        'e' => time() + $ttl,
+    ]));
+    return $payload . '.' . n3s_astorage_token_sign($payload);
+}
+
+// トークンを検証する。正しければ ['app_id'=>, 'user_id'=>, 'expire'=>]、不正・期限切れなら null。
+function n3s_astorage_token_verify($token)
+{
+    if (!is_string($token) || strlen($token) > 512) {
+        return null;
+    }
+    if (!preg_match('/^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/', $token, $m)) {
+        return null;
+    }
+    if (!hash_equals(n3s_astorage_token_sign($m[1]), $m[2])) {
+        return null;
+    }
+    $json = n3s_base64url_decode($m[1]);
+    $data = ($json === false) ? null : json_decode($json, true);
+    if (!is_array($data) || !isset($data['a'], $data['u'], $data['e'])) {
+        return null;
+    }
+    if (!is_int($data['a']) || !is_int($data['u']) || !is_int($data['e'])) {
+        return null;
+    }
+    if ($data['a'] <= 0 || $data['u'] < 0 || $data['e'] < time()) {
+        return null;
+    }
+    return [
+        'app_id' => $data['a'],
+        'user_id' => $data['u'],
+        'expire' => $data['e'],
+    ];
 }
 
 

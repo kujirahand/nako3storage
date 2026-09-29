@@ -39,6 +39,11 @@ $n3s_config = [
     "cover_default_url" => "https://n3s.nadesi.com/image.php?f=721.png", // 扉絵なしの画像
     "size_astorage_key_max" => 256,        // アプリ内ストレージAPIのkey最大サイズ(バイト)
     "size_astorage_value_max" => 1024 * 64, // アプリ内ストレージAPIのvalue最大サイズ(64KB)
+    "astorage_token_secret" => "",          // 貯蔵庫APIトークンの署名鍵(空ならメインDBのinfoに自動生成) (#194)
+    "astorage_token_ttl" => 60 * 60 * 6,    // 貯蔵庫APIトークンの有効期間(秒) (#194)
+    // ログインフォームを表示・ログインを許可するホスト(例: ["n3s.nadesi.com"])。
+    // 空なら app_root_url のホストと localhost のみ許可する。sandbox_url のホストは常に不許可 (#194)
+    "login_allowed_hosts" => [],
     "extra_header_html" => "",
     "search_word" => "",
     "n3s_css_mtime" => filemtime("$app_dir/resource/basic.css"),
