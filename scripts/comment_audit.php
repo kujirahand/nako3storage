@@ -19,7 +19,7 @@ n3s_db_init();
 
 global $n3s_config;
 $api_key = isset($n3s_config['openrouter_api_key']) ? $n3s_config['openrouter_api_key'] : '';
-$model = n3s_get_config('comment_audit_model', 'google/gemma-3-12b-it');
+$model = n3s_get_config('comment_audit_model', '~typesafe/jev-latest');
 $auto_approve = isset($n3s_config['comment_audit_auto_approve']) ? $n3s_config['comment_audit_auto_approve'] : false;
 
 // APIキーが空、または自動承認（auto_approve）が有効な場合は審査をパスする
@@ -58,7 +58,7 @@ foreach ($comments as $c) {
         $approved = true;
     } else {
         // AI審査を行うため、まずキャッシュを検索
-        $body_hash = hash('sha256', trim($body));
+        $body_hash = hash('sha256', $model . "\n" . trim($body));
         $cache = db_get1(
             "SELECT * FROM comment_audit_cache WHERE body_hash = ?",
             [$body_hash],

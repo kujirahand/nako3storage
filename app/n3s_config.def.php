@@ -94,7 +94,7 @@ $n3s_config = [
     // -----------------------------------------------------
     // OpenRouter APIキーとモデル (コメント審査用)
     "openrouter_api_key" => "",
-    "comment_audit_model" => "google/gemma-3-12b-it",
+    "comment_audit_model" => "~typesafe/jev-latest",
     // コメント審査の自動承認モード (true: 審査をスキップして自動承認、false: 審査を行う)
     "comment_audit_auto_approve" => false,
 ];
