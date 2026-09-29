@@ -41,7 +41,7 @@ just test-openrouter                             # OpenRouter の実モデル判
 `tests-openrouter/` は通常の Pest テストとは独立しています。`just test-openrouter` は
 `OPENROUTER_API_KEY`（またはローカルの `n3s_config.ini.php` の `openrouter_api_key`）で
 実際に API を呼び出し、固定した日本語コメントの期待判定と JSON 応答を確認します。
-既定ではコメント審査に設定されたモデル（標準では Gemma 3 12B）を確認します。
+既定ではコメント審査に設定されたモデル（標準では Jev Latest）を確認します。
 `OPENROUTER_MODELS=google/gemini-3.1-flash-lite,google/gemma-3-12b-it just test-openrouter`
 のように、任意のモデルをカンマ区切りで比較できます。
 通信に失敗した場合、または期待判定と異なる場合は終了コード 1 を返します。

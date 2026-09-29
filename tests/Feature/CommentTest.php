@@ -497,7 +497,7 @@ test('自動審査バッチ処理 - キャッシュ機能の動作検証', funct
     
     // テスト用のダミーの審査結果をキャッシュテーブルに事前に手動でインサートしておく
     // これにより、APIが呼ばれずにキャッシュから'approved'になるはず
-    $body_hash = hash('sha256', trim('同一のコメント本文'));
+    $body_hash = hash('sha256', $n3s_config['comment_audit_model'] . "\n" . trim('同一のコメント本文'));
     db_exec(
         "INSERT INTO comment_audit_cache (body_hash, result, reason, ctime) VALUES (?, 'approved', 'Test Cache', ?)",
         [$body_hash, $now],
@@ -516,6 +516,27 @@ test('自動審査バッチ処理 - キャッシュ機能の動作検証', funct
     $comment2 = db_get1("SELECT status FROM comments WHERE comment_id = ?", [$c2], 'main');
     expect($comment1['status'])->toBe('approved');
     expect($comment2['status'])->toBe('approved');
+});
+
+test('Gemma の既存キャッシュを Jev の判定に流用しない', function () {
+    global $n3s_config;
+    $n3s_config['openrouter_api_key'] = 'trigger-ng';
+    $n3s_config['comment_audit_model'] = '~typesafe/jev-latest';
+    $n3s_config['comment_audit_auto_approve'] = false;
+    db_insert("INSERT INTO comments (user_id, app_id, body, status, ctime) VALUES (1, 1, '切替前の本文', 'pending', ?)", [time()], 'main');
+    db_exec(
+        "INSERT INTO comment_audit_cache (body_hash, result, ctime) VALUES (?, 'approved', ?)",
+        [hash('sha256', trim('切替前の本文')), time()],
+        'main'
+    );
+
+    n3s_test_capture(function () { include N3S_TEST_ROOT . '/scripts/comment_audit.php'; });
+
+    $comment = db_get1("SELECT status FROM comments WHERE body = '切替前の本文'", [], 'main');
+    expect($comment['status'])->toBe('ng');
+    $new_hash = hash('sha256', $n3s_config['comment_audit_model'] . "\n" . trim('切替前の本文'));
+    $cache = db_get1('SELECT result FROM comment_audit_cache WHERE body_hash = ?', [$new_hash], 'main');
+    expect($cache['result'])->toBe('ng');
 });
 
 test('不承認（ng）ステータスのコメント一覧取得時の本文マスク処理', function () {

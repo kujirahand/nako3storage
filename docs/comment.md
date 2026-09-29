@@ -35,7 +35,7 @@
 - `UNIQUE(user_id, comment_id)` 制約による二重いいねの防止
 
 #### 3. `comment_audit_cache` テーブル (OpenRouter API 料金節約用キャッシュ)
-- `body_hash`: TEXT PRIMARY KEY (コメント本文の SHA-256 ハッシュ値)
+- `body_hash`: TEXT PRIMARY KEY (モデルID・改行・前後空白を除いたコメント本文の SHA-256 ハッシュ値)
 - `result`: TEXT DEFAULT '' (判定結果: `approved` / `ng`)
 - `reason`: TEXT DEFAULT '' (判定理由)
 - `ctime`: INTEGER (キャッシュ作成タイム)
@@ -71,7 +71,7 @@
 - **実行コマンド**: `just comment-audit`（内部で `php scripts/comment_audit.php` を実行）
 - **審査仕様**:
   - `status = 'pending'` のコメントを取得し、OpenRouter API を使って誹謗中傷やスパムなどを審査します。
-  - **モデル**: 既定値は `google/gemma-3-12b-it`。`comment_audit_model` で変更できます。
+  - **モデル**: 既定値は `~typesafe/jev-latest`。Jev は OpenRouter Decisions API の選択結果で判定します。`comment_audit_model` に Gemma などを指定した場合は従来の Chat Completions API を使います。
   - **タイムアウト設定**: API 呼び出しの curl 接続に、**接続タイムアウト（10秒）** と **実行全体タイムアウト（30秒）** を設定し、API サーバー無応答時に cron 実行がハングアップするのを防ぎます。
   - **バージョン互換解放**: PHP 8.0 未満の古い環境でのみ明示的に `curl_close()` を呼ぶように制御し、PHP 8.5 以降での Deprecated 警告を回避しつつ、旧 PHP バージョンでも確実に curl リソースを解放します。
   - **一時的エラー発生時の保留**: APIサーバーからモデル終了等のエラーレスポンス（code: 404など）や通信エラーが返ってきた場合は、そのコメントを「不承認」にするのではなく、ステータスを `pending` のまま維持して処理を保留します。
@@ -82,7 +82,7 @@ AI審査でNGとなった回数をユーザーIDごとに数え、3回目から�
 
 ### 4. API料金節約用キャッシュ
 自動審査バッチが OpenRouter API を呼び出す際、同一のコメント本文が再度投稿された場合にAPI料金を浪費しないよう、審査結果を `comment_audit_cache` にキャッシュします。
-2回目以降の同一本文の判定は、APIを呼び出すことなくキャッシュ結果が即時に適用されます（APIキー未設定時の自動承認時はキャッシュされません）。
+2回目以降の同一モデル・同一本文の判定は、APIを呼び出すことなくキャッシュ結果が即時に適用されます（APIキー未設定時の自動承認時はキャッシュされません）。モデル切り替え前のキャッシュは新モデルの判定に使いません。
 
 ### 5. 審査中・不承認コメントのマスク処理
 - **審査中 (`pending`)**: スレッド構造維持のために一覧には返されますが、APIサーバー側で本文を `(現在内容を審査中…)` に上書きして配信します。
