@@ -1664,7 +1664,8 @@ function n3s_nako3_comment_text($line)
         return null;
     }
     if (preg_match('/^(#+|\/{2,})\s*(.*)$/u', $t, $m)) {
-        return trim($m[2]);
+        // "#-----" "//=====" のような区切り用の罫線は説明に含めない
+        return trim(preg_replace('/[-=＝─━ー*＊#]{4,}/u', '', $m[2]));
     }
     return null;
 }
