@@ -49,6 +49,11 @@ function n3s_web_upload()
         n3s_error('アップロードできません', "<a href='$loginurl'>先にログインしてください。</a>", true);
         return;
     }
+    // 一時停止中
+    if (n3s_upload_is_stopped()) {
+        n3s_upload_stopped_error();
+        return;
+    }
     // アップロードフォームを表示
     n3s_template_fw('upload.html', [
         "edit_token" => n3s_getEditToken(),
@@ -62,9 +67,25 @@ function n3s_web_upload()
     ]);
 }
 
+// アップロードが一時停止中か (#282)
+function n3s_upload_is_stopped()
+{
+    return !n3s_get_config('upload.allow', TRUE);
+}
+
+function n3s_upload_stopped_error()
+{
+    n3s_error('アップロードできません', '現在メンテナンスをしており、素材のアップロードを停止しています');
+}
+
 function go_upload()
 {
     global $supported_type;
+    // 一時停止中
+    if (n3s_upload_is_stopped()) {
+        n3s_upload_stopped_error();
+        return;
+    }
     // システムをチェック
     $dir_images = n3s_get_config('dir_images', '');
     if (!$dir_images) {

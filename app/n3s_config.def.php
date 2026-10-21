@@ -34,6 +34,7 @@ $n3s_config = [
     "size_source_max" => 1024 * 1024 * 3, // 最大保存サイズ3MB
     "size_field_max" => 1024 * 3,        // 最大フィールドサイズ3KB
     "size_upload_max" => 1024 * 1024 * 7, // 最大アップロードサイズ
+    "upload.allow" => TRUE,               // FALSEにすると素材のアップロードを一時停止する (#282)
     "cover_width" => 600,                 // 扉絵の幅
     "cover_height" => 240,                // 扉絵の高さ
     "cover_default_url" => "https://n3s.nadesi.com/image.php?f=721.png", // 扉絵なしの画像
