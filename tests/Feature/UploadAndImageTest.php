@@ -13,6 +13,57 @@ test('未ログイン状態でのアップロードアクセスはエラー画�
         ->and($out)->toContain('先にログインしてください');
 });
 
+test('upload.allow が false のときアップロードフォームを表示しない', function () {
+    n3s_add_user('stopped-form@example.com', 'password', '停止確認ユーザー');
+    n3s_web_login_execute('stopped-form@example.com', 'password');
+    n3s_set_config('upload.allow', FALSE);
+    $_GET['mode'] = '';
+
+    $out = n3s_test_capture(fn() => n3s_web_upload());
+
+    expect($out)->toContain('現在メンテナンスをしており、素材のアップロードを停止しています')
+        ->and($out)->not->toContain('n3s-upload-form');
+});
+
+test('upload.allow が false のとき mode=go のアップロードを拒否する', function () {
+    n3s_add_user('stopped-post@example.com', 'password', '停止POST確認ユーザー');
+    n3s_web_login_execute('stopped-post@example.com', 'password');
+    n3s_set_config('upload.allow', FALSE);
+    $_GET['mode'] = 'go';
+    $_POST['copyright'] = 'ok';
+    $_POST['copyright_type'] = 'CC0';
+    $_POST['title'] = '停止中の素材';
+    $_REQUEST['edit_token'] = n3s_getEditToken();
+
+    $out = n3s_test_capture(fn() => n3s_web_upload());
+    $count = db_get1('SELECT count(*) FROM images', []);
+
+    expect($out)->toContain('現在メンテナンスをしており、素材のアップロードを停止しています')
+        ->and($count['count(*)'])->toEqual(0);
+});
+
+test('upload.allow が false でも既存素材の表示・一覧・更新・削除は停止判定の対象外', function () {
+    n3s_set_config('upload.allow', FALSE);
+
+    $cases = [
+        ['mode' => 'show', 'expected' => 'ファイルがありません'],
+        ['mode' => 'list', 'expected' => 'MATERIALS'],
+        ['mode' => 'update', 'expected' => '更新できません'],
+        ['mode' => 'delete', 'expected' => '削除できません'],
+    ];
+
+    foreach ($cases as $case) {
+        $_GET = ['mode' => $case['mode'], 'image_id' => 0];
+        $_POST = [];
+        $_REQUEST = [];
+
+        $out = n3s_test_capture(fn() => n3s_web_upload());
+
+        expect($out)->toContain($case['expected'])
+            ->and($out)->not->toContain('素材のアップロードを停止しています');
+    }
+});
+
 test('ログイン中であっても著作権に同意していない場合はアップロードが拒否される', function () {
     // 1. ユーザーログイン
     n3s_add_user('uploader@example.com', 'password', 'アップローダー');
