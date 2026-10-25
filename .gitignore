@@ -12,11 +12,13 @@ app/vendor/*
 cache/*
 cache-cdn/*
 book/*
-images/
+images/*
 .claude/
 
 # images/.htaccess はアップロードファイルへの直接アクセスを禁止する保護ファイルのため、
 # images/* の除外対象から外して必ず追跡・配布する (todo-security.md #3)
+# ※ "images/" (ディレクトリ自体の除外) では中のファイルを再包含できないため
+#    "images/*" にしてこの例外を効かせる (#284)
 !images/.htaccess
 
 # mac

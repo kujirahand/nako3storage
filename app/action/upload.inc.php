@@ -67,11 +67,8 @@ function n3s_web_upload()
     ]);
 }
 
-// アップロードが一時停止中か (#282)
-function n3s_upload_is_stopped()
-{
-    return !n3s_get_config('upload.allow', TRUE);
-}
+// (n3s_upload_is_stopped() は app/n3s_lib.inc.php 側に移動した。他の
+// アップロード経路からも参照するため, #284)
 
 function n3s_upload_stopped_error()
 {
@@ -176,6 +173,13 @@ function go_upload()
         $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
         if ($ext == '' || $ext == ".") {
             n3s_error('アップロード失敗', "ファイル名を指定するときは、ファイルの拡張子が必要です。");
+            return;
+        }
+        // 拡張子はアップロード元ファイルと同じ許可リストで制限する。
+        // ここを通らないと image_name=evil.php のように指定できてしまい、
+        // 実ファイルが <image_id>.php として保存されてしまう (#284)
+        if (!preg_match("/^({$supported_type})$/", $ext)) {
+            n3s_error('アップロード失敗', "その拡張子は使えません。 (" . $supported_type . ")");
             return;
         }
         // 既に、app_idとimage_nameの組み合わせがある場合はエラー

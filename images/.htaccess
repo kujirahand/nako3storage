@@ -1,0 +1,19 @@
+# アップロードされた実ファイルへの直接アクセスを禁止するための保護ファイル。
+# 実ファイル (例: 123.png) へ直接アクセスすると、SVG/HTML などが
+# 本体サイトと同じオリジンで配信されてしまうため、必ず image.php を経由させる。
+# ただし、素材のショートカットURL /images/<app_id>-<image_name> は
+# image.php への内部リライトで処理する (ルートの .htaccess に同等の
+# リダイレクト規則もあるが、images/ 単体でも完結するようにここにも置く)。
+# このファイルは .gitignore の例外指定 (!images/.htaccess) で必ず
+# リポジトリに含めること。欠けると新規デプロイ先で保護が効かなくなる (#284)。
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# ショートカット: /images/<app_id>-<image_name> → image.php で配信
+RewriteRule ^([0-9]+)-(.+)$ ../image.php?image_name=$2&app_id=$1 [L,QSA]
+# それ以外の実ファイルへの直接アクセスはすべて禁止
+RewriteRule ^ - [F,L]
+</IfModule>
+<IfModule !mod_rewrite.c>
+Order allow,deny
+Deny from all
+</IfModule>
