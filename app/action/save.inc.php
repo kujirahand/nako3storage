@@ -645,9 +645,17 @@ function n3s_check_custom_head(&$a, &$err)
         $a['custom_head'] = '';
         return true;
     }
-    // HTMLコメントはそのまま許可する
+    // HTMLコメントはそのまま許可する。ただしコメント本文にタグ区切りが
+    // 含まれると、ブラウザのコメント終了規則 (--!> での早期終了など) により
+    // コメントの外へマークアップが漏れ出すため、そのようなコメントは許可しない
     $comment = '';
     if (preg_match_all('|<!--(.*?)-->|s', $head, $m)) {
+        foreach ($m[1] as $inner) {
+            if (preg_match('/<|>|--/', $inner)) {
+                $err = 'HTMLコメントにタグや「--」を含めることはできません。';
+                return false;
+            }
+        }
         $comment = trim(implode("\n", $m[0])) . "\n";
     }
     // スクリプトタグの一覧を得る

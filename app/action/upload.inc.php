@@ -182,6 +182,9 @@ function go_upload()
             n3s_error('アップロード失敗', "その拡張子は使えません。 (" . $supported_type . ")");
             return;
         }
+        // 以降の処理 (DB の filename 生成など) に合わせ、ドット付きに統一する。
+        // ドットがないと filename が "<image_id>png" のようになってしまう
+        $ext = '.' . $ext;
         // 既に、app_idとimage_nameの組み合わせがある場合はエラー
         if ($image_name != '') {
             $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);

@@ -148,7 +148,7 @@
         {{ if $bookmark }}お気に入りを解除{{ else }}お気に入りに追加{{ endif }}
       </button>
       {{endif}}
-      <a class="n3s-show-fav-count" href="index.php?action=fav&amp;page={{$app_id}}&amp;m=who"><span id="fav">{{ $fav | star }}</span></a>
+      <a class="n3s-show-fav-count" href="index.php?action=fav&amp;page={{$app_id}}&amp;m=who{{e: echo empty($_GET['editkey']) ? '' : '&amp;editkey=' . urlencode((string) $_GET['editkey']); }}"><span id="fav">{{ $fav | star }}</span></a>
       {{ if !n3s_is_login() }}
       {{e: $backurl = urlencode("index.php?action=show&page={$app_id}#fav"); }}
       <span class="n3s-show-login-note"><a href="index.php?action=login&amp;back={{ $backurl }}">ログイン</a>するとお気に入りに追加できます。</span>

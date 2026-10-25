@@ -199,9 +199,13 @@ function setupEditorSize() {
 const fav_button = document.getElementById('fav_button')
 if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
+  // 限定公開作品では閲覧キー (editkey) を引き継がないと、
+  // サーバー側の公開範囲判定で fav の表示・登録ができない
+  const fav_editkey = (typeof window.n3s_editkey !== 'undefined' && window.n3s_editkey)
+    ? '&editkey=' + encodeURIComponent(window.n3s_editkey) : ''
   fav_button.onclick = function () {
     fav_button.disabled = true
-    ajaxPost('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
+    ajaxPost('api.php?page=' + app_id + '&action=fav&q=up' + fav_editkey, function(txt, r){
       fav_button.disabled = false
       // 応答はJSON形式 {result, fav, bookmark, msg}
       let res = null
@@ -227,7 +231,7 @@ if (fav_button) { // fav_button が非表示になることがある
   }
   // favの値を取得する --- 現在不使用
   function getFavCount(){
-    ajax('api.php?page=' + app_id + '&action=fav', function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav' + fav_editkey, function(txt, r){
       fav.innerHTML = txt
     })
   }
