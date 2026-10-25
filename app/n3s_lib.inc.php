@@ -1007,6 +1007,11 @@ function n3s_add_user($email, $password, $name)
 // ログイン成功確定時のセッション設定 (パスワードログイン・Googleログイン共通)
 function n3s_login_session_start($user)
 {
+    // セッション固定攻撃への対策: ログイン(権限昇格)の時点でセッションIDを
+    // 再生成し、ログイン前に使われていたIDを無効化する (#284)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_regenerate_id(true);
+    }
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['name'] = $user['name'];
@@ -1348,6 +1353,14 @@ function n3s_getBackURL()
 }
 
 /// 画像ファイルのフォルダを返す
+// アップロードが一時停止中か (#282)。
+// 素材アップロードだけでなく、扉絵・プロフィール画像の経路からも参照するため
+// ライブラリ側に置く (#284)。
+function n3s_upload_is_stopped()
+{
+    return !n3s_get_config('upload.allow', TRUE);
+}
+
 function n3s_getImageDir($id)
 {
     $dir_images = n3s_get_config('dir_images', '');
@@ -2037,6 +2050,22 @@ function n3s_nadesiko3hub_get_savefile($app_id)
     return $nadesiko3hub_dir . '/' . $dirname . '/' . $app_id . '.nako3';
 }
 
+// nadesiko3hubへ出力済みのファイルを削除する (作品の削除・退会時に使う)。
+// 実際にファイルを削除した場合は true を返す。
+function n3s_nadesiko3hub_delete($app_id)
+{
+    $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
+    $savefile = n3s_nadesiko3hub_get_savefile($app_id);
+    if (!$nadesiko3hub_enabled || $savefile == '') {
+        return false;
+    }
+    if (file_exists($savefile)) {
+        unlink($savefile);
+        return true;
+    }
+    return false;
+}
+
 // nadesiko3hubへの保存を行う。実際に .nako3 ファイルを書き出した場合のみ true を返す
 // (無効化・出力先未設定・スキップ・非公開・本文なし・ライセンス未指定などで
 // 書き出さなかった場合は false)。
@@ -2063,16 +2092,20 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
     if (!file_exists($savedir)) {
         @mkdir($savedir);
     }
-    // 非公開であれば保存しない(また非公開にされたり、著作権を自分用にされたら削除)
-    if ($data['is_private'] == 1 || $body == '' || $copyright == '') {
+    // 公開(is_private=0)でなければ保存しない(また非公開・限定公開にされたり、
+    // 著作権を自分用にされたら削除)。限定公開(2)は editkey を知る人だけが
+    // 閲覧できる前提なので、公開リポジトリである nadesiko3hub へ出してはならない。
+    if (intval(isset($data['is_private']) ? $data['is_private'] : 0) !== 0 || $body == '' || $copyright == '') {
         if (file_exists($savefile)) {
             unlink($savefile);
         }
         return false;
     }
-    // メタ情報を追加
-    $memo = empty($data['memo']) ? '' : $data['memo'];
-    $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
+    // メタ情報を追加 (各項目は1行形式なので改行コードを削除する)
+    $meta_line = function ($v) {
+        return preg_replace('#[\r\n]#', '', (string) $v);
+    };
+    $memo = $meta_line(empty($data['memo']) ? '' : $data['memo']);
     // mtime
     if (empty($data['mtime'])) {
         $data['mtime'] = $data['ctime'];
@@ -2081,14 +2114,14 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
     //
     $meta  = "### [作品情報]\n";
     $meta .= "### 掲載URL=https://n3s.nadesi.com/id.php?{$app_id}\n";
-    $meta .= "### タイトル={$data['title']}\n";
-    $meta .= "### 作者={$data['author']}(user_id={$data['user_id']})\n";
-    $meta .= "### ライセンス={$data['copyright']}\n";
+    $meta .= "### タイトル=" . $meta_line(isset($data['title']) ? $data['title'] : '') . "\n";
+    $meta .= "### 作者=" . $meta_line(isset($data['author']) ? $data['author'] : '') . "(user_id={$data['user_id']})\n";
+    $meta .= "### ライセンス=" . $meta_line($data['copyright']) . "\n";
     $meta .= "### 説明={$memo}\n";
-    $meta .= "### 対象バージョン={$data['version']}\n";
-    $meta .= "### URL={$data['url']}\n";
-    $meta .= "### 種類={$data['nakotype']}\n";
-    $meta .= "### タグ={$data['tag']}\n";
+    $meta .= "### 対象バージョン=" . $meta_line(isset($data['version']) ? $data['version'] : '') . "\n";
+    $meta .= "### URL=" . $meta_line(isset($data['url']) ? $data['url'] : '') . "\n";
+    $meta .= "### 種類=" . $meta_line(isset($data['nakotype']) ? $data['nakotype'] : '') . "\n";
+    $meta .= "### タグ=" . $meta_line(isset($data['tag']) ? $data['tag'] : '') . "\n";
     $meta .= "### 更新日時={$mtime}\n";
     $meta .= "###\n\n";
     // 保存
