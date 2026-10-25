@@ -1,4 +1,9 @@
 <?php
+// CLIからの実行専用 (Web経由で未認証に実行できないようにする, #284)
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden: command line only.');
+}
 // ========================================================
 // nako3storage scripts/nadesiko3hub_sync.php
 // nadesiko3hubへの投稿取りこぼし補完バッチ (Issue #270)
