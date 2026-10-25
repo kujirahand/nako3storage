@@ -11,6 +11,11 @@
 //  - アップロード時の image_name 拡張子が許可リストで制限されること
 //  - 作品削除時の関連データ (コメント/ブックマーク/素材/astorage/hub) の削除
 //  - CLIバッチの Web 実行ガード、show画面の editkey 出力エスケープ (ソース確認)
+//  - Google トークン交換フック (_google_http_post) の GET 注入対策
+//  - 素材削除時のサムネイル削除、GD の画素数上限
+//  - アップロード時の app_id 所有者確認
+//  - fav の公開範囲判定とマイページお気に入り一覧の絞り込み
+//  - 共通セキュリティヘッダ (X-Frame-Options / nosniff)
 
 declare(strict_types=1);
 
@@ -338,4 +343,249 @@ test('images/.htaccess がリポジトリに含まれ、実ファイルを保護
     $src = file_get_contents($path);
     expect($src)->toContain('image.php')
         ->and($src)->toContain('[F,L]');
+});
+
+// ------------------------------------------------
+// Google トークン交換フックの GET 注入対策
+// ------------------------------------------------
+
+test('Google: _google_http_post は既定設定に定義され、GETで差し替えできない', function () {
+    global $n3s_config;
+    // 未定義キーだと n3s_config_merge_get() が GET を取り込んでしまうため、
+    // 既定設定 (n3s_config.def.php) にキー自体が定義されていることが対策になる
+    expect($n3s_config)->toHaveKey('_google_http_post')
+        ->and($n3s_config['_google_http_post'])->toBeNull();
+    $merged = n3s_config_merge_get($n3s_config, ['_google_http_post' => 'phpinfo']);
+    expect($merged['_google_http_post'])->toBeNull();
+});
+
+test('Google: 文字列callableでは http_post フックが実行されない', function () {
+    // 万一キーが差し替えられても、GET 由来の文字列 callable は実行されない
+    // (フックとして有効なのは Closure のみ)。接続拒否になるURLで、
+    // フックが無視されて通常経路 (失敗して false) へ進むことも確認する。
+    n3s_set_config('_google_http_post', 'phpinfo');
+    $ret = null;
+    $out = n3s_test_capture(function () use (&$ret) {
+        $ret = n3s_google_http_post('https://127.0.0.1:1/token', []);
+    });
+    expect($ret)->toBeFalse()
+        ->and($out)->not->toContain('PHP Version');
+});
+
+// ------------------------------------------------
+// 素材削除時のサムネイル削除
+// ------------------------------------------------
+
+test('素材を削除すると32pxサムネイルも削除される', function () {
+    global $n3s_config;
+    $owner = (int) n3s_add_user('thumb@example.com', 'password123', 'サムネイル');
+    $n3s_config['dir_images'] = N3S_TEST_TMP . '/thumb_images';
+    $token = 'tokentest1234567';
+    $image_id = (int) db_insert(
+        'INSERT INTO images (title, user_id, app_id, image_name, filename, token, copyright, ctime, mtime) VALUES (?,?,?,?,?,?,?,?,?)',
+        ['プロフィール画像', $owner, 0, '', '', $token, 'SELF', time(), time()]
+    );
+    db_exec('UPDATE images SET filename=? WHERE image_id=?', ["{$image_id}.jpg", $image_id]);
+    $main = n3s_getImageFile($image_id, '.jpg', true, $token);
+    file_put_contents($main, 'JPG');
+    $thumb = n3s_getImageThumbnailFile($image_id, 32, true, $token);
+    file_put_contents($thumb, 'THUMB');
+    expect(file_exists($main))->toBeTrue()
+        ->and(file_exists($thumb))->toBeTrue();
+
+    n3s_delete_image_record_and_file($image_id);
+
+    expect(db_get1('SELECT * FROM images WHERE image_id=?', [$image_id]))->toBeFalsy()
+        ->and(file_exists($main))->toBeFalse()
+        ->and(file_exists($thumb))->toBeFalse();
+});
+
+// ------------------------------------------------
+// GD の画素数上限
+// ------------------------------------------------
+
+test('GD: 画素数が上限を超える画像は展開前に拒否される', function () {
+    // 小さいPNGの IHDR だけを書き換え、巨大な寸法を宣言した画像を作る
+    $src = N3S_TEST_TMP . '/huge284.png';
+    $img = imagecreatetruecolor(16, 16);
+    imagepng($img, $src);
+    imagedestroy($img);
+    $bin = file_get_contents($src);
+    // PNG の IHDR では幅がオフセット16、高さが20 (ビッグエンディアン)
+    $bin = substr_replace($bin, pack('N', 20000), 16, 4);
+    $bin = substr_replace($bin, pack('N', 20000), 20, 4);
+    file_put_contents($src, $bin);
+    $info = getimagesize($src);
+    expect($info[0])->toBe(20000)->and($info[1])->toBe(20000);
+
+    $msg = '';
+    try {
+        n3s_gd_resize_center_crop($src, N3S_TEST_TMP . '/huge284_out.jpg', 32, 32, 'テスト画像');
+    } catch (Exception $e) {
+        $msg = $e->getMessage();
+    }
+    expect($msg)->toContain('画素数が大きすぎます');
+});
+
+test('GD: 通常サイズの画像はリサイズできる', function () {
+    $src = N3S_TEST_TMP . '/normal284.png';
+    $img = imagecreatetruecolor(120, 80);
+    imagepng($img, $src);
+    imagedestroy($img);
+    $dest = N3S_TEST_TMP . '/normal284_out.jpg';
+    n3s_gd_resize_center_crop($src, $dest, 32, 32, 'テスト画像');
+    expect(file_exists($dest))->toBeTrue();
+});
+
+// ------------------------------------------------
+// アップロード: app_id の所有者確認
+// ------------------------------------------------
+
+function _sec284_upload_post(int $app_id): void
+{
+    $_GET['mode'] = 'go';
+    $_POST = [
+        'copyright' => 'ok', 'copyright_type' => 'CC0', 'title' => '素材',
+        'image_name' => 'mat.png', 'app_id' => $app_id,
+    ];
+    $_REQUEST = ['edit_token' => n3s_getEditToken()];
+    $_FILES['userfile'] = [
+        'name' => 'mat.png', 'type' => 'image/png',
+        'tmp_name' => '/tmp/nonexistent_file_284', 'error' => 0, 'size' => 100,
+    ];
+}
+
+test('アップロード: 他人のアプリには素材を紐付けできない', function () {
+    global $n3s_config;
+    $owner = (int) n3s_add_user('up-owner@example.com', 'password123', '作者');
+    n3s_add_user('up-other@example.com', 'password123', '他人');
+    $app_id = _sec284_insert_app($owner);
+    n3s_web_login_execute('up-other@example.com', 'password123');
+    $n3s_config['dir_images'] = N3S_TEST_TMP . '/test_images_284b';
+    if (!is_dir($n3s_config['dir_images'])) {
+        mkdir($n3s_config['dir_images'], 0777, true);
+    }
+    _sec284_upload_post($app_id);
+    $out = n3s_test_capture(fn () => n3s_web_upload());
+    expect($out)->toContain('他のユーザーのアプリには');
+    $count = db_get1('SELECT count(*) AS c FROM images', []);
+    expect(intval($count['c']))->toBe(0);
+});
+
+test('アップロード: 存在しないアプリには素材を紐付けできない', function () {
+    global $n3s_config;
+    n3s_add_user('up-ghost@example.com', 'password123', '投稿者');
+    n3s_web_login_execute('up-ghost@example.com', 'password123');
+    $n3s_config['dir_images'] = N3S_TEST_TMP . '/test_images_284b';
+    if (!is_dir($n3s_config['dir_images'])) {
+        mkdir($n3s_config['dir_images'], 0777, true);
+    }
+    _sec284_upload_post(999999);
+    $out = n3s_test_capture(fn () => n3s_web_upload());
+    expect($out)->toContain('指定されたアプリが見つかりません');
+    $count = db_get1('SELECT count(*) AS c FROM images', []);
+    expect(intval($count['c']))->toBe(0);
+});
+
+test('アップロード: 自分のアプリであれば所有者確認を通過する', function () {
+    global $n3s_config;
+    $owner = (int) n3s_add_user('up-self@example.com', 'password123', '作者');
+    $app_id = _sec284_insert_app($owner);
+    n3s_web_login_execute('up-self@example.com', 'password123');
+    $n3s_config['dir_images'] = N3S_TEST_TMP . '/test_images_284b';
+    if (!is_dir($n3s_config['dir_images'])) {
+        mkdir($n3s_config['dir_images'], 0777, true);
+    }
+    // 実ファイルを用意しておく (move_uploaded_file 自体はテスト環境では
+    // 失敗するが、所有者確認を通過して保存段階まで進むことを確認する)
+    $tmp = N3S_TEST_TMP . '/up_self_src.png';
+    file_put_contents($tmp, 'PNG');
+    _sec284_upload_post($app_id);
+    $_FILES['userfile']['tmp_name'] = $tmp;
+    $out = n3s_test_capture(fn () => n3s_web_upload());
+    expect($out)->not->toContain('他のユーザーのアプリには')
+        ->and($out)->toContain('サーバー側でファイルの保存に失敗しました');
+});
+
+// ------------------------------------------------
+// fav の公開範囲判定
+// ------------------------------------------------
+
+test('fav: 非公開作品は fav 数が表示されず、登録もできない', function () {
+    $owner = (int) n3s_add_user('favp-owner@example.com', 'password123', '作者');
+    n3s_add_user('favp-liker@example.com', 'password123', 'ファン');
+    $app_id = (int) db_insert(
+        'INSERT INTO apps (title, author, user_id, copyright, is_private, fav, ctime, mtime) VALUES (?,?,?,?,?,?,?,?)',
+        ['非公開作品', '作者', $owner, 'MIT', 1, 5, time(), time()]
+    );
+    n3s_web_login_execute('favp-liker@example.com', 'password123');
+
+    // view: DB上は fav=5 でも、閲覧権限がなければ 0 と表示される
+    $_GET = ['page' => (string) $app_id, 'q' => 'view'];
+    $_REQUEST = $_GET;
+    $out = n3s_test_capture(fn () => echo_fav());
+    expect($out)->toBe('0');
+
+    // up: POST + 正しいトークンでも登録できない
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST = ['page' => (string) $app_id, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    $_GET = $_REQUEST;
+    n3s_test_capture(fn () => echo_fav());
+    $r = db_get1('SELECT fav FROM apps WHERE app_id=?', [$app_id]);
+    expect(intval($r['fav']))->toBe(5);
+    expect(db_get1('SELECT * FROM bookmarks WHERE app_id=?', [$app_id]))->toBeFalsy();
+});
+
+test('fav: 限定公開作品は editkey が一致すれば登録できる', function () {
+    $owner = (int) n3s_add_user('favl-owner@example.com', 'password123', '作者');
+    n3s_add_user('favl-liker@example.com', 'password123', 'ファン');
+    $app_id = (int) db_insert(
+        'INSERT INTO apps (title, author, user_id, copyright, is_private, editkey, fav, ctime, mtime) VALUES (?,?,?,?,?,?,?,?,?)',
+        ['限定公開作品', '作者', $owner, 'MIT', 2, 'secretkey', 0, time(), time()]
+    );
+    n3s_web_login_execute('favl-liker@example.com', 'password123');
+
+    // キーなしでは登録できない
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST = ['page' => (string) $app_id, 'q' => 'up', 'edit_token' => n3s_getEditToken()];
+    $_GET = $_REQUEST;
+    n3s_test_capture(fn () => echo_fav());
+    $r = db_get1('SELECT fav FROM apps WHERE app_id=?', [$app_id]);
+    expect(intval($r['fav']))->toBe(0);
+
+    // キーが一致すれば登録できる
+    $_REQUEST = ['page' => (string) $app_id, 'q' => 'up', 'edit_token' => n3s_getEditToken(), 'editkey' => 'secretkey'];
+    $_GET = $_REQUEST;
+    n3s_test_capture(fn () => echo_fav());
+    $r = db_get1('SELECT fav FROM apps WHERE app_id=?', [$app_id]);
+    expect(intval($r['fav']))->toBe(1);
+});
+
+test('マイページのお気に入り一覧は閲覧できない作品を除外する (ソース確認)', function () {
+    $src = file_get_contents(N3S_TEST_ROOT . '/app/action/mypage.inc.php');
+    expect($src)->toContain("n3s_private_access_allowed(\$a, '')");
+});
+
+// ------------------------------------------------
+// 共通セキュリティヘッダ
+// ------------------------------------------------
+
+test('セキュリティヘッダ: 通常画面には X-Frame-Options が付き、widget系には付かない', function () {
+    $show = n3s_security_headers('show');
+    expect($show)->toContain('X-Frame-Options: SAMEORIGIN')
+        ->and($show)->toContain('X-Content-Type-Options: nosniff');
+    foreach (['widget', 'widget_frame'] as $a) {
+        $h = n3s_security_headers($a);
+        expect($h)->toContain('X-Content-Type-Options: nosniff');
+        foreach ($h as $line) {
+            expect($line)->not->toStartWith('X-Frame-Options');
+        }
+    }
+});
+
+test('セキュリティヘッダ: ディスパッチとJSON出力に組み込まれている (ソース確認)', function () {
+    $idx = file_get_contents(N3S_TEST_ROOT . '/app/index.inc.php');
+    expect($idx)->toContain('n3s_send_security_headers($action)');
+    $lib = file_get_contents(N3S_TEST_ROOT . '/app/n3s_lib.inc.php');
+    expect($lib)->toContain("header('X-Content-Type-Options: nosniff');");
 });
