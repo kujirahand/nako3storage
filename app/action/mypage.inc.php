@@ -334,6 +334,8 @@ function n3s_mypage_mode_del_account($user_id)
                 n3s_error('作品情報の削除に失敗しました', '', TRUE);
                 return;
             }
+            // nadesiko3hub へ出力済みのファイル(元の本文を含む)も削除する
+            n3s_nadesiko3hub_delete($app_id);
             n3s_log("- 作品削除($app_id)『{$app_title}』", "退会");
         }
         // お気に入り情報の削除
