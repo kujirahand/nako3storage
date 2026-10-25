@@ -201,7 +201,7 @@ if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
   fav_button.onclick = function () {
     fav_button.disabled = true
-    ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
+    ajaxPost('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
       fav_button.disabled = false
       // 応答はJSON形式 {result, fav, bookmark, msg}
       let res = null
@@ -242,7 +242,7 @@ if (bad_button) { //  非表示になることがあるので
     var b = confirm('本当に通報しますか？')
     if (!b) {return}
     bad_button.disabled = true
-    ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
+    ajaxPost('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
     })
     alert('ありがとうございました。通報しました。')
@@ -265,6 +265,22 @@ function ajax(url, callback) {
   }
   req.open('GET', url)
   req.send()
+}
+
+// 状態変更用 (お気に入り・通報)。edit_token を付けて POST する
+function ajaxPost(url, callback) {
+  const req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) { // 通信の完了時
+      if (req.status == 200) { // 通信の成功時
+        callback(req.responseText, req)
+      }
+    }
+  }
+  req.open('POST', url)
+  req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+  const token = (typeof window.n3s_edit_token !== 'undefined') ? window.n3s_edit_token : ''
+  req.send('edit_token=' + encodeURIComponent(token))
 }
 
 // check modified

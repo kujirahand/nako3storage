@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     html += `        <input type="hidden" name="edit_token" value="${window.n3s_edit_token}">`;
                     html += `        <input type="hidden" name="app_id" value="${appId}">`;
                     html += `        <input type="hidden" name="parent_id" value="${c.comment_id}">`;
-                    html += `        <input type="hidden" name="editkey" value="${editKey}">`;
+                    html += `        <input type="hidden" name="editkey" value="${escapeHTML(editKey)}">`;
                     html += `        <textarea name="body" rows="2" style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95em; margin-bottom: 8px; resize: vertical;" placeholder="返信を入力してください" required></textarea>`;
                     html += `        <div style="text-align: right;">`;
                     html += `          <button type="button" onclick="hideReplyForm(${c.comment_id})" class="pure-button" style="font-size: 0.85em; padding: 4px 10px; margin-right: 5px; background-color: #e0e0e0;">キャンセル</button>`;
