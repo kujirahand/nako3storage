@@ -778,7 +778,28 @@ function n3s_api_output($result, $data)
 {
     $data['result'] = $result;
     header('content-type: application/json; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
+}
+
+// 画面・API 共通のセキュリティヘッダを返す。
+// クリックジャッキング対策 (X-Frame-Options) と MIME スニッフィング対策。
+// ただし widget / widget_frame は他サイトへの iframe 埋め込みが前提の表示なので、
+// X-Frame-Options は付けない (#284)。
+function n3s_security_headers($action)
+{
+    $headers = ['X-Content-Type-Options: nosniff'];
+    if ($action !== 'widget' && $action !== 'widget_frame') {
+        $headers[] = 'X-Frame-Options: SAMEORIGIN';
+    }
+    return $headers;
+}
+
+function n3s_send_security_headers($action)
+{
+    foreach (n3s_security_headers($action) as $h) {
+        header($h);
+    }
 }
 
 // ローカル開発環境からのリクエストかどうかを判定する。
@@ -1007,6 +1028,11 @@ function n3s_add_user($email, $password, $name)
 // ログイン成功確定時のセッション設定 (パスワードログイン・Googleログイン共通)
 function n3s_login_session_start($user)
 {
+    // セッション固定攻撃への対策: ログイン(権限昇格)の時点でセッションIDを
+    // 再生成し、ログイン前に使われていたIDを無効化する (#284)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_regenerate_id(true);
+    }
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['name'] = $user['name'];
@@ -1103,12 +1129,13 @@ function n3s_google_get_auth_url($state)
 }
 
 // application/x-www-form-urlencoded なPOSTを行う(トークン交換専用)。
-// テストでは $n3s_config['_google_http_post'] にcallable(callable($url, $params): array|false)を
+// テストでは $n3s_config['_google_http_post'] に Closure (function($url, $params): array|false) を
 // 差し込むことで、実際のネットワーク呼び出しを行わずに検証できる。
+// 文字列などの callable は、GET パラメータ経由で注入され得るため受け付けない (#284)。
 function n3s_google_http_post($url, $params)
 {
     $override = n3s_get_config('_google_http_post', null);
-    if (is_callable($override)) {
+    if ($override instanceof Closure) {
         return call_user_func($override, $url, $params);
     }
     $ch = curl_init($url);
@@ -1348,6 +1375,14 @@ function n3s_getBackURL()
 }
 
 /// 画像ファイルのフォルダを返す
+// アップロードが一時停止中か (#282)。
+// 素材アップロードだけでなく、扉絵・プロフィール画像の経路からも参照するため
+// ライブラリ側に置く (#284)。
+function n3s_upload_is_stopped()
+{
+    return !n3s_get_config('upload.allow', TRUE);
+}
+
 function n3s_getImageDir($id)
 {
     $dir_images = n3s_get_config('dir_images', '');
@@ -1400,6 +1435,13 @@ function n3s_delete_image_record_and_file($image_id)
     if (file_exists($targetFile)) {
         @unlink($targetFile);
     }
+    // 表示用サムネイル (プロフィール画像で生成される) も一緒に消す。
+    // image.php は DB ではなくファイルの存在だけで配信するため、
+    // 残しておくと削除したはずの画像が引き続き取得できてしまう (#284)。
+    $thumbFile = n3s_getImageThumbnailFile($image_id, 32, false, isset($im['token']) ? $im['token'] : '');
+    if (file_exists($thumbFile)) {
+        @unlink($thumbFile);
+    }
 }
 
 function n3s_cover_image_type_supported($type)
@@ -1441,6 +1483,13 @@ function n3s_gd_resize_center_crop($srcPath, $destPath, $w, $h, $image_label)
     $type = intval($info[2]);
     if ($srcW <= 0 || $srcH <= 0 || !n3s_cover_image_type_supported($type)) {
         throw new Exception("{$image_label}は JPEG/PNG/GIF/WebP の画像を指定してください。");
+    }
+    // 画素数の上限を超える画像は受け付けない。ファイルサイズが小さくても
+    // 巨大な寸法を宣言できる画像 (デコンプレッション爆弾) を GD で展開すると
+    // メモリを枯渇させてしまうため、展開前に寸法で弾く (#284)。
+    // 出力は扉絵・プロフィール画像のサイズへ縮小されるため実用上の支障はない。
+    if ($srcW > 10000 || $srcH > 10000 || $srcW * $srcH > 50000000) {
+        throw new Exception("{$image_label}の画素数が大きすぎます。");
     }
     $src = n3s_gd_load_image($srcPath, $type);
     if (!$src) {
@@ -2037,6 +2086,22 @@ function n3s_nadesiko3hub_get_savefile($app_id)
     return $nadesiko3hub_dir . '/' . $dirname . '/' . $app_id . '.nako3';
 }
 
+// nadesiko3hubへ出力済みのファイルを削除する (作品の削除・退会時に使う)。
+// 実際にファイルを削除した場合は true を返す。
+function n3s_nadesiko3hub_delete($app_id)
+{
+    $nadesiko3hub_enabled = n3s_get_config('nadesiko3hub_enabled', FALSE);
+    $savefile = n3s_nadesiko3hub_get_savefile($app_id);
+    if (!$nadesiko3hub_enabled || $savefile == '') {
+        return false;
+    }
+    if (file_exists($savefile)) {
+        unlink($savefile);
+        return true;
+    }
+    return false;
+}
+
 // nadesiko3hubへの保存を行う。実際に .nako3 ファイルを書き出した場合のみ true を返す
 // (無効化・出力先未設定・スキップ・非公開・本文なし・ライセンス未指定などで
 // 書き出さなかった場合は false)。
@@ -2063,16 +2128,20 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
     if (!file_exists($savedir)) {
         @mkdir($savedir);
     }
-    // 非公開であれば保存しない(また非公開にされたり、著作権を自分用にされたら削除)
-    if ($data['is_private'] == 1 || $body == '' || $copyright == '') {
+    // 公開(is_private=0)でなければ保存しない(また非公開・限定公開にされたり、
+    // 著作権を自分用にされたら削除)。限定公開(2)は editkey を知る人だけが
+    // 閲覧できる前提なので、公開リポジトリである nadesiko3hub へ出してはならない。
+    if (intval(isset($data['is_private']) ? $data['is_private'] : 0) !== 0 || $body == '' || $copyright == '') {
         if (file_exists($savefile)) {
             unlink($savefile);
         }
         return false;
     }
-    // メタ情報を追加
-    $memo = empty($data['memo']) ? '' : $data['memo'];
-    $memo = preg_replace('#[\r|\n]#', '', $memo); // 改行コードを削除
+    // メタ情報を追加 (各項目は1行形式なので改行コードを削除する)
+    $meta_line = function ($v) {
+        return preg_replace('#[\r\n]#', '', (string) $v);
+    };
+    $memo = $meta_line(empty($data['memo']) ? '' : $data['memo']);
     // mtime
     if (empty($data['mtime'])) {
         $data['mtime'] = $data['ctime'];
@@ -2081,14 +2150,14 @@ function n3s_nadesiko3hub_save($app_id, $data, $skip_if_exists = false)
     //
     $meta  = "### [作品情報]\n";
     $meta .= "### 掲載URL=https://n3s.nadesi.com/id.php?{$app_id}\n";
-    $meta .= "### タイトル={$data['title']}\n";
-    $meta .= "### 作者={$data['author']}(user_id={$data['user_id']})\n";
-    $meta .= "### ライセンス={$data['copyright']}\n";
+    $meta .= "### タイトル=" . $meta_line(isset($data['title']) ? $data['title'] : '') . "\n";
+    $meta .= "### 作者=" . $meta_line(isset($data['author']) ? $data['author'] : '') . "(user_id={$data['user_id']})\n";
+    $meta .= "### ライセンス=" . $meta_line($data['copyright']) . "\n";
     $meta .= "### 説明={$memo}\n";
-    $meta .= "### 対象バージョン={$data['version']}\n";
-    $meta .= "### URL={$data['url']}\n";
-    $meta .= "### 種類={$data['nakotype']}\n";
-    $meta .= "### タグ={$data['tag']}\n";
+    $meta .= "### 対象バージョン=" . $meta_line(isset($data['version']) ? $data['version'] : '') . "\n";
+    $meta .= "### URL=" . $meta_line(isset($data['url']) ? $data['url'] : '') . "\n";
+    $meta .= "### 種類=" . $meta_line(isset($data['nakotype']) ? $data['nakotype'] : '') . "\n";
+    $meta .= "### タグ=" . $meta_line(isset($data['tag']) ? $data['tag'] : '') . "\n";
     $meta .= "### 更新日時={$mtime}\n";
     $meta .= "###\n\n";
     // 保存

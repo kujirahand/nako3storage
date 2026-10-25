@@ -37,7 +37,7 @@ function n3s_library_get()
     $offset = $page * MAX_APP;
     $list = db_get(
         'SELECT app_id,title,author,app_name,nakotype,memo,mtime,fav,user_id FROM apps ' .
-        ' WHERE (app_id > ?) AND (app_name != "") AND (is_private == 0)'.
+        ' WHERE (app_id > ?) AND (app_name != "") AND (is_private == 0) AND (show_list = 1)'.
         ' ORDER BY fav DESC LIMIT ? OFFSET ?',[$app_id, MAX_APP, $offset]);
     if (!$list) { $list = []; }
     foreach ($list as &$i) {

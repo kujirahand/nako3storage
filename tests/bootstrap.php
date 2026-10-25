@@ -54,7 +54,10 @@ function n3s_test_setup(array $config_overrides = []): string
     $n3s_config['google_oauth_client_id'] = '';
     $n3s_config['google_oauth_client_secret'] = '';
     $n3s_config['google_oauth_redirect_uri'] = '';
-    unset($n3s_config['_google_http_post']);
+    // フックの差し替えがテスト間に残らないよう、既定値 (null) へ戻す。
+    // キー自体は n3s_config.def.php で定義されていることが GET 注入対策に
+    // なるため、unset ではなく null で上書きする (#284)。
+    $n3s_config['_google_http_post'] = null;
     // 貯蔵庫API・ログインホスト制限 (#194, docs/api.md) もテスト間で汚染されないようリセットする
     $n3s_config['sandbox_url'] = '';
     $n3s_config['app_root_url'] = 'http://localhost/';

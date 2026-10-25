@@ -38,8 +38,10 @@ function echo_file()
     } elseif ($ext === '.js') {
         header('content-type: 	text/javascript; charset=utf8');
     } else {
+        // 判定できた MIME をそのまま使い、判定できない場合のみ汎用型にする
+        // (以前は条件が逆になっており、空の Content-Type が返る場合があった, #284)
         $mime = @mime_content_type($path);
-        if (! $mime) {
+        if ($mime) {
             header("content-type:$mime");
         } else {
             header('content-type:application/octet-stream');

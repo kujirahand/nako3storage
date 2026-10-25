@@ -67,11 +67,8 @@ function n3s_web_upload()
     ]);
 }
 
-// アップロードが一時停止中か (#282)
-function n3s_upload_is_stopped()
-{
-    return !n3s_get_config('upload.allow', TRUE);
-}
+// (n3s_upload_is_stopped() は app/n3s_lib.inc.php 側に移動した。他の
+// アップロード経路からも参照するため, #284)
 
 function n3s_upload_stopped_error()
 {
@@ -178,6 +175,16 @@ function go_upload()
             n3s_error('アップロード失敗', "ファイル名を指定するときは、ファイルの拡張子が必要です。");
             return;
         }
+        // 拡張子はアップロード元ファイルと同じ許可リストで制限する。
+        // ここを通らないと image_name=evil.php のように指定できてしまい、
+        // 実ファイルが <image_id>.php として保存されてしまう (#284)
+        if (!preg_match("/^({$supported_type})$/", $ext)) {
+            n3s_error('アップロード失敗', "その拡張子は使えません。 (" . $supported_type . ")");
+            return;
+        }
+        // 以降の処理 (DB の filename 生成など) に合わせ、ドット付きに統一する。
+        // ドットがないと filename が "<image_id>png" のようになってしまう
+        $ext = '.' . $ext;
         // 既に、app_idとimage_nameの組み合わせがある場合はエラー
         if ($image_name != '') {
             $exists = db_get1('SELECT image_id FROM images WHERE app_id=? AND image_name=? LIMIT 1', [$app_id, $image_name]);
@@ -193,6 +200,20 @@ function go_upload()
         }
     }
     $user_id = n3s_get_user_id();
+    // app_id が指定された場合は、その作品の所有者 (または管理者) のみが
+    // 素材を紐付けできる。他人の作品への紐付けや、image_name の先取りに
+    // よる正規アップロードの妨害を防ぐ (#284)。
+    if ($app_id > 0) {
+        $app = db_get1('SELECT user_id FROM apps WHERE app_id=? LIMIT 1', [$app_id]);
+        if (!$app) {
+            n3s_error('アップロード失敗', "指定されたアプリが見つかりません。");
+            return;
+        }
+        if (intval($app['user_id']) !== intval($user_id) && !n3s_is_admin()) {
+            n3s_error('アップロード失敗', "他のユーザーのアプリにはファイルをアップロードできません。");
+            return;
+        }
+    }
     // todo: MIME check
     // $mime = @mime_content_type($path);
     db_exec('begin');

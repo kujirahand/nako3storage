@@ -1,4 +1,9 @@
 <?php
+// CLIからの実行専用 (Web経由で未認証に実行できないようにする, #284)
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden: command line only.');
+}
 // ========================================================
 // nako3storage scripts/image_count.php
 // 素材(image.php)アクセスログの集計バッチ

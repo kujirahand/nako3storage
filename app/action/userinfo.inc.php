@@ -65,7 +65,10 @@ function n3s_web_userinfo()
             $has_upload = isset($_FILES['user_image']) &&
                 isset($_FILES['user_image']['error']) &&
                 intval($_FILES['user_image']['error']) !== UPLOAD_ERR_NO_FILE;
-            if ($has_upload) {
+            if ($has_upload && n3s_upload_is_stopped()) {
+                // アップロード一時停止中はプロフィール画像も受け付けない (#284)
+                $error = 'プロフィールは更新しましたが、現在メンテナンスをしており、画像のアップロードを停止しています。';
+            } elseif ($has_upload) {
                 try {
                     $image_id = n3s_save_user_image($user_id, $_FILES['user_image']);
                     $profile_user = [

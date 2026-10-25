@@ -174,12 +174,14 @@ function n3s_web_mypage()
     if ($bookmark_ids) {
         foreach ($bookmark_ids as $aid) {
             $a = db_get1(
-                'SELECT app_id, title, author FROM apps ' .
+                'SELECT app_id, title, author, user_id, is_private, editkey FROM apps ' .
                     'WHERE app_id=?',
                 [intval($aid['app_id'])]
             );
             // 作品が削除済みの場合は取得できないのでスキップする
             if (!$a) { continue; }
+            // 閲覧できない作品は、タイトル・作者も表示しない (#284)
+            if (!n3s_private_access_allowed($a, '')) { continue; }
             $bookmarks[] = $a;
         }
     }
@@ -334,6 +336,8 @@ function n3s_mypage_mode_del_account($user_id)
                 n3s_error('作品情報の削除に失敗しました', '', TRUE);
                 return;
             }
+            // nadesiko3hub へ出力済みのファイル(元の本文を含む)も削除する
+            n3s_nadesiko3hub_delete($app_id);
             n3s_log("- 作品削除($app_id)『{$app_title}』", "退会");
         }
         // お気に入り情報の削除

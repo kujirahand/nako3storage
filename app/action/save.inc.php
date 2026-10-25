@@ -322,6 +322,10 @@ function n3s_action_save_cover_after($app_id)
         throw new Exception('扉絵を設定するにはログインが必要です。');
     }
     if ($has_upload) {
+        // アップロード一時停止中は扉絵も受け付けない (#284)
+        if (n3s_upload_is_stopped()) {
+            throw new Exception('現在メンテナンスをしており、アップロードを停止しています。');
+        }
         n3s_save_cover_image($app_id, n3s_get_user_id(), $_FILES['cover_image']);
         return;
     }
@@ -347,6 +351,13 @@ function n3s_action_save_data_raw($data, $agent)
         exit;
     }
     $a['ip'] = $_SERVER['REMOTE_ADDR'];
+
+    // カスタムヘッダのチェック (scriptタグのみ許可する。許可できないものが
+    // 含まれていたら保存を拒否する)
+    $custom_head_error = '';
+    if (!n3s_check_custom_head($a, $custom_head_error)) {
+        throw new Exception('カスタムヘッダに指定したJavaScriptが許可されていません。' . $custom_head_error);
+    }
 
     // CSRF対策
     if (!n3s_checkEditToken()) {
@@ -395,7 +406,8 @@ function n3s_action_save_data_raw($data, $agent)
                 }
             } else {
                 // user_id = 0、つまりログインしていないユーザー
-                if ($b['editkey'] != $a['editkey']) {
+                // 認証キーの比較には定数時間比較を使う
+                if (!hash_equals((string) $b['editkey'], (string) $a['editkey'])) {
                     throw new Exception('編集キーが間違っています。');
                 }
             }
@@ -490,10 +502,41 @@ function n3s_action_save_delete($params)
     db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
     // 「動かない」報告者の記録も削除 (残すとapp_id再利用時に新作品を報告できなくなる #267)
     db_exec('DELETE FROM broken_reports WHERE app_id=?', [$app_id]);
+    // 関連データも削除する。残すと app_id 再利用時に新しい作品へ
+    // 旧作品のコメント・お気に入り・素材が付いてしまう (#284)
+    $comment_rows = db_get('SELECT comment_id FROM comments WHERE app_id=?', [$app_id]);
+    if ($comment_rows) {
+        $comment_ids = array_map(function ($r) {
+            return intval($r['comment_id']);
+        }, $comment_rows);
+        $in = implode(',', $comment_ids);
+        db_exec("DELETE FROM comment_likes WHERE comment_id IN ($in)", []);
+    }
+    db_exec('DELETE FROM comments WHERE app_id=?', [$app_id]);
+    db_exec('DELETE FROM bookmarks WHERE app_id=?', [$app_id]);
     db_commit();
+    // 素材(画像レコードと実ファイル)も削除する
+    $image_rows = db_get('SELECT image_id FROM images WHERE app_id=?', [$app_id]);
+    if ($image_rows) {
+        foreach ($image_rows as $im) {
+            n3s_delete_image_record_and_file(intval($im['image_id']));
+        }
+    }
     // 本文も削除 (残すとapp_id再利用時にmaterialsの主キー衝突が起きる)
     $dbname = n3s_getMaterialDB($app_id);
     db_exec('DELETE FROM materials WHERE material_id=?', [$app_id], $dbname);
+    // アプリ内ストレージ(app領域)のDBファイルも削除する
+    $dir_astorage = n3s_get_config('dir_astorage', '');
+    if ($dir_astorage !== '') {
+        $astorage_app_db = $dir_astorage . '/apps/app' . sprintf('%06d', $app_id) . '.sqlite3';
+        foreach (['', '-wal', '-shm', '-journal'] as $suffix) {
+            if (file_exists($astorage_app_db . $suffix)) {
+                @unlink($astorage_app_db . $suffix);
+            }
+        }
+    }
+    // nadesiko3hub へ出力済みのファイルも削除する
+    n3s_nadesiko3hub_delete($app_id);
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} を削除しました。",
@@ -583,4 +626,99 @@ function n3s_action_save_reset_broken($params)
 function randomStr($length = 8)
 {
     return substr(bin2hex(random_bytes($length)), 0, $length);
+}
+
+// カスタムヘッダ(custom_head)の検証と正規化。
+// custom_head は widget.html(サンドボックス側)だけでなく edit.html(本体オリジン)でも
+// エスケープなし(|raw)で出力されるため、任意のHTMLを保存できると本体オリジンの
+// 保存型XSSになる。そのため、許可するのは外部スクリプトを読み込む
+// <script src="..."> タグとHTMLコメントのみとし、タグは許可属性だけで再構築する。
+// (2021年に #29/#51 で導入した check_custom_head() が、DB分割(#80)の
+// リファクタリングで失われていたものを復元し、src のスキーム制限を追加した。)
+// 許可できない内容が含まれていれば false を返し、$err に理由を設定する。
+// 問題なければ $a['custom_head'] を再構築後の安全な値に置き換えて true を返す。
+function n3s_check_custom_head(&$a, &$err)
+{
+    $err = '';
+    $head = isset($a['custom_head']) && is_string($a['custom_head']) ? $a['custom_head'] : '';
+    if ($head === '') {
+        $a['custom_head'] = '';
+        return true;
+    }
+    // HTMLコメントはそのまま許可する。ただしコメント本文にタグ区切りが
+    // 含まれると、ブラウザのコメント終了規則 (--!> での早期終了など) により
+    // コメントの外へマークアップが漏れ出すため、そのようなコメントは許可しない
+    $comment = '';
+    if (preg_match_all('|<!--(.*?)-->|s', $head, $m)) {
+        foreach ($m[1] as $inner) {
+            if (preg_match('/<|>|--/', $inner)) {
+                $err = 'HTMLコメントにタグや「--」を含めることはできません。';
+                return false;
+            }
+        }
+        $comment = trim(implode("\n", $m[0])) . "\n";
+    }
+    // スクリプトタグの一覧を得る
+    if (!preg_match_all('|<script\s[^>]*>|i', $head, $m)) {
+        if ($comment === '') {
+            $err = '利用できるのは<script>タグのみです。';
+            return false;
+        }
+        $a['custom_head'] = $comment;
+        return true;
+    }
+    $scr_res = [];
+    foreach ($m[0] as $script) {
+        $script = str_replace("'", '"', $script);
+        if (!preg_match_all('|([a-zA-Z-]+)="([^"]*)"|', $script, $am)) {
+            continue;
+        }
+        $res = [];
+        foreach ($am[1] as $n => $key) {
+            $res[strtolower($key)] = $am[2][$n];
+        }
+        $src = isset($res['src']) ? trim($res['src']) : '';
+        if ($src === '') {
+            continue; // srcのないインラインスクリプトは許可しない
+        }
+        // src は http/https/プロトコル相対/相対パスのみ許可する
+        if (preg_match('/^([a-zA-Z][a-zA-Z0-9+.-]*):/', $src, $sm) &&
+            !in_array(strtolower($sm[1]), ['http', 'https'], true)) {
+            continue;
+        }
+        if (preg_match('/[\s"\'<>]/', $src)) {
+            continue;
+        }
+        $rr = [
+            'src' => $src,
+            'integrity' => isset($res['integrity']) ? $res['integrity'] : '',
+            'crossorigin' => isset($res['crossorigin']) ? $res['crossorigin'] : '',
+            '_sync' => '',
+        ];
+        if (preg_match('/\bdefer\b/i', $script)) {
+            $rr['_sync'] = 'defer';
+        } elseif (preg_match('/\basync\b/i', $script)) {
+            $rr['_sync'] = 'async';
+        }
+        $scr_res[] = $rr;
+    }
+    if (count($scr_res) === 0) {
+        $err = '利用できるのは外部ファイルを読み込む<script src="...">タグのみです。';
+        return false;
+    }
+    // タグを許可属性だけで再構築する
+    $script = '';
+    foreach ($scr_res as $r) {
+        $script .= '<script ' . ($r['_sync'] !== '' ? $r['_sync'] . ' ' : '') .
+            'src="' . htmlspecialchars($r['src'], ENT_QUOTES, 'UTF-8') . '"';
+        if ($r['integrity'] !== '') {
+            $script .= ' integrity="' . htmlspecialchars($r['integrity'], ENT_QUOTES, 'UTF-8') . '"';
+        }
+        if ($r['crossorigin'] !== '') {
+            $script .= ' crossorigin="' . htmlspecialchars($r['crossorigin'], ENT_QUOTES, 'UTF-8') . '"';
+        }
+        $script .= "></script>\n";
+    }
+    $a['custom_head'] = $comment . $script;
+    return true;
 }

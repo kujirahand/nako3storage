@@ -199,9 +199,13 @@ function setupEditorSize() {
 const fav_button = document.getElementById('fav_button')
 if (fav_button) { // fav_button が非表示になることがある
   const fav = document.getElementById('fav')
+  // 限定公開作品では閲覧キー (editkey) を引き継がないと、
+  // サーバー側の公開範囲判定で fav の表示・登録ができない
+  const fav_editkey = (typeof window.n3s_editkey !== 'undefined' && window.n3s_editkey)
+    ? '&editkey=' + encodeURIComponent(window.n3s_editkey) : ''
   fav_button.onclick = function () {
     fav_button.disabled = true
-    ajax('api.php?page=' + app_id + '&action=fav&q=up', function(txt, r){
+    ajaxPost('api.php?page=' + app_id + '&action=fav&q=up' + fav_editkey, function(txt, r){
       fav_button.disabled = false
       // 応答はJSON形式 {result, fav, bookmark, msg}
       let res = null
@@ -227,7 +231,7 @@ if (fav_button) { // fav_button が非表示になることがある
   }
   // favの値を取得する --- 現在不使用
   function getFavCount(){
-    ajax('api.php?page=' + app_id + '&action=fav', function(txt, r){
+    ajax('api.php?page=' + app_id + '&action=fav' + fav_editkey, function(txt, r){
       fav.innerHTML = txt
     })
   }
@@ -242,7 +246,7 @@ if (bad_button) { //  非表示になることがあるので
     var b = confirm('本当に通報しますか？')
     if (!b) {return}
     bad_button.disabled = true
-    ajax('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
+    ajaxPost('api.php?page=' + app_id + '&action=bad&q=up', function(txt, r){
       bad.innerHTML = txt
     })
     alert('ありがとうございました。通報しました。')
@@ -265,6 +269,22 @@ function ajax(url, callback) {
   }
   req.open('GET', url)
   req.send()
+}
+
+// 状態変更用 (お気に入り・通報)。edit_token を付けて POST する
+function ajaxPost(url, callback) {
+  const req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) { // 通信の完了時
+      if (req.status == 200) { // 通信の成功時
+        callback(req.responseText, req)
+      }
+    }
+  }
+  req.open('POST', url)
+  req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+  const token = (typeof window.n3s_edit_token !== 'undefined') ? window.n3s_edit_token : ''
+  req.send('edit_token=' + encodeURIComponent(token))
 }
 
 // check modified
