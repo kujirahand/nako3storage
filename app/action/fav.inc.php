@@ -2,6 +2,15 @@
 // for clickjacking
 header('X-Frame-Options: SAMEORIGIN');
 
+// お気に入りの表示・登録が許される作品かどうかを、表示側と共通の
+// 公開範囲判定で決める。非公開・限定公開の作品について、閲覧権限のない
+// 利用者へ fav 数や存在を漏らさないため (#284)。
+function n3s_fav_app_visible($app)
+{
+    $key = isset($_REQUEST['editkey']) ? (string) $_REQUEST['editkey'] : '';
+    return n3s_private_access_allowed($app, $key);
+}
+
 function n3s_web_fav()
 {
     $m = empty($_GET['m']) ? 'view' : $_GET['m'];
@@ -19,11 +28,16 @@ function n3s_api_fav()
 function fav_who()
 {
     $app_id = intval(empty($_GET['page']) ? '0' : $_GET['page']);
-    $rows = db_get(
-        'SELECT * FROM bookmarks WHERE app_id=?',
+    $backURL = "id.php?$app_id";
+    // 閲覧できない作品は、ブックマークの有無自体を漏らさない (#284)
+    $app = db_get1(
+        'SELECT user_id, is_private, editkey FROM apps WHERE app_id=?',
         [$app_id]
     );
-    $backURL = "id.php?$app_id";
+    $rows = ($app && n3s_fav_app_visible($app)) ? db_get(
+        'SELECT * FROM bookmarks WHERE app_id=?',
+        [$app_id]
+    ) : [];
     if (!$rows) {
         n3s_error(
             '残念',
@@ -79,10 +93,10 @@ function echo_fav()
     // view
     if ($q == 'view') {
         $r = db_get1(
-            'SELECT fav FROM apps WHERE app_id=?',
+            'SELECT fav, user_id, is_private, editkey FROM apps WHERE app_id=?',
             [$app_id]
         );
-        if (isset($r['fav'])) {
+        if (isset($r['fav']) && n3s_fav_app_visible($r)) {
             echo $r['fav'];
         } else {
             echo "0";
@@ -96,7 +110,7 @@ function echo_fav()
     }
     // check app_id exists?
     $r = db_get1(
-        'SELECT fav,user_id FROM apps WHERE app_id=?',
+        'SELECT fav,user_id,is_private,editkey FROM apps WHERE app_id=?',
         [$app_id]
     );
     if (!isset($r['fav'])) {
@@ -133,6 +147,12 @@ function echo_fav()
         }
         $fav--;
         echo_fav_result(true, $fav, 0);
+        return;
+    }
+    // 閲覧できない作品は新規登録できない
+    // (既存ブックマークの解除は、上の削除分岐で先に処理される, #284)
+    if (!n3s_fav_app_visible($r)) {
+        echo_fav_result(false, 0, 0, 'この作品はお気に入り登録できません。');
         return;
     }
     // 自分の作品にはお気に入り登録できない

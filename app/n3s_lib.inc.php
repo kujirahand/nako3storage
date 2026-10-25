@@ -778,7 +778,28 @@ function n3s_api_output($result, $data)
 {
     $data['result'] = $result;
     header('content-type: application/json; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
+}
+
+// 画面・API 共通のセキュリティヘッダを返す。
+// クリックジャッキング対策 (X-Frame-Options) と MIME スニッフィング対策。
+// ただし widget / widget_frame は他サイトへの iframe 埋め込みが前提の表示なので、
+// X-Frame-Options は付けない (#284)。
+function n3s_security_headers($action)
+{
+    $headers = ['X-Content-Type-Options: nosniff'];
+    if ($action !== 'widget' && $action !== 'widget_frame') {
+        $headers[] = 'X-Frame-Options: SAMEORIGIN';
+    }
+    return $headers;
+}
+
+function n3s_send_security_headers($action)
+{
+    foreach (n3s_security_headers($action) as $h) {
+        header($h);
+    }
 }
 
 // ローカル開発環境からのリクエストかどうかを判定する。
@@ -1108,12 +1129,13 @@ function n3s_google_get_auth_url($state)
 }
 
 // application/x-www-form-urlencoded なPOSTを行う(トークン交換専用)。
-// テストでは $n3s_config['_google_http_post'] にcallable(callable($url, $params): array|false)を
+// テストでは $n3s_config['_google_http_post'] に Closure (function($url, $params): array|false) を
 // 差し込むことで、実際のネットワーク呼び出しを行わずに検証できる。
+// 文字列などの callable は、GET パラメータ経由で注入され得るため受け付けない (#284)。
 function n3s_google_http_post($url, $params)
 {
     $override = n3s_get_config('_google_http_post', null);
-    if (is_callable($override)) {
+    if ($override instanceof Closure) {
         return call_user_func($override, $url, $params);
     }
     $ch = curl_init($url);
@@ -1413,6 +1435,13 @@ function n3s_delete_image_record_and_file($image_id)
     if (file_exists($targetFile)) {
         @unlink($targetFile);
     }
+    // 表示用サムネイル (プロフィール画像で生成される) も一緒に消す。
+    // image.php は DB ではなくファイルの存在だけで配信するため、
+    // 残しておくと削除したはずの画像が引き続き取得できてしまう (#284)。
+    $thumbFile = n3s_getImageThumbnailFile($image_id, 32, false, isset($im['token']) ? $im['token'] : '');
+    if (file_exists($thumbFile)) {
+        @unlink($thumbFile);
+    }
 }
 
 function n3s_cover_image_type_supported($type)
@@ -1454,6 +1483,13 @@ function n3s_gd_resize_center_crop($srcPath, $destPath, $w, $h, $image_label)
     $type = intval($info[2]);
     if ($srcW <= 0 || $srcH <= 0 || !n3s_cover_image_type_supported($type)) {
         throw new Exception("{$image_label}は JPEG/PNG/GIF/WebP の画像を指定してください。");
+    }
+    // 画素数の上限を超える画像は受け付けない。ファイルサイズが小さくても
+    // 巨大な寸法を宣言できる画像 (デコンプレッション爆弾) を GD で展開すると
+    // メモリを枯渇させてしまうため、展開前に寸法で弾く (#284)。
+    // 出力は扉絵・プロフィール画像のサイズへ縮小されるため実用上の支障はない。
+    if ($srcW > 10000 || $srcH > 10000 || $srcW * $srcH > 50000000) {
+        throw new Exception("{$image_label}の画素数が大きすぎます。");
     }
     $src = n3s_gd_load_image($srcPath, $type);
     if (!$src) {

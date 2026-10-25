@@ -174,12 +174,14 @@ function n3s_web_mypage()
     if ($bookmark_ids) {
         foreach ($bookmark_ids as $aid) {
             $a = db_get1(
-                'SELECT app_id, title, author FROM apps ' .
+                'SELECT app_id, title, author, user_id, is_private, editkey FROM apps ' .
                     'WHERE app_id=?',
                 [intval($aid['app_id'])]
             );
             // 作品が削除済みの場合は取得できないのでスキップする
             if (!$a) { continue; }
+            // 閲覧できない作品は、タイトル・作者も表示しない (#284)
+            if (!n3s_private_access_allowed($a, '')) { continue; }
             $bookmarks[] = $a;
         }
     }

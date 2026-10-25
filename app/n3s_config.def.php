@@ -92,6 +92,10 @@ $n3s_config = [
     "google_oauth_client_secret" => "",
     // 例: "https://n3s.nadesi.com/index.php?action=login&page=google_callback"
     "google_oauth_redirect_uri" => "",
+    // トークン交換を差し替えるテスト専用フック (Closure のみ有効)。
+    // 未定義のままだと n3s_config_merge_get() が GET パラメータを取り込んで
+    // しまうため、既定キーとして定義して GET からの注入を防ぐ (#284)。
+    "_google_http_post" => null,
     // -----------------------------------------------------
     // OpenRouter APIキーとモデル (コメント審査用)
     "openrouter_api_key" => "",

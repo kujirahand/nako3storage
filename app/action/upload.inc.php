@@ -197,6 +197,20 @@ function go_upload()
         }
     }
     $user_id = n3s_get_user_id();
+    // app_id が指定された場合は、その作品の所有者 (または管理者) のみが
+    // 素材を紐付けできる。他人の作品への紐付けや、image_name の先取りに
+    // よる正規アップロードの妨害を防ぐ (#284)。
+    if ($app_id > 0) {
+        $app = db_get1('SELECT user_id FROM apps WHERE app_id=? LIMIT 1', [$app_id]);
+        if (!$app) {
+            n3s_error('アップロード失敗', "指定されたアプリが見つかりません。");
+            return;
+        }
+        if (intval($app['user_id']) !== intval($user_id) && !n3s_is_admin()) {
+            n3s_error('アップロード失敗', "他のユーザーのアプリにはファイルをアップロードできません。");
+            return;
+        }
+    }
     // todo: MIME check
     // $mime = @mime_content_type($path);
     db_exec('begin');
