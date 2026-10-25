@@ -99,6 +99,9 @@ test('echo_bad の通報アップは指定app_idのbadのみ加算する (トラ
     $_GET['page'] = (string)$target_id;
     $_GET['q'] = 'up';
     $_SERVER['REMOTE_ADDR'] = '203.0.113.55';
+    // 通報は状態変更のため POST + edit_token が必須になった (#284)
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_REQUEST['edit_token'] = n3s_getEditToken();
 
     $out = n3s_test_capture(fn () => echo_bad());
 
