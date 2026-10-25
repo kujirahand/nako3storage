@@ -17,7 +17,7 @@ function n3s_get_mime($ext)
         "tsv" => "text/tsv",
         "xml" => "text/xml",
         "json" => "application/json",
-        "js" => "text/javascreipt",
+        "js" => "text/javascript",
         "mid" => "audio/midi",
         "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
