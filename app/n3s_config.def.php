@@ -83,8 +83,9 @@ $n3s_config = [
     "discord_webhook_name" => "なでしこ3貯蔵庫",
     "discord_webhook_url" => "",
     // Webhook送信時にTLS証明書検証を行うか (todo-security.md #10)。
-    // 既定はfalse(従来通り --insecure 付き)。サーバー証明書の検証環境が整っている場合は
-    // n3s_config.ini.php で true にすることを推奨。
+    // 既定はtrue(TLS証明書検証を行う)。自己署名証明書や中間証明書の未設置などで
+    // 検証がエラーになる環境では、n3s_config.ini.php で false にすると
+    // --insecure 付き(検証なし)で送信する。
     "webhook_secure" => true,
     // -----------------------------------------------------
     // Google OAuth ログイン (docs/user_login_oauth_google.md)
@@ -102,6 +103,9 @@ $n3s_config = [
     "comment_audit_model" => "~typesafe/jev-latest",
     // コメント審査の自動承認モード (true: 審査をスキップして自動承認、false: 審査を行う)
     "comment_audit_auto_approve" => false,
+    // コメント投稿のレート制限: 同一ユーザーまたは同一IPから1時間に投稿できる件数 (#286)。
+    // 審査バッチが投稿ごとに有料APIを呼ぶため、大量投稿による費用増幅を抑える。
+    "comment_post_limit_per_hour" => 30,
 ];
 
 // timezone

@@ -245,7 +245,10 @@
       <a href="{{ $link_userinfo }}"><strong>プロフィール設定</strong><span>名前・紹介・画像を変更</span></a>
       <a href="{{ $link_material }}"><strong>素材の管理</strong><span>画像やファイルを確認</span></a>
       <a href="{{ $link_all_fav }}"><strong>お気に入り</strong><span>保存した作品を確認</span></a>
-      <a href="{{ $link_logout }}"><strong>ログアウト</strong><span>現在のセッションを終了</span></a>
+      <form method="POST" action="index.php?page=my&amp;action=logout">
+        <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
+        <button type="submit"><strong>ログアウト</strong><span>現在のセッションを終了</span></button>
+      </form>
       <a class="is-danger" href="{{ $link_del_account }}"><strong>退会</strong><span>アカウントを削除</span></a>
     </div>
   </section>

@@ -295,11 +295,37 @@ function comment_api_add()
     
     $login_info = n3s_get_login_info();
     $name = isset($login_info['name']) ? $login_info['name'] : '名無し';
-    
+
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
     $now = time();
     $status = $is_template ? 'approved' : 'pending';
-    
+
+    // 投稿レート制限 (#286)。審査バッチは投稿ごとに有料APIを呼ぶため、
+    // 大量投稿で費用と審査キューが増幅しないよう、同一ユーザーまたは
+    // 同一IPからの1時間あたりの投稿件数に上限を設ける。
+    $limit = intval(n3s_get_config('comment_post_limit_per_hour', 30));
+    if ($limit > 0 && ($user_id > 0 || $ip !== '')) {
+        if ($user_id > 0) {
+            $cnt = db_get1(
+                'SELECT count(*) AS c FROM comments WHERE (user_id=? OR ip=?) AND ctime>?',
+                [$user_id, $ip, $now - 3600],
+                'main'
+            );
+        } else {
+            // ゲスト (user_id=0) はIPだけで数える。user_id=0 のまま OR 条件に
+            // 入れると、サイト全体のゲスト投稿が合算されてしまう
+            $cnt = db_get1(
+                'SELECT count(*) AS c FROM comments WHERE ip=? AND ctime>?',
+                [$ip, $now - 3600],
+                'main'
+            );
+        }
+        if ($cnt && intval($cnt['c']) >= $limit) {
+            n3s_api_output(false, ['msg' => '短時間に多くのコメントを投稿しています。しばらく時間をおいてからお試しください。']);
+            return;
+        }
+    }
+
     db_begin();
     try {
         db_exec(

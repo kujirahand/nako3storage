@@ -22,6 +22,13 @@ require_once __DIR__ . '/../app/n3s_lib.inc.php';
 // DB初期化
 n3s_db_init();
 
+// 多重起動防止 (#286): 審査と加算が二重に走らないようにする
+$batch_lock = n3s_cli_batch_lock('comment_audit');
+if ($batch_lock === false) {
+    echo "[INFO] 既に実行中のため、処理をスキップしました。\n";
+    exit(0);
+}
+
 global $n3s_config;
 $api_key = isset($n3s_config['openrouter_api_key']) ? $n3s_config['openrouter_api_key'] : '';
 $model = n3s_get_config('comment_audit_model', '~typesafe/jev-latest');
@@ -107,18 +114,22 @@ foreach ($comments as $c) {
     
     db_begin();
     try {
+        // 並行実行や再実行で加算が二重にならないよう、pending の行だけを
+        // 更新し、実際に更新された場合のみ加算する (#286)
         db_exec(
-            "UPDATE comments SET status = ?, mtime = ? WHERE comment_id = ?",
+            "UPDATE comments SET status = ?, mtime = ? WHERE comment_id = ? AND status = 'pending'",
             [$status, time(), $comment_id],
             'main'
         );
-        if ($status === 'approved') {
+        $chg = db_get1('SELECT changes() AS c', [], 'main');
+        $changed = ($chg && intval($chg['c']) > 0);
+        if ($changed && $status === 'approved') {
             db_exec(
                 "UPDATE apps SET comment_count = comment_count + 1 WHERE app_id = ?",
                 [$c['app_id']],
                 'main'
             );
-        } elseif (intval($c['user_id']) > 0) {
+        } elseif ($changed && intval($c['user_id']) > 0) {
             db_exec(
                 'INSERT INTO comment_user_blocks (user_id, ng_count, blocked, mtime) VALUES (?, 1, 0, ?) ' .
                 'ON CONFLICT(user_id) DO UPDATE SET ng_count = ng_count + 1, mtime = excluded.mtime',
@@ -132,7 +143,11 @@ foreach ($comments as $c) {
             );
         }
         db_commit();
-        echo "[SUCCESS] ステータスを '{$status}' に更新しました。\n";
+        if ($changed) {
+            echo "[SUCCESS] ステータスを '{$status}' に更新しました。\n";
+        } else {
+            echo "[INFO] コメント {$comment_id} は既に処理済みのためスキップしました。\n";
+        }
     } catch (Exception $e) {
         db_rollback();
         echo "[ERROR] DB更新に失敗しました: " . $e->getMessage() . "\n";

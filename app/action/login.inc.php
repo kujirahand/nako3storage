@@ -39,24 +39,27 @@ function n3s_setpw_record_failure($email, $ip)
 define('N3S_SETPW_REISSUE_MAX_TRIES', 5);        // ウィンドウ内に許容する再発行回数
 define('N3S_SETPW_REISSUE_WINDOW_SEC', 60 * 15); // 再発行回数を数える時間窓(秒)
 
-// ipに紐づく、ウィンドウ内の認証番号の再発行回数を返す。
-function n3s_setpw_recent_reissues($ip)
+// email または ip に紐づく、ウィンドウ内の認証番号の再発行回数を返す。
+// (以前はIP単位のみだったため、IPを変えながら同一宛先へ再発行を繰り返す
+// メール爆撃と、番号の上書きによる被害者自身の再設定手続きの妨害が可能だった。
+// 失敗回数のカウンタと同じく、宛先メール単位でも数えるようにした #286)
+function n3s_setpw_recent_reissues($email, $ip)
 {
     $since = time() - N3S_SETPW_REISSUE_WINDOW_SEC;
     $r = db_get1(
-        'SELECT count(*) AS cnt FROM ip_check WHERE key=2 AND ctime>? AND ip=?',
-        [$since, $ip],
+        'SELECT count(*) AS cnt FROM ip_check WHERE key=2 AND ctime>? AND (memo=? OR ip=?)',
+        [$since, $email, $ip],
         'log'
     );
     return $r ? intval($r['cnt']) : 0;
 }
 
-// 認証番号の再発行を1件記録する。
-function n3s_setpw_record_reissue($ip)
+// 認証番号の再発行を1件記録する (宛先メールは memo に保存する)。
+function n3s_setpw_record_reissue($email, $ip)
 {
     db_exec(
         'INSERT INTO ip_check (key, ip, memo, ctime) VALUES(?,?,?,?)',
-        [2, $ip, '', time()],
+        [2, $ip, $email, time()],
         'log'
     );
 }
@@ -195,17 +198,15 @@ function n3s_web_login_register()
 // (呼び出し元は false の場合、n3s_web_login_setpw() へ進まずエラーを表示すること)
 function n3s_web_login_setpw_sendmail($user_id, $email, $action)
 {
-    // 再発行そのものにIP単位の回数制限をかける (todo-security.md #5 追加対応)。
+    // 再発行そのものに回数制限をかける (todo-security.md #5 追加対応)。
     // これが無いと、認証番号の試行に失敗するたびに新しい番号を再発行することで、
     // 総当たり試行回数を実質無制限にできてしまう。
     $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-    if ($ip !== '' && n3s_setpw_recent_reissues($ip) >= N3S_SETPW_REISSUE_MAX_TRIES) {
+    if (n3s_setpw_recent_reissues($email, $ip) >= N3S_SETPW_REISSUE_MAX_TRIES) {
         n3s_log("[forgot] email={$email},ip={$ip},error=認証番号の再発行回数超過", "setpw", 1);
         return false;
     }
-    if ($ip !== '') {
-        n3s_setpw_record_reissue($ip);
-    }
+    n3s_setpw_record_reissue($email, $ip);
     $passtoken1 = n3s_randomIntStr(3);
     $passtoken2 = n3s_randomIntStr(4);
     $passtoken = "{$passtoken1}-{$passtoken2}";
@@ -373,6 +374,9 @@ __EOS__;
                 [$hash, '', time(), $user_id],
                 'users'
             );
+            // パスワード変更に合わせて login_token もローテーションし、
+            // 既存のログインセッションと astorage トークンを失効させる (#286)
+            n3s_rotate_login_token($user_id);
             n3s_log("[forgot] email={$email} パスワードの再設定完了", "setpw");
             n3s_info('パスワードを設定しました', '<a href="index.php?action=login">ログインしてください。</a>', true);
             return;
@@ -398,6 +402,16 @@ function n3s_web_login_trylogin()
         $r = db_get1('SELECT count(*) FROM ip_check WHERE key=0 AND ctime>? AND ip=?', [time() - 60 * 60, $ip], 'log');
         if ($r && $r['count(*)'] > 10) {
             n3s_log("ip={$ip},email={$email},error=ログイン失敗が多すぎる", "trylogin");
+            n3s_error('ログインの拒否', 'ログイン失敗が多すぎます。しばらく時間をおいてからログインしてください。');
+            return;
+        }
+    }
+    if ($email != '') {
+        // アカウント単位でも検出する (分散IPからのパスワードスプレー対策, #286)。
+        // 失敗行の memo にはメールアドレスが保存されている。
+        $r = db_get1('SELECT count(*) FROM ip_check WHERE key=0 AND ctime>? AND memo=?', [time() - 60 * 60, trim($email)], 'log');
+        if ($r && $r['count(*)'] > 10) {
+            n3s_log("ip={$ip},email={$email},error=ログイン失敗が多すぎる(アカウント単位)", "trylogin");
             n3s_error('ログインの拒否', 'ログイン失敗が多すぎます。しばらく時間をおいてからログインしてください。');
             return;
         }

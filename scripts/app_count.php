@@ -35,6 +35,13 @@ require_once __DIR__ . '/../app/n3s_lib.inc.php';
 // DB初期化
 n3s_db_init();
 
+// 多重起動防止 (#286)
+$batch_lock = n3s_cli_batch_lock('app_count');
+if ($batch_lock === false) {
+    echo "[INFO] 既に実行中のため、処理をスキップしました。\n";
+    exit(0);
+}
+
 try {
     $r = n3s_aggregate_app_access();
 } catch (Exception $e) {
