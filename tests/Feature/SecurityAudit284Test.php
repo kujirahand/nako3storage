@@ -589,3 +589,52 @@ test('セキュリティヘッダ: ディスパッチとJSON出力に組み込�
     $lib = file_get_contents(N3S_TEST_ROOT . '/app/n3s_lib.inc.php');
     expect($lib)->toContain("header('X-Content-Type-Options: nosniff');");
 });
+
+// ------------------------------------------------
+// agyレビューでの追加指摘 (PR #285 レビュー)
+// ------------------------------------------------
+
+test('custom_head: コメントの早期終了(--!>)でスクリプトを混入できない', function () {
+    // ブラウザは --!> をコメント終了として解釈するため、コメントとして
+    // そのまま保存すると後続のスクリプトが本体オリジンで実行されてしまう
+    $a = ['custom_head' => '<!-- --!><script>alert(origin)</script> -->'];
+    $err = '';
+    expect(n3s_check_custom_head($a, $err))->toBeFalse();
+});
+
+test('custom_head: コメント内にタグを含むものは保存できない', function () {
+    $a = ['custom_head' => '<!-- <script src="https://example.com/x.js"></script> -->'];
+    $err = '';
+    expect(n3s_check_custom_head($a, $err))->toBeFalse();
+});
+
+test('custom_head: コメント内に -- を含むものは保存できない', function () {
+    $a = ['custom_head' => '<!-- a -- b -->'];
+    $err = '';
+    expect(n3s_check_custom_head($a, $err))->toBeFalse();
+});
+
+test('custom_head: 通常のコメントと外部スクリプトの組み合わせは許可される', function () {
+    $a = ['custom_head' => '<!-- libs --><script src="https://example.com/lib.js"></script>'];
+    $err = '';
+    expect(n3s_check_custom_head($a, $err))->toBeTrue()
+        ->and($a['custom_head'])->toContain('<!-- libs -->')
+        ->and($a['custom_head'])->toContain('src="https://example.com/lib.js"');
+});
+
+test('fav: 限定公開の閲覧キーがJSのリクエストとwhoリンクで引き継がれる (ソース確認)', function () {
+    $js = file_get_contents(N3S_TEST_ROOT . '/app/resource/nako3storage_edit.js');
+    expect($js)->toContain('window.n3s_editkey')
+        ->and($js)->toContain("'&action=fav&q=up' + fav_editkey")
+        ->and($js)->toContain("'&action=fav' + fav_editkey");
+    $html = file_get_contents(N3S_TEST_ROOT . '/app/template/show.html');
+    expect($html)->toContain("m=who{{e: echo empty(\$_GET['editkey'])");
+});
+
+test('アップロード: image_name の拡張子はドット付きに統一される (ソース確認)', function () {
+    // ドットがないと DB の filename が "<image_id>png" になってしまう。
+    // go_upload は move_uploaded_file がテスト環境で必ず失敗しロールバック
+    // されるため、filename の値はソース確認で担保する。
+    $src = file_get_contents(N3S_TEST_ROOT . '/app/action/upload.inc.php');
+    expect($src)->toContain("\$ext = '.' . \$ext;");
+});
