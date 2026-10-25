@@ -34,6 +34,11 @@ function echo_bad()
                 echo "error, please login.";
                 return;
             }
+            // 状態変更なので POST + edit_token を必須とする (CSRF対策, #284)
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !n3s_checkEditToken()) {
+                echo "error, invalid token.";
+                return;
+            }
             $ip = $_SERVER["REMOTE_ADDR"];
             $title = $r['title'];
             $author = $r['author'];

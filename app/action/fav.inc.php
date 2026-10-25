@@ -89,7 +89,11 @@ function echo_fav()
         }
         return;
     }
-    // q=up
+    // q=up は状態変更なので、POST + edit_token を必須とする (CSRF対策, #284)
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST' || !n3s_checkEditToken()) {
+        echo_fav_result(false, 0, 0, '不正なリクエストです。再度お試しください。');
+        return;
+    }
     // check app_id exists?
     $r = db_get1(
         'SELECT fav,user_id FROM apps WHERE app_id=?',
