@@ -20,7 +20,10 @@ function n3s_web_widget_frame()
     $a['mute_name'] = isset($_GET['mute_name']) ? intval($_GET['mute_name']) : 0;
     $a['w_noname'] = n3s_widget_is_noname($a);
     n3s_widget_force_config('w_noname', $a['w_noname']);
-    $a['api_token'] = isset($_GET['api_token']) ? $_GET['api_token'] : '';
+    $a['api_token'] = n3s_widget_frame_api_token(
+        isset($_GET['api_token']) ? $_GET['api_token'] : '',
+        isset($a['app_id']) ? $a['app_id'] : 0
+    );
     // URLに貯蔵庫APIトークンが含まれるため、作品が読み込む外部リソース(CDN等)へ
     // Refererでフルパスが漏れないようにする (#194)
     header('Referrer-Policy: strict-origin');
@@ -56,6 +59,23 @@ function n3s_web_widget_frame()
     header("Cross-Origin-Opener-Policy: same-origin");
     header("Cross-Origin-Embedder-Policy: require-corp");
     n3s_template_fw('widget.html', $a);
+}
+
+// URLで渡された api_token が、表示する作品のものか確認する (#286)。
+// 作品A用のトークンを作品Bの frame に差し込むと、Bを表示しながらAの
+// ストレージへアクセスするプログラムが作れてしまうため、署名が不正な
+// トークンや、作品が一致しないトークンは無効 (空) にする。
+function n3s_widget_frame_api_token($token, $app_id)
+{
+    $token = is_string($token) ? $token : '';
+    if ($token === '') {
+        return '';
+    }
+    $verified = n3s_astorage_token_verify($token);
+    if ($verified === null || intval($verified['app_id']) !== intval($app_id)) {
+        return '';
+    }
+    return $token;
 }
 
 // widget の表示モードを返す。ui=1 のときだけ 1 (貯蔵庫のUI付き)、それ以外は 0 (#250)

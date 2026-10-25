@@ -184,6 +184,37 @@ function n3s_db_migrate_apps()
         ctime      INTEGER NOT NULL DEFAULT 0,
         UNIQUE(app_id, user_id)
     )", [], 'main');
+    // 通報 (bad) の報告者の記録 (#286)。broken_reports と同じ方式で、
+    // 1ユーザーが1作品に通報できるのは1回だけにし、apps.bad への加算もその時だけ行う
+    db_exec("CREATE TABLE IF NOT EXISTS bad_reports (
+        bad_report_id INTEGER PRIMARY KEY,
+        app_id     INTEGER NOT NULL,
+        user_id    INTEGER NOT NULL,
+        ip         TEXT DEFAULT '',
+        ctime      INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(app_id, user_id)
+    )", [], 'main');
+}
+
+// CLIバッチの多重起動防止 (#286)。同じ名前のバッチが既に実行中なら false を返す。
+// ロックが取れた場合はロック用ハンドルを返すので、呼び出し側はプロセス終了まで
+// 保持すること (変数が解放されるとロックも解ける)。ロックファイルを開けない
+// 環境では true を返し、ロックなしで処理を続行する。
+// ロックファイルはシステムの一時ディレクトリに置く (リポジトリ内を実行時
+// ファイルで汚さないため)。
+function n3s_cli_batch_lock($name)
+{
+    $file = sys_get_temp_dir() . '/n3s_batch_' .
+        preg_replace('/[^a-zA-Z0-9_-]/', '_', (string) $name) . '.lock';
+    $fp = @fopen($file, 'c');
+    if ($fp === false) {
+        return true;
+    }
+    if (!flock($fp, LOCK_EX | LOCK_NB)) {
+        fclose($fp);
+        return false;
+    }
+    return $fp;
 }
 
 // log DB にアクセス統計まわりのテーブルが無ければ作成する
@@ -869,6 +900,7 @@ function n3s_login_allowed_host()
 
 function n3s_is_login()
 {
+    global $n3s_config;
     // @see action/login.inc.php
     if (empty($_SESSION['n3s_login'])) {
         return false;
@@ -877,7 +909,84 @@ function n3s_is_login()
     if (!n3s_login_allowed_host()) {
         return false;
     }
+    // ログイン時にセッションへ保存した login_token が、DB側の現在の値と
+    // 一致するか確認する (#286)。退会・パスワード変更でDB側のトークンが
+    // ローテーションされると、既存の別セッションは失効する。
+    if (!isset($_SESSION['login_token'])) {
+        // トークンを持たないセッション (この仕組みより前に作られたものや、
+        // ログインを経由しない経路) は、DB側の現在のトークンを取り込んで
+        // 以後は照合対象にする (遅延バインド)。これにより、取り込み後の
+        // ローテーションでは失効するようになる。ユーザー行が無い場合は
+        // 従来の判定のままにする。
+        $user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+        if ($user_id > 0) {
+            $u = db_get1('SELECT name, login_token FROM users WHERE user_id=?', [$user_id], 'users');
+            if ($u) {
+                // 退会済みユーザーのセッションは失効させる
+                if ((string) $u['name'] === '(退会ユーザー)') {
+                    return false;
+                }
+                $db_token = (string) (isset($u['login_token']) ? $u['login_token'] : '');
+                if ($db_token === '') {
+                    $db_token = n3s_rotate_login_token($user_id);
+                }
+                $_SESSION['login_token'] = $db_token;
+                $n3s_config['_login_token_cache'][$user_id] = $db_token;
+            }
+        }
+    }
+    if (isset($_SESSION['login_token'])) {
+        if (!n3s_session_login_token_valid()) {
+            return false;
+        }
+    }
     return true;
+}
+
+// users行の login_token を取得する (リクエスト内キャッシュ付き)。
+// ユーザー行が無ければ null、未発行なら '' を返す。
+function n3s_db_login_token($user_id)
+{
+    global $n3s_config;
+    $user_id = intval($user_id);
+    if (!isset($n3s_config['_login_token_cache']) || !is_array($n3s_config['_login_token_cache'])) {
+        $n3s_config['_login_token_cache'] = [];
+    }
+    if (!array_key_exists($user_id, $n3s_config['_login_token_cache'])) {
+        $u = db_get1('SELECT login_token FROM users WHERE user_id=?', [$user_id], 'users');
+        $n3s_config['_login_token_cache'][$user_id] = $u ? (string) (isset($u['login_token']) ? $u['login_token'] : '') : null;
+    }
+    return $n3s_config['_login_token_cache'][$user_id];
+}
+
+// セッション内の login_token がDB側と一致するか (リクエスト内キャッシュ付き)
+function n3s_session_login_token_valid()
+{
+    $user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+    if ($user_id <= 0 || !isset($_SESSION['login_token'])) {
+        return false;
+    }
+    $db_token = n3s_db_login_token($user_id);
+    if ($db_token === null || $db_token === '') {
+        return false;
+    }
+    return hash_equals($db_token, (string) $_SESSION['login_token']);
+}
+
+// login_token を新しい値にローテーションし、新しいトークンを返す (#286)。
+// 既存のログインセッション (セッション内のコピーと一致しなくなる) と、
+// トークンに紐付けられた astorage トークンを失効させるために使う。
+function n3s_rotate_login_token($user_id)
+{
+    global $n3s_config;
+    $user_id = intval($user_id);
+    $token = bin2hex(random_bytes(32));
+    db_exec('UPDATE users SET login_token=? WHERE user_id=?', [$token, $user_id], 'users');
+    // 同一リクエスト内のキャッシュも新しい値にそろえる
+    if (isset($n3s_config['_login_token_cache']) && is_array($n3s_config['_login_token_cache'])) {
+        $n3s_config['_login_token_cache'][$user_id] = $token;
+    }
+    return $token;
 }
 
 function n3s_get_user_id()
@@ -1033,8 +1142,15 @@ function n3s_login_session_start($user)
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_regenerate_id(true);
     }
+    // セッション失効管理用の login_token を用意する (#286)。
+    // 未設定のユーザーにはここで発行し、セッションにもコピーを保持する。
+    $login_token = isset($user['login_token']) ? (string) $user['login_token'] : '';
+    if ($login_token === '') {
+        $login_token = n3s_rotate_login_token($user['user_id']);
+    }
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $user['user_id'];
+    $_SESSION['login_token'] = $login_token;
     $_SESSION['name'] = $user['name'];
     $_SESSION['screen_name'] = $user['screen_name'] ?? '';
     $_SESSION['profile_url'] = n3s_get_user_image_url($user);
@@ -1286,11 +1402,27 @@ function n3s_astorage_token_create($app_id, $user_id, $ttl = null)
     if ($ttl === null) {
         $ttl = intval(n3s_get_config('astorage_token_ttl', 60 * 60 * 6));
     }
-    $payload = n3s_base64url_encode(json_encode([
+    $payload_data = [
         'a' => $app_id,
         'u' => $user_id,
         'e' => time() + $ttl,
-    ]));
+    ];
+    // ユーザーに紐付くトークンには login_token の指紋を含める (#286)。
+    // 退会・パスワード変更で login_token がローテーションされると、
+    // 発行済みトークンも失効するようになる。
+    if ($user_id > 0) {
+        $u = db_get1('SELECT login_token FROM users WHERE user_id=?', [$user_id], 'users');
+        if ($u) {
+            $lt = (string) (isset($u['login_token']) ? $u['login_token'] : '');
+            if ($lt === '') {
+                // 未発行のまま指紋なしで発行すると失効連動しなくなるため、
+                // ログイン時と同じくその場で発行する
+                $lt = n3s_rotate_login_token($user_id);
+            }
+            $payload_data['t'] = substr(hash('sha256', $lt), 0, 16);
+        }
+    }
+    $payload = n3s_base64url_encode(json_encode($payload_data));
     return $payload . '.' . n3s_astorage_token_sign($payload);
 }
 
@@ -1317,6 +1449,18 @@ function n3s_astorage_token_verify($token)
     if ($data['a'] <= 0 || $data['u'] < 0 || $data['e'] < time()) {
         return null;
     }
+    // login_token の指紋が含まれていれば、現在の値と一致するか確認する (#286)。
+    // 指紋のない旧トークンは有効期限までそのまま受け入れる。
+    if (isset($data['t']) && $data['u'] > 0) {
+        if (!is_string($data['t'])) {
+            return null;
+        }
+        $u = db_get1('SELECT login_token FROM users WHERE user_id=?', [$data['u']], 'users');
+        $lt = $u ? (string) (isset($u['login_token']) ? $u['login_token'] : '') : '';
+        if ($lt === '' || !hash_equals(substr(hash('sha256', $lt), 0, 16), $data['t'])) {
+            return null;
+        }
+    }
     return [
         'app_id' => $data['a'],
         'user_id' => $data['u'],
@@ -1324,6 +1468,13 @@ function n3s_astorage_token_verify($token)
     ];
 }
 
+
+// LIKE検索用に、検索語中のエスケープ文字 (\) とワイルドカード (% _) を
+// 無効化する。SQL側では `LIKE ? ESCAPE '\'` と組み合わせて使うこと (#286)
+function n3s_like_escape($word)
+{
+    return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $word);
+}
 
 function n3s_getEditToken($key = 'default', $update = true)
 {
@@ -1577,10 +1728,11 @@ function n3s_save_user_image($user_id, $file)
     if (!$info || !isset($info[2]) || !n3s_cover_image_type_supported(intval($info[2]))) {
         throw new Exception('プロフィール画像は JPEG/PNG/GIF/WebP の画像を指定してください。');
     }
-    $user = db_get1('SELECT name FROM users WHERE user_id=? LIMIT 1', [$user_id], 'users');
+    $user = db_get1('SELECT name, image_id FROM users WHERE user_id=? LIMIT 1', [$user_id], 'users');
     if (!$user) {
         throw new Exception('プロフィール画像を設定するユーザーが見つかりません。');
     }
+    $old_image_id = intval(isset($user['image_id']) ? $user['image_id'] : 0);
     $title = mb_substr('プロフィール画像: ' . $user['name'], 0, 512);
     $token = bin2hex(random_bytes(8));
     $image_id = 0;
@@ -1606,6 +1758,15 @@ function n3s_save_user_image($user_id, $file)
         if ($path !== '' && file_exists($path)) { @unlink($path); }
         if ($thumbnail_path !== '' && file_exists($thumbnail_path)) { @unlink($thumbnail_path); }
         throw $e;
+    }
+    // 差し替え前のプロフィール画像は専用素材なので、実体ごと削除する (#286)。
+    // 削除に失敗しても保存自体は成功扱いにする。
+    if ($old_image_id > 0 && $old_image_id !== $image_id) {
+        try {
+            n3s_delete_image_record_and_file($old_image_id);
+        } catch (Exception $e) {
+            n3s_log("profile image delete failed: image_id={$old_image_id}, {$e->getMessage()}", 'userinfo', 0);
+        }
     }
     return $image_id;
 }
@@ -1636,10 +1797,11 @@ function n3s_save_cover_image($app_id, $user_id, $file)
     if (!$info || !isset($info[2]) || !n3s_cover_image_type_supported(intval($info[2]))) {
         throw new Exception('扉絵は JPEG/PNG/GIF/WebP の画像を指定してください。');
     }
-    $app = db_get1('SELECT title FROM apps WHERE app_id=? LIMIT 1', [$app_id]);
+    $app = db_get1('SELECT title, image_id FROM apps WHERE app_id=? LIMIT 1', [$app_id]);
     if (!$app) {
         throw new Exception('扉絵を設定する作品が見つかりません。');
     }
+    $old_image_id = intval(isset($app['image_id']) ? $app['image_id'] : 0);
     $title = mb_substr('扉絵: ' . $app['title'], 0, 512);
     $token = bin2hex(random_bytes(8));
     $image_id = 0;
@@ -1664,7 +1826,31 @@ function n3s_save_cover_image($app_id, $user_id, $file)
         }
         throw $e;
     }
+    // 差し替え前の扉絵が専用アップロードなら、実体ごと削除する (#286)
+    if ($old_image_id > 0 && $old_image_id !== $image_id &&
+        n3s_is_dedicated_cover_image($app_id, $old_image_id)) {
+        try {
+            n3s_delete_image_record_and_file($old_image_id);
+        } catch (Exception $e) {
+            n3s_log("cover image delete failed: image_id={$old_image_id}, {$e->getMessage()}", 'cover', 0);
+        }
+    }
     return $image_id;
+}
+
+// 扉絵が n3s_save_cover_image() による専用アップロードかどうか (#286)。
+// 専用アップロードは images.app_id が作品自身を指し、copyright='SELF'、
+// タイトルが「扉絵: 」で始まる。一般素材を扉絵に流用している場合は false を返し、
+// その場合は参照を外すだけで実体は削除しない。
+function n3s_is_dedicated_cover_image($app_id, $image_id)
+{
+    $img = db_get1('SELECT app_id, copyright, title FROM images WHERE image_id=?', [intval($image_id)]);
+    if (!$img) {
+        return false;
+    }
+    return intval($img['app_id']) === intval($app_id)
+        && $img['copyright'] === 'SELF'
+        && strpos((string) $img['title'], '扉絵:') === 0;
 }
 
 function n3s_unset_cover_image($app_id)
@@ -1673,7 +1859,17 @@ function n3s_unset_cover_image($app_id)
     if ($app_id <= 0) {
         return;
     }
+    $app = db_get1('SELECT image_id FROM apps WHERE app_id=?', [$app_id]);
+    $old_image_id = $app ? intval($app['image_id']) : 0;
     db_exec('UPDATE apps SET image_id=0 WHERE app_id=?', [$app_id]);
+    // 専用アップロードの扉絵は、解除時に実体ごと削除する (#286)
+    if ($old_image_id > 0 && n3s_is_dedicated_cover_image($app_id, $old_image_id)) {
+        try {
+            n3s_delete_image_record_and_file($old_image_id);
+        } catch (Exception $e) {
+            n3s_log("cover image delete failed: image_id={$old_image_id}, {$e->getMessage()}", 'cover', 0);
+        }
+    }
 }
 
 function n3s_delete_cover_image($app_id)
@@ -2001,7 +2197,10 @@ function n3s_discord_webhook($a)
     $contents = "{$author}さんが「{$title}」を投稿しました。\n{$app_url}\n{$memo}";
     $message = array(
         'username' => n3s_get_config('discord_webhook_name', 'なでしこ3貯蔵庫'),
-        'content'  => $contents
+        'content'  => $contents,
+        // 投稿タイトルやメモに含まれる @everyone / @here / ロールメンションで
+        // Webhook先サーバーのメンバーへ通知が飛ばないようにする (#286)
+        'allowed_mentions' => array('parse' => array()),
     );
     $message_json = json_encode($message);
     // curlを利用してポスト(非同期)
@@ -2024,9 +2223,10 @@ function n3s_discord_webhook($a)
 
 // Discord Webhook用のcurlコマンド文字列を組み立てる(副作用なし。execはしない)。
 // todo-security.md #10: 従来は常に --insecure を付けてTLS証明書検証を無効化していた。
-// サーバー環境によっては証明書検証を有効にするとcurlがエラーになる(自己署名証明書・
-// 中間証明書未設置など)ため、既定は従来通り --insecure(後方互換・デフォルトfalse)のまま
-// にしつつ、設定 `webhook_secure` を true にした環境ではTLS証明書検証を有効にできるようにする。
+// 現在は n3s_config.def.php の既定値が webhook_secure=true で、TLS証明書検証を
+// 行うのが既定。自己署名証明書・中間証明書未設置などで検証がエラーになる環境では
+// webhook_secure=false に設定すると --insecure 付きで送信する。
+// (この関数のフォールバック既定値 false は、設定が未定義の場合の後方互換用)
 function n3s_discord_webhook_curl_command($url, $json)
 {
     $secure = n3s_get_config('webhook_secure', false);
@@ -2375,9 +2575,20 @@ function n3s_logout()
     unset($_SESSION['user_id']);
     unset($_SESSION['n3s_backurl']);
     unset($_SESSION['name']);
+    unset($_SESSION['login_token']);
     // log
     if ($user_id > 0) {
         n3s_log("user_id=$user_id,name={$name},ip={$ip}", "logout", 0);
+    }
+    // セッション自体も破棄し、セッションIDや残りのセッションデータを
+    // 使い回せないようにする (#286)
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
+        session_destroy();
     }
 }
 

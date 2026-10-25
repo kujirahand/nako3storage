@@ -491,7 +491,7 @@ function list_image()
     $params = [];
     if ($has_search) {
         // %, _, \ のエスケープ
-        $escaped_word = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search_word);
+        $escaped_word = n3s_like_escape($search_word);
         $search_like = "%{$escaped_word}%";
     }
 

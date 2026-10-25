@@ -125,7 +125,7 @@ test('「試行→再発行→試行」を繰り返しても、累積の失敗�
     expect($out)->toContain('試行回数が多すぎます');
 });
 
-test('認証番号の再発行はIP単位で回数制限される', function () {
+test('認証番号の再発行は回数制限される (同一IPからの連続再発行)', function () {
     $user_id = n3s_add_user('bf5@example.com', 'password1', '再発行太郎');
     $ip = $_SERVER['REMOTE_ADDR'];
 
@@ -133,7 +133,7 @@ test('認証番号の再発行はIP単位で回数制限される', function () 
         $sent = n3s_test_call(fn () => n3s_web_login_setpw_sendmail($user_id, 'bf5@example.com', 'forgot'));
         expect($sent)->toBeTrue();
     }
-    expect(n3s_setpw_recent_reissues($ip))->toBe(N3S_SETPW_REISSUE_MAX_TRIES);
+    expect(n3s_setpw_recent_reissues('bf5@example.com', $ip))->toBe(N3S_SETPW_REISSUE_MAX_TRIES);
 
     // 上限到達後は再発行されない(戻り値false、pass_tokenも更新されない)
     $before = db_get1('SELECT pass_token FROM users WHERE user_id=?', [$user_id], 'users')['pass_token'];
@@ -148,7 +148,7 @@ test('n3s_web_login_forgot() は再発行の上限到達時にエラーを表示
     $ip = $_SERVER['REMOTE_ADDR'];
     // 上限まで再発行枠を使い切る
     for ($i = 0; $i < N3S_SETPW_REISSUE_MAX_TRIES; $i++) {
-        n3s_setpw_record_reissue($ip);
+        n3s_setpw_record_reissue('bf6@example.com', $ip);
     }
 
     $_POST = ['email' => 'bf6@example.com', 'email2' => 'bf6@example.com', 'quiz' => 'くさばな'];

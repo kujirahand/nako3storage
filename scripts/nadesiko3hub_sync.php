@@ -32,6 +32,13 @@ require_once __DIR__ . '/../app/n3s_lib.inc.php';
 // DB初期化
 n3s_db_init();
 
+// 多重起動防止 (#286)
+$batch_lock = n3s_cli_batch_lock('nadesiko3hub_sync');
+if ($batch_lock === false) {
+    echo "[INFO] 既に実行中のため、処理をスキップしました。\n";
+    exit(0);
+}
+
 if (!n3s_get_config('nadesiko3hub_enabled', FALSE)) {
     echo "[INFO] nadesiko3hub_enabled が無効なため、処理をスキップしました。\n";
     exit(0);

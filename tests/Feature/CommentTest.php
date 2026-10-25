@@ -59,6 +59,9 @@ test('NGが3回でコメント投稿をブロックし、管理者が解除で�
     n3s_test_capture(fn() => n3s_web_admin());
     expect(intval(db_get1('SELECT blocked FROM comment_user_blocks WHERE user_id = ?', [$user_id], 'main')['blocked']))->toBe(1);
 
+    // ユーザーを切り替える時は、前のユーザーの login_token を残さない
+    // (実際のログインではセッションを作り直して両方一緒に設定する, #286)
+    unset($_SESSION['login_token']);
     $_SESSION['user_id'] = 1;
     $_SESSION['n3s_login_info'] = ['user_id' => 1, 'name' => '管理者', 'email' => 'admin@example.com'];
     $_SERVER['REQUEST_METHOD'] = 'GET';

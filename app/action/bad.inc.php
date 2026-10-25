@@ -28,7 +28,7 @@ function echo_bad()
     }
     // db
     try {
-        $r = db_get1('SELECT title,author,bad,fav_lastip FROM apps WHERE app_id=?', [$app_id]);
+        $r = db_get1('SELECT title,author,bad FROM apps WHERE app_id=?', [$app_id]);
         if ($q === 'up') {
             if (! n3s_is_login()) {
                 echo "error, please login.";
@@ -39,30 +39,28 @@ function echo_bad()
                 echo "error, invalid token.";
                 return;
             }
-            $ip = $_SERVER["REMOTE_ADDR"];
+            $ip = isset($_SERVER["REMOTE_ADDR"]) ? $_SERVER["REMOTE_ADDR"] : '';
             $title = $r['title'];
             $author = $r['author'];
-            // for test ?
-            $ip_a = explode('.', $ip.'.0.0.0.0');
-            if (($ip_a[0] === '192' && $ip_a[1] === '168') ||
-                ($ip_a[0] === '100' && $ip_a[1] === '115')) {
-                $ip = time(); // かぶらないように
-            }
-            if (n3s_is_admin()) {
-                $ip = time();
-            }
-            if ($r['fav_lastip'] !== $ip) {
+            $user_id = n3s_get_user_id();
+            // 通報は1ユーザーが1作品につき1回だけ加算する (#286)。
+            // broken_reports と同じ方式で、報告者を bad_reports に記録する。
+            // (以前は apps.fav_lastip で直前のIPだけを見ていたため、複数の
+            // IP・アカウントを交互に使うと加算し続けられた)
+            db_begin();
+            db_exec('INSERT OR IGNORE INTO bad_reports (app_id, user_id, ip, ctime) VALUES (?,?,?,?)',
+                [$app_id, $user_id, $ip, time()]);
+            $c = db_get1('SELECT changes() AS c');
+            $added = ($c && intval($c['c']) > 0);
+            if ($added) {
                 // 管理者の通報は100人分
-                $up_count = 1;
-                if (n3s_is_admin()) {
-                    $up_count = 100;
-                }
+                $up_count = n3s_is_admin() ? 100 : 1;
                 // 通報数を加算する
-                db_begin();
                 db_exec('UPDATE apps SET bad=bad+? WHERE app_id=?', [$up_count, $app_id]);
-                db_exec('UPDATE apps SET fav_lastip=? WHERE app_id=?', [$ip, $app_id]);
-                $r = db_get1('SELECT bad,fav_lastip FROM apps WHERE app_id=?', [$app_id]);
-                db_commit();
+            }
+            $r = db_get1('SELECT bad FROM apps WHERE app_id=?', [$app_id]);
+            db_commit();
+            if ($added) {
                 // 通報があった旨をメールする
                 $admin_email = n3s_get_config('admin_email', '');
                 if ($admin_email != '') {

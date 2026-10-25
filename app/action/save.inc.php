@@ -231,6 +231,12 @@ function n3s_action_save_check_param(&$a, $check_error = false)
     if (intval($a['user_id']) == 0 && $a['nakotype'] != 'wnako') {
         throw new Exception("ログインしていない場合、なでしこ以外の言語は選べません。");
     }
+    // 公開設定は 0=公開 / 1=非公開 / 2=限定公開 のみ許可する (#286)。
+    // 想定外の値は経路ごとに扱いが割れる (show では公開扱い・plain では 403・
+    // hub へは出力される) ため、保存時に弾く。
+    if (!in_array(intval($a['is_private']), [0, 1, 2], true)) {
+        throw new Exception("公開設定の値が不正です。");
+    }
     // 限定公開(is_private=2)はログインユーザーのみが使える機能とする (todo-security.md #6)。
     // 匿名投稿の限定公開は editkey のみが閲覧の拠り所になり、editkeyが空のまま保存されると
     // 誰でも閲覧できてしまう等、保護が弱くなりやすいため。
@@ -502,6 +508,8 @@ function n3s_action_save_delete($params)
     db_exec('DELETE FROM apps WHERE app_id=?', [$app_id]);
     // 「動かない」報告者の記録も削除 (残すとapp_id再利用時に新作品を報告できなくなる #267)
     db_exec('DELETE FROM broken_reports WHERE app_id=?', [$app_id]);
+    // 通報者の記録も同様に削除する (#286)
+    db_exec('DELETE FROM bad_reports WHERE app_id=?', [$app_id]);
     // 関連データも削除する。残すと app_id 再利用時に新しい作品へ
     // 旧作品のコメント・お気に入り・素材が付いてしまう (#284)
     $comment_rows = db_get('SELECT comment_id FROM comments WHERE app_id=?', [$app_id]);
@@ -546,9 +554,16 @@ function n3s_action_save_delete($params)
 function n3s_action_save_reset_bad($params)
 {
     global $n3s_config;
+    // 状態変更なので POST を必須とする (トークンがURLに載ったGETでは実行しない, #286)
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        n3s_error('リクエストが不正', '再度実行してください。');
+        return;
+    }
     // トークンのチェック
+    // (n3s_error は表示のみで処理を止めないため、必ず return で止めること #286)
     if (!n3s_checkEditToken()) {
         n3s_error('トークンが無効', '再度実行してください。');
+        return;
     }
     // check app id
     $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
@@ -574,6 +589,8 @@ function n3s_action_save_reset_bad($params)
     // 通報リセット
     $time = time();
     db_exec('UPDATE apps SET bad=?,mtime=? WHERE app_id=?', [$bad_value, $time, $app_id]);
+    // 報告者の記録も消し、リセット後に同じユーザーが再び通報できるようにする (#286)
+    db_exec('DELETE FROM bad_reports WHERE app_id=?', [$app_id]);
     // 情報
     n3s_template_fw('basic.html', [
         'contents' => "{$app_id} の通報を {$bad_value}に変更しました。",
@@ -583,9 +600,16 @@ function n3s_action_save_reset_bad($params)
 // 「動かない」報告 (broken_report) を0にリセットする。本人または管理者のみ実行可能 (#267)
 function n3s_action_save_reset_broken($params)
 {
+    // 状態変更なので POST を必須とする (トークンがURLに載ったGETでは実行しない, #286)
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        n3s_error('リクエストが不正', '再度実行してください。');
+        return;
+    }
     // トークンのチェック
+    // (n3s_error は表示のみで処理を止めないため、必ず return で止めること #286)
     if (!n3s_checkEditToken()) {
         n3s_error('トークンが無効', '再度実行してください。');
+        return;
     }
     // check app id
     $app_id = intval(empty($_GET['page']) ? 0 : $_GET['page']);
