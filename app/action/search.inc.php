@@ -31,19 +31,22 @@ function n3s_list_search()
         ];
     }
     // wildcard options
+    // LIKEのワイルドカード (% _) とエスケープ文字は無効化してから、
+    // * だけをワイルドカード (%) に変換する (#286)
+    $search_escaped = n3s_like_escape($search_word);
     if (strpos($search_word, '*') !== false) {
-        $search_wc = str_replace('*', '%', $search_word);
+        $search_wc = str_replace('*', '%', $search_escaped);
     } else {
-        $search_wc = "%{$search_word}%";
+        $search_wc = "%{$search_escaped}%";
     }
-    
+
     // タイトルで検索
     $list = [];
     if ($target == 'normal') {
         $sql =
           'SELECT * FROM apps '.
           'WHERE '.
-          '  (title LIKE ? OR tag LIKE ?)'.
+          '  (title LIKE ? ESCAPE \'\\\' OR tag LIKE ? ESCAPE \'\\\')'.
           '  AND(is_private=0)AND(show_list=1)'.
           'ORDER BY fav DESC, app_id DESC '.
           'LIMIT ? OFFSET ?';
@@ -58,7 +61,7 @@ function n3s_list_search()
         $sql =
           'SELECT * FROM apps '.
           'WHERE '.
-          '  (tag LIKE ?)'.
+          '  (tag LIKE ? ESCAPE \'\\\')'.
           '  AND(is_private=0)AND(show_list=1)'.
           'ORDER BY fav DESC, app_id DESC '.
           'LIMIT ? OFFSET ?';
@@ -104,7 +107,7 @@ function n3s_list_search()
             $dbname = n3s_getMaterialDB($tid);
             $sql_material =
               'SELECT * FROM materials '.
-              'WHERE body LIKE ? '.
+              'WHERE body LIKE ? ESCAPE \'\\\' '.
               'ORDER BY material_id DESC '.
               'LIMIT ?';
             $ma = db_get(

@@ -81,7 +81,7 @@ function n3s_web_mypage()
 
         if ($has_search) {
             // %, _, \ のエスケープ
-            $escaped_word = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search_word);
+            $escaped_word = n3s_like_escape($search_word);
             $search_like = "%{$escaped_word}%";
             $where .= ' AND (title LIKE ? ESCAPE \'\\\' OR description LIKE ? ESCAPE \'\\\')';
             $params[] = $search_like;
@@ -295,9 +295,12 @@ function n3s_mypage_mode_del_account($user_id)
     $q = empty($_POST['q']) ? '' : $_POST['q'];
     if ($confirm == 'yes' && $q == 'たいかい') {
         if ($token != $token_post) {
+            // $token_post は利用者の入力値なので、raw出力のエラーメッセージに
+            // 埋め込む前に必ずエスケープする (#286)
+            $token_post_e = htmlspecialchars((string) $token_post, ENT_QUOTES, 'UTF-8');
             n3s_error(
                 '退会トークンのエラー',
-                "<a href='$link_del_account'>こちらから再度お試しください。($token_post)</a>",
+                "<a href='$link_del_account'>こちらから再度お試しください。($token_post_e)</a>",
                 TRUE
             );
             return;
@@ -347,7 +350,7 @@ function n3s_mypage_mode_del_account($user_id)
         $email = generatePassword();
         $token = generatePassword();
         db_exec(
-            'UPDATE users SET name="(退会ユーザー)", email=?, password=?, login_token=? WHERE user_id=?',
+            'UPDATE users SET name="(退会ユーザー)", email=?, google_sub="", pass_token="", password=?, login_token=? WHERE user_id=?',
             [
                 $email,
                 $pw,
@@ -356,6 +359,21 @@ function n3s_mypage_mode_del_account($user_id)
             ],
             'users'
         );
+        // アプリ内ストレージのユーザー別DBも削除する (#286)。
+        // 残すと、退会後も発行済みトークンで読み書きできてしまう。
+        $dir_astorage = n3s_get_config('dir_astorage', '');
+        if ($dir_astorage !== '') {
+            $astorage_user_db = $dir_astorage . '/users/user' .
+                str_pad((string) $user_id, 6, '0', STR_PAD_LEFT) . '.sqlite3';
+            if (file_exists($astorage_user_db)) {
+                // WAL/ジャーナルの残りファイルも一緒に消す
+                // (save.inc.php のアプリDB削除と同じパターン)
+                foreach (['', '-wal', '-shm', '-journal'] as $suffix) {
+                    @unlink($astorage_user_db . $suffix);
+                }
+                n3s_log("- astorageユーザーDB($user_id) を削除", '退会');
+            }
+        }
         // 作品インデックスを変更
         $title = '(削除されました)';
         $memo = 'この作品はユーザー退会により削除されました。';

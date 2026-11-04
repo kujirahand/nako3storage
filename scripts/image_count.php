@@ -29,6 +29,13 @@ require_once __DIR__ . '/../app/n3s_lib.inc.php';
 // DB初期化
 n3s_db_init();
 
+// 多重起動防止 (#286)
+$batch_lock = n3s_cli_batch_lock('image_count');
+if ($batch_lock === false) {
+    echo "[INFO] 既に実行中のため、処理をスキップしました。\n";
+    exit(0);
+}
+
 // 処理対象を実行開始時点までのログに固定する(実行中に増える分は次回に回す)
 $max_row = db_get1('SELECT MAX(log_id) AS max_log_id FROM image_access_log', [], 'log');
 $max_log_id = $max_row ? intval($max_row['max_log_id']) : 0;

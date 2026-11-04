@@ -2,6 +2,3 @@
 	path = app/fw_simple
 	url = git@github.com:kujirahand/php_fw_simple.git
 
-[submodule "nadesiko3hub"]
-	path = nadesiko3hub
-	url = git@github.com:kujirahand/nadesiko3hub.git

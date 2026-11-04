@@ -84,6 +84,14 @@ function n3s_web_userinfo()
                 }
             } elseif (isset($_POST['user_image_delete']) && intval($_POST['user_image_delete']) === 1) {
                 db_exec('UPDATE users SET image_id=0, mtime=? WHERE user_id=?', [time(), $user_id], 'users');
+                // プロフィール画像は専用素材なので、実体ごと削除する (#286)
+                if ($image_id > 0) {
+                    try {
+                        n3s_delete_image_record_and_file($image_id);
+                    } catch (Exception $e) {
+                        n3s_log("profile image delete failed: image_id={$image_id}, {$e->getMessage()}", 'userinfo', 0);
+                    }
+                }
                 $image_id = 0;
                 $profile_url = n3s_get_user_default_image_url();
                 $_SESSION['profile_url'] = $profile_url;

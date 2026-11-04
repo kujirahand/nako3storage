@@ -7,8 +7,10 @@
     {{if n3s_is_login()}}
       <a href="index.php?page=my&amp;action=mypage"
         class="pure-button">🐕私の作品</a>
-      <a href="index.php?page=my&amp;action=logout"
-        class="pure-button">🚪ログアウト</a>
+      <form method="POST" action="index.php?page=my&amp;action=logout" style="display:inline">
+        <input type="hidden" name="edit_token" value="{{e: echo n3s_getEditToken(); }}">
+        <button type="submit" class="pure-button">🚪ログアウト</button>
+      </form>
     {{else}}
       {{e: 
           $action = empty($_GET['action']) ? 'list' : $_GET['action'];

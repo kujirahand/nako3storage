@@ -14,6 +14,7 @@ cache-cdn/*
 book/*
 images/*
 .claude/
+nadesiko3hub
 
 # images/.htaccess はアップロードファイルへの直接アクセスを禁止する保護ファイルのため、
 # images/* の除外対象から外して必ず追跡・配布する (todo-security.md #3)

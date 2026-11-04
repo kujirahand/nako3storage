@@ -109,7 +109,18 @@ CREATE TABLE broken_reports (
   UNIQUE(app_id, user_id)
 );
 
+CREATE TABLE bad_reports (
+  bad_report_id INTEGER PRIMARY KEY,
+  app_id     INTEGER NOT NULL,
+  user_id    INTEGER NOT NULL,
+  ip         TEXT DEFAULT '',
+  ctime      INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(app_id, user_id)
+);
+
 /*
+2026/10/25 (#286) 通報者を記録する bad_reports テーブルを追加 (既存DBは n3s_db_migrate_apps() が自動作成)
+
 2026/09/29 (#267) 「動かない」報告者を記録する broken_reports テーブルを追加 (既存DBは n3s_db_migrate_apps() が自動作成)
 
 2026/09/29 (#267) 「動かない」報告カラムを追加 (既存DBは n3s_db_migrate_apps() が自動マイグレーション)

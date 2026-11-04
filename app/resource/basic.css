@@ -2962,6 +2962,33 @@ ul.devblock span.lbl {
   background: var(--n3s-sakura-band);
 }
 
+/* ログアウトはPOSTフォーム (ボタンを見出しリンクと同じカード形状にする) */
+.n3s-mypage-management-links form {
+  display: flex;
+  margin: 0;
+}
+
+.n3s-mypage-management-links form button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-height: 58px;
+  padding: 14px;
+  border: none;
+  border-right: 1px solid var(--n3s-border);
+  border-bottom: 1px solid var(--n3s-border);
+  color: var(--n3s-sumi);
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.n3s-mypage-management-links form button:hover {
+  background: var(--n3s-sakura-band);
+}
+
 .n3s-mypage-management-links span {
   color: #817177;
   font-size: 0.78em;

@@ -17,6 +17,14 @@ if (file_exists(__DIR__ . '/../n3s_config.ini.php')) {
 }
 require_once __DIR__ . '/../app/dlcounter_lib.inc.php';
 
+// 多重起動防止 (#286)。このスクリプトは n3s_lib を読み込まないため、
+// n3s_cli_batch_lock() と同じ方式 (一時ディレクトリ上の flock) をここに書く
+$batch_lock_fp = @fopen(sys_get_temp_dir() . '/n3s_batch_cdn_download_count.lock', 'c');
+if ($batch_lock_fp !== false && !flock($batch_lock_fp, LOCK_EX | LOCK_NB)) {
+    echo "[INFO] 既に実行中のため、処理をスキップしました。\n";
+    exit(0);
+}
+
 try {
     $result = n3s_aggregate_cdn_downloads();
 } catch (Throwable $e) {

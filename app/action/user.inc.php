@@ -58,10 +58,13 @@ function n3s_user_get()
             $search_error = '検索語は2文字以上で指定してください。';
         } else {
             // wildcard options
+            // LIKEのワイルドカード (% _) とエスケープ文字は無効化してから、
+            // * だけをワイルドカード (%) に変換する (#286)
+            $search_escaped = n3s_like_escape($search_word);
             if (strpos($search_word, '*') !== false) {
-                $search_wc = str_replace('*', '%', $search_word);
+                $search_wc = str_replace('*', '%', $search_escaped);
             } else {
-                $search_wc = "%{$search_word}%";
+                $search_wc = "%{$search_escaped}%";
             }
         }
     }
@@ -101,7 +104,7 @@ function n3s_user_get()
 
     // 検索ワードでの絞り込み条件追加
     if ($search_word !== '' && $search_error === '') {
-        $wheres[] = '(title LIKE ? OR memo LIKE ? OR tag LIKE ?)';
+        $wheres[] = '(title LIKE ? ESCAPE \'\\\' OR memo LIKE ? ESCAPE \'\\\' OR tag LIKE ? ESCAPE \'\\\')';
         $where_params[] = $search_wc;
         $where_params[] = $search_wc;
         $where_params[] = $search_wc;

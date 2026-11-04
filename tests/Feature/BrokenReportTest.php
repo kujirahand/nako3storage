@@ -12,6 +12,9 @@ function n3s_test_broken_login(int $userId): void
 {
     $_SESSION['n3s_login'] = true;
     $_SESSION['user_id'] = $userId;
+    // ユーザーを切り替える時は、前のユーザーの login_token を残さない
+    // (実際のログインではセッションを作り直して両方一緒に設定する, #286)
+    unset($_SESSION['login_token']);
     $_SESSION['n3s_login_info'] = ['user_id' => $userId, 'name' => '報告者', 'email' => 'broken@example.com'];
 }
 

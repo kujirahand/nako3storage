@@ -238,9 +238,16 @@
 
   window.addEventListener('message', function(e) {
     var iframe = document.querySelector('#iframe_contents')
+    // 作品側 (iframe) からのメッセージだけを受け付ける (#286)。
+    // widget_frame.html の受信側と同じ検証パターン。
+    if (!iframe || e.source !== iframe.contentWindow) return
+    if (!Array.isArray(e.data)) return
     var eventName = e.data[0]
     var data = e.data[1]
-    if (eventName === 'setFrameHeight' && iframe) iframe.style.height = data + 'px'
+    if (eventName === 'setFrameHeight') {
+      var h = parseInt(data, 10)
+      if (isFinite(h) && h > 0) iframe.style.height = h + 'px'
+    }
   }, false)
   </script>
 

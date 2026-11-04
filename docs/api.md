@@ -52,12 +52,26 @@ Issue: [#194](https://github.com/kujirahand/nako3storage/issues/194)
 ### 形式
 
 ```
-base64url(JSON {"a": app_id, "u": user_id, "e": 有効期限(UNIX時刻)}) + "." + base64url(HMAC-SHA256)
+base64url(JSON {"a": app_id, "u": user_id, "e": 有効期限(UNIX時刻), "t": login_tokenの指紋(任意)}) + "." + base64url(HMAC-SHA256)
 ```
 
 - 署名は `hash_hmac('sha256', "astorage:" . ペイロード, 署名鍵)`。
 - 実装: `n3s_astorage_token_create()` / `n3s_astorage_token_verify()` (`app/n3s_lib.inc.php`)。
 - サーバーにトークンを保存しない(ステートレス)。失効させたい場合は署名鍵を変更する(全トークンが無効になる)。
+- `user_id > 0` のトークンには、発行時点の `users.login_token` の指紋 (`t`, SHA-256の先頭16文字) が入る (#286)。退会・パスワード変更で `login_token` がローテーションされると、そのユーザーの発行済みトークンは有効期限前でも失効する。指紋のない旧トークンは有効期限まで有効。
+
+### 署名鍵のローテーション手順 (#286)
+
+署名鍵が漏えいした疑いがある場合などに、全トークンを失効させる手順。
+
+1. 新しい鍵を用意する (64文字の16進文字列など、十分に長いランダム値)。
+2. 鍵の置き場所に応じて差し替える。
+   - `n3s_config.ini.php` で `astorage_token_secret` を設定している場合: その値を新しい鍵に書き換える (こちらが優先される)。
+   - 未設定 (自動生成) の場合: メインDB (`data/n3s_main.sqlite`) の `info` テーブルの `key='astorage_token_secret'` の値を新しい鍵に更新する。行を削除した場合は、次回アクセス時に新しい鍵が自動生成される。
+3. 反映は即時で、発行済みの全トークンが無効になる。利用者は作品のページを開き直せば新しいトークンが発行されるため、事前告知は不要。
+4. ローテーションしなくても、トークンの有効期間は既定6時間 (`astorage_token_ttl`) で切れる。
+
+特定のユーザーだけを失効させたい場合は、そのユーザーの `login_token` をローテーションする (退会・パスワード再設定では自動で行われる)。
 
 ### 設定 (`n3s_config.ini.php`)
 

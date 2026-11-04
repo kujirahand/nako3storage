@@ -27,6 +27,9 @@ function n3s_web_admin()
             return;
         }
         db_exec('UPDATE comment_user_blocks SET blocked = 0, ng_count = 0, mtime = ? WHERE user_id = ? AND blocked = 1', [time(), $user_id], 'main');
+        // 管理操作の監査ログを残す (#286)
+        $admin_id = n3s_get_user_id();
+        n3s_log("user_id={$user_id} のコメントブロックを解除 (実施者 user_id={$admin_id})", 'admin_unblock_comment', 1);
         $notice = 'ユーザーID ' . $user_id . ' のコメント投稿ブロックを解除しました。';
     }
 
