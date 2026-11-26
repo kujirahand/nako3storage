@@ -22,6 +22,48 @@
         {{endfor}}
         </tbody>
     </table>
+    <h2>審査待ちコメント（スパムテスト前・最大100件）</h2>
+    {{if $pending_comments}}
+    <form method="post" action="index.php?action=admin">
+        <input type="hidden" name="mode" value="review_comments">
+        <input type="hidden" name="edit_token" value="{{$edit_token}}">
+        <p>基本はOKとして反映されます。NGにするコメントだけチェックしてください。</p>
+        <table class="pure-table pure-table-striped">
+            <thead><tr><th>NGにする</th><th>日時</th><th>ユーザー</th><th>作品</th><th>本文</th></tr></thead>
+            <tbody>
+            {{for $pending_comments as $comment}}
+                <tr><td><input type="checkbox" name="ng_ids[]" value="{{$comment.comment_id}}">
+                <input type="hidden" name="comment_ids[]" value="{{$comment.comment_id}}"></td>
+                <td>{{$comment.ctime | datetime}}</td><td>{{$comment.user_name}} (ID: {{$comment.user_id}})</td>
+                <td><a href="index.php?action=show&amp;page={{$comment.app_id}}">{{$comment.app_id}}</a></td><td>{{$comment.body}}</td></tr>
+            {{endfor}}
+            </tbody>
+        </table>
+        <p><button type="submit" class="pure-button pure-button-primary">反映</button></p>
+    </form>
+    {{else}}
+    <p>審査待ちのコメントはありません。</p>
+    {{endif}}
+    <h2>公開中のコメント（最大100件）</h2>
+    {{if $approved_comments}}
+    <table class="pure-table pure-table-striped">
+        <thead><tr><th>日時</th><th>ユーザー</th><th>作品</th><th>本文</th><th>操作</th></tr></thead>
+        <tbody>
+        {{for $approved_comments as $comment}}
+            <tr><td>{{$comment.ctime | datetime}}</td><td>{{$comment.user_name}} (ID: {{$comment.user_id}})</td>
+            <td><a href="index.php?action=show&amp;page={{$comment.app_id}}">{{$comment.app_id}}</a></td><td>{{$comment.body}}</td>
+            <td><form method="post" action="index.php?action=admin" onsubmit="return confirm('このコメントの本文を削除文に置き換えますか？');">
+                <input type="hidden" name="mode" value="replace_comment_body">
+                <input type="hidden" name="comment_id" value="{{$comment.comment_id}}">
+                <input type="hidden" name="edit_token" value="{{$edit_token}}">
+                <button type="submit" class="pure-button">削除文に置き換え</button>
+            </form></td></tr>
+        {{endfor}}
+        </tbody>
+    </table>
+    {{else}}
+    <p>公開中のコメントはありません。</p>
+    {{endif}}
     <h2>最近のNGコメント（最大100件）</h2>
     <table class="pure-table pure-table-striped">
         <thead><tr><th>日時</th><th>ユーザー</th><th>作品</th><th>本文</th></tr></thead>
