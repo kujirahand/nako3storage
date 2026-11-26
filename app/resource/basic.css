@@ -3872,6 +3872,31 @@ ul.devblock span.lbl {
   color: #ff9800 !important;
   font-weight: bold;
 }
+/* 素材のいいね・アクセス数 (#257) */
+.n3s-image-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 0;
+}
+.n3s-image-fav-btn {
+  border: 1px solid #ccc;
+  border-radius: 14px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1;
+  padding: 4px 10px;
+}
+.n3s-image-fav-btn:hover {
+  background: #f0f0f0;
+}
+.n3s-image-fav-btn.fav-active {
+  color: #e91e63 !important;
+  border-color: #e91e63;
+}
 .comment-fav-btn:hover {
   opacity: 0.8;
   background-color: #f0f0f0 !important;

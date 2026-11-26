@@ -64,7 +64,7 @@ CREATE TABLE images (
   description   TEXT DEFAULT '', /* 素材の説明 */
   filename      TEXT DEFAULT '', /* UPLOAD時のファイル名 */
   user_id       INTEGER DEFAULT 0,
-  fav           INTEGER DEFAULT 0, /*　現在未使用 */
+  fav           INTEGER DEFAULT 0, /* いいね数 (image_likes と同期。#257) */
   fav_id        TEXT DEFAULT '', /* 現在未使用 */
   app_id        INTEGER DEFAULT 0, /* どのアプリから利用されているか */
   image_name    TEXT DEFAULT '', /* 画像の名前 */
@@ -90,6 +90,15 @@ CREATE TABLE comment_likes (
   comment_id      INTEGER,
   ctime           INTEGER DEFAULT 0,
   UNIQUE(user_id, comment_id)
+);
+
+/* 素材のいいね (1ユーザー1素材に1回。カウンタは images.fav) #257 */
+CREATE TABLE image_likes (
+  image_like_id INTEGER PRIMARY KEY,
+  user_id       INTEGER,
+  image_id      INTEGER,
+  ctime         INTEGER DEFAULT 0,
+  UNIQUE(user_id, image_id)
 );
 
 CREATE TABLE comment_user_blocks (

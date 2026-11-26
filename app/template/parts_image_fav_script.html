@@ -1,0 +1,37 @@
+<script>
+// 素材のいいねボタン (#257)。値はすべてボタンの data 属性から読む
+(function () {
+  var buttons = document.querySelectorAll('.n3s-image-fav-btn');
+  Array.prototype.forEach.call(buttons, function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      if (btn.disabled) { return; }
+      btn.disabled = true;
+      var body = 'image_id=' + encodeURIComponent(btn.getAttribute('data-image-id')) +
+        '&edit_token=' + encodeURIComponent(btn.getAttribute('data-edit-token'));
+      fetch(btn.getAttribute('data-fav-url'), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+      }).then(function (res) { return res.json(); }).then(function (r) {
+        btn.disabled = false;
+        if (!r.result) {
+          alert(r.msg || 'いいねできませんでした。');
+          return;
+        }
+        var liked = !!r.liked;
+        btn.classList.toggle('fav-active', liked);
+        btn.classList.toggle('active', liked);
+        btn.textContent = liked ? '♥' : '♡';
+        var id = btn.getAttribute('data-image-id');
+        var cnt = document.querySelectorAll('.n3s-image-fav-count[data-image-id="' + id + '"]');
+        Array.prototype.forEach.call(cnt, function (el) { el.textContent = r.fav; });
+      }).catch(function () {
+        btn.disabled = false;
+        alert('通信に失敗しました。');
+      });
+    });
+  });
+})();
+</script>

@@ -41,6 +41,10 @@ function n3s_web_upload()
         list_image();
         return;
     }
+    if ($mode == 'fav') {
+        n3s_upload_image_fav();
+        return;
+    }
     // ログインチェック #78
     if (!n3s_is_login()) {
         $loginurl = n3s_getURL('my', 'login');
@@ -260,6 +264,110 @@ function go_upload()
     header('location:' . $url);
 }
 
+// 素材のいいね応答 (JSON)。fav.inc.php の echo_fav_result() と同じ方式 (#257)
+function n3s_upload_image_fav_result($result, $fav, $liked, $msg = '')
+{
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'result' => $result,
+        'fav' => $fav,
+        'liked' => $liked,
+        'msg' => $msg,
+    ], JSON_UNESCAPED_UNICODE);
+}
+
+// 素材のいいねをトグルする (POST + edit_token + ログイン必須, #257)
+function n3s_upload_image_fav()
+{
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        n3s_upload_image_fav_result(false, 0, 0, '不正なリクエストです。');
+        return;
+    }
+    if (!n3s_is_login()) {
+        n3s_upload_image_fav_result(false, 0, 0, 'いいねするにはログインしてください。');
+        return;
+    }
+    if (!n3s_checkEditToken()) {
+        n3s_upload_image_fav_result(false, 0, 0, '不正なリクエストです。再度お試しください。');
+        return;
+    }
+    $image_id = intval(isset($_POST['image_id']) ? $_POST['image_id'] : 0);
+    $im = $image_id > 0 ? db_get1('SELECT * FROM images WHERE image_id=? LIMIT 1', [$image_id]) : null;
+    if (!$im) {
+        n3s_upload_image_fav_result(false, 0, 0, '素材が見つかりません。');
+        return;
+    }
+    $user_id = intval(n3s_get_user_id());
+    $like = db_get1(
+        'SELECT image_like_id FROM image_likes WHERE image_id=? AND user_id=?',
+        [$image_id, $user_id]
+    );
+    if (!$like && $im['copyright'] === 'SELF') {
+        // 自分専用素材は、存在自体を漏らさないため「見つかりません」と同じ応答にする (#257レビュー)
+        // (いいね済みの場合は下の解除だけはできるようにする)
+        n3s_upload_image_fav_result(false, 0, 0, '素材が見つかりません。');
+        return;
+    }
+    if (!$like && intval($im['user_id']) === $user_id) {
+        $fav = intval(isset($im['fav']) ? $im['fav'] : 0);
+        n3s_upload_image_fav_result(false, $fav, 0, '自分の素材にはいいねできません。');
+        return;
+    }
+    // トグル本体。競合時は例外をそのまま投げず、ロールバックして現在の状態を読み直して返す
+    try {
+        db_begin();
+        // トランザクション内でもう一度いいね状態を確認する
+        $like = db_get1(
+            'SELECT image_like_id FROM image_likes WHERE image_id=? AND user_id=?',
+            [$image_id, $user_id]
+        );
+        if ($like) {
+            db_exec('UPDATE images SET fav=MAX(fav-1, 0) WHERE image_id=?', [$image_id]);
+            db_exec('DELETE FROM image_likes WHERE image_like_id=?', [$like['image_like_id']]);
+        } else {
+            // 素材が削除されていたら付けない (孤児行を作らない)
+            $exists = db_get1('SELECT image_id FROM images WHERE image_id=?', [$image_id]);
+            if (!$exists) {
+                db_rollback();
+                n3s_upload_image_fav_result(false, 0, 0, '素材が見つかりません。');
+                return;
+            }
+            db_exec('UPDATE images SET fav=fav+1 WHERE image_id=?', [$image_id]);
+            db_exec(
+                'INSERT INTO image_likes (user_id, image_id, ctime) VALUES(?,?,?)',
+                [$user_id, $image_id, time()]
+            );
+        }
+        db_commit();
+    } catch (Exception $e) {
+        try { db_rollback(); } catch (Exception $e2) { /* 既に終了している場合は無視 */ }
+    }
+    // 現在のDBの状態を読み直して返す (同時操作があっても数と状態がずれないように)
+    $row = db_get1('SELECT fav FROM images WHERE image_id=?', [$image_id]);
+    $now_like = db_get1(
+        'SELECT image_like_id FROM image_likes WHERE image_id=? AND user_id=?',
+        [$image_id, $user_id]
+    );
+    n3s_upload_image_fav_result(
+        true,
+        $row ? intval($row['fav']) : 0,
+        $now_like ? 1 : 0
+    );
+}
+
+// 指定素材をログイン中ユーザーがいいね済みか (#257)
+function n3s_upload_image_is_liked($image_id)
+{
+    if (!n3s_is_login()) {
+        return false;
+    }
+    $r = db_get1(
+        'SELECT image_like_id FROM image_likes WHERE image_id=? AND user_id=?',
+        [intval($image_id), intval(n3s_get_user_id())]
+    );
+    return $r ? true : false;
+}
+
 function show_image()
 {
     // check
@@ -332,6 +440,12 @@ function show_image()
         'copyright' => getCopyrightName($im['copyright']),
         'image_url' => $image_url,
         'view' => intval(isset($im['view']) ? $im['view'] : 0),
+        'fav' => intval(isset($im['fav']) ? $im['fav'] : 0),
+        'liked' => n3s_upload_image_is_liked($im['image_id']),
+        'is_login' => n3s_is_login(),
+        'edit_token' => n3s_getEditToken(),
+        'fav_url' => n3s_getURL('', 'upload', ['mode' => 'fav']),
+        'can_fav' => ($im['copyright'] !== 'SELF' && intval($im['user_id']) !== intval(n3s_get_user_id())),
         'msg' => 'ファイルの情報',
         'user' => $user,
         'can_edit' => $can_edit,
@@ -554,7 +668,14 @@ function list_image()
         $i['file_extension'] = strtoupper(pathinfo($fname, PATHINFO_EXTENSION));
         $i['info_url'] = n3s_getURL('', 'upload', ['image_id' => $i['image_id'], 'mode' => 'show']);
         $i['copyright_name'] = getCopyrightName2($i['copyright']);
+        $i['view'] = intval(isset($i['view']) ? $i['view'] : 0);
+        $i['fav'] = intval(isset($i['fav']) ? $i['fav'] : 0);
+        $i['liked'] = n3s_upload_image_is_liked($i['image_id']);
+        // 自分の素材にはいいねボタンを出さない
+        $i['can_fav'] = (intval($i['user_id']) !== intval(n3s_get_user_id()));
+        $i['fav_url'] = n3s_getURL('', 'upload', ['mode' => 'fav']);
     }
+    unset($i);
 
     $link_ranking_url = n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'ranking']);
     $link_mtime_url = n3s_getURL('', 'upload', ['mode' => 'list', 'sort' => 'mtime']);
@@ -567,6 +688,8 @@ function list_image()
 
     n3s_template_fw('upload-list.html', [
         'images' => $images,
+        'edit_token' => n3s_getEditToken(),
+        'is_login' => n3s_is_login(),
         'next_url' => $next_url,
         'sort' => $sort,
         'search_word' => $search_word,

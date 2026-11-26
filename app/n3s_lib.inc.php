@@ -509,7 +509,18 @@ function n3s_db_migrate_images()
         if (!in_array('description', $names, true)) {
             db_exec("ALTER TABLE images ADD COLUMN description TEXT DEFAULT ''", [], 'main');
         }
+        if (!in_array('fav', $names, true)) {
+            db_exec("ALTER TABLE images ADD COLUMN fav INTEGER DEFAULT 0", [], 'main');
+        }
     }
+    // 素材のいいね (#257)。カウンタは images.fav
+    db_exec("CREATE TABLE IF NOT EXISTS image_likes (
+      image_like_id INTEGER PRIMARY KEY,
+      user_id       INTEGER,
+      image_id      INTEGER,
+      ctime         INTEGER DEFAULT 0,
+      UNIQUE(user_id, image_id)
+    )", [], 'main');
     db_exec(
         'CREATE TABLE IF NOT EXISTS image_access_log (
             log_id   INTEGER PRIMARY KEY,
@@ -1583,6 +1594,7 @@ function n3s_delete_image_record_and_file($image_id)
     }
     $targetFile = n3s_getImageFile($image_id, $ext, false, $im['token']);
     db_exec('DELETE FROM images WHERE image_id=?', [$image_id]);
+    db_exec('DELETE FROM image_likes WHERE image_id=?', [$image_id]);
     if (file_exists($targetFile)) {
         @unlink($targetFile);
     }

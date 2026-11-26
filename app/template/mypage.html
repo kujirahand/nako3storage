@@ -176,6 +176,34 @@
       </ol>
       {{ endif }}
     </section>
+
+    <section class="n3s-mypage-section">
+      <div class="n3s-mypage-section-head">
+        <h2 id="liked-images">いいねした素材</h2>
+        <a href="{{ $link_all_fav }}#liked-images">すべて見る</a>
+      </div>
+      {{ if !$liked_images }}
+      <p class="n3s-mypage-empty">まだいいねした素材がありません。</p>
+      {{ else }}
+      <div class="n3s-upload-list">
+        {{ for $liked_images as $i }}
+        <article class="n3s-upload-list-row">
+          <a class="n3s-upload-list-preview" href="{{$i.info_url}}" aria-label="{{$i.title}}の詳細">
+            {{if $i.is_image}}
+            <img src="{{$i.preview_url}}" width="72" height="72" alt="">
+            {{else}}
+            <span>{{$i.file_extension}}</span>
+            {{endif}}
+          </a>
+          <div class="n3s-upload-list-main">
+            <h2><a href="{{$i.info_url}}">{{$i.title}}</a></h2>
+            <p class="n3s-image-stats"><span>👀 {{$i.view}}</span><span>❤️ {{$i.fav}}</span></p>
+          </div>
+        </article>
+        {{ endfor }}
+      </div>
+      {{ endif }}
+    </section>
   </div>
   {{ endif }}
 

@@ -57,6 +57,13 @@
         <div class="n3s-upload-list-main">
           <h2><a href="{{$i.info_url}}">{{$i.title}}</a></h2>
           <p><span>{{$i.copyright_name}}</span><span>#{{$i.image_id}}</span></p>
+          <p class="n3s-image-stats">
+            <span>👀 {{$i.view}}</span>
+            <span>❤️ <span class="n3s-image-fav-count" data-image-id="{{$i.image_id}}">{{$i.fav}}</span></span>
+            {{if $is_login && $i['can_fav']}}
+            <button type="button" class="n3s-image-fav-btn{{if $i.liked}} fav-active active{{endif}}" data-image-id="{{$i.image_id}}" data-edit-token="{{$edit_token}}" data-fav-url="{{$i.fav_url}}" aria-label="いいね">{{if $i.liked}}♥{{else}}♡{{endif}}</button>
+            {{endif}}
+          </p>
         </div>
         <a class="pure-button" href="{{$i.info_url}}">詳細</a>
       </article>
@@ -75,5 +82,7 @@
     {{ endif }}
   </section>
 </main>
+
+{{ include parts_image_fav_script.html }}
 
 {{ include parts_html_footer.html }}

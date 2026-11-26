@@ -185,6 +185,27 @@ function n3s_web_mypage()
             $bookmarks[] = $a;
         }
     }
+    // いいねした素材一覧を取得 (#257)
+    $liked_images = [];
+    $like_rows = db_get(
+        'SELECT * FROM image_likes WHERE user_id=? ORDER BY image_like_id DESC LIMIT ?',
+        [$user_id, $fav_limit]
+    );
+    foreach ($like_rows as $lr) {
+        $im = db_get1('SELECT * FROM images WHERE image_id=?', [intval($lr['image_id'])]);
+        // 削除済みはスキップ。他人の自分専用素材は表示しない
+        if (!$im) { continue; }
+        if ($im['copyright'] === 'SELF' && intval($im['user_id']) !== intval($user_id)) { continue; }
+        $filename = isset($im['filename']) ? $im['filename'] : '';
+        $im['is_image'] = preg_match('/\.(jpe?g|png|gif|webp)$/i', $filename) === 1;
+        $im['preview_url'] = $im['is_image'] ? n3s_cover_url_from_image_row($im) : '';
+        $im['info_url'] = n3s_getURL('', 'upload', ['mode' => 'show', 'image_id' => intval($im['image_id'])]);
+        $im['view'] = intval(isset($im['view']) ? $im['view'] : 0);
+        $im['fav'] = intval(isset($im['fav']) ? $im['fav'] : 0);
+        $ext = strtoupper(pathinfo($filename, PATHINFO_EXTENSION));
+        $im['file_extension'] = ($ext !== '') ? $ext : 'FILE';
+        $liked_images[] = $im;
+    }
     // 最近コメントが付いた投稿一覧を取得(自分の投稿への他人からのコメントのみ)
     $recent_comments = [];
     if ($page == 0) {
@@ -209,6 +230,7 @@ function n3s_web_mypage()
         'user' => $user,
         'url_images' => n3s_get_config('url_images', '/images'),
         'bookmarks' => $bookmarks,
+        'liked_images' => $liked_images,
         'recent_comments' => $recent_comments,
         'link_all_fav' => $link_all_fav,
         'link_next_page' => $link_next_page,
@@ -345,6 +367,13 @@ function n3s_mypage_mode_del_account($user_id)
         }
         // お気に入り情報の削除
         db_exec('DELETE FROM bookmarks WHERE user_id=?', [$user_id]);
+        // 素材のいいねの削除 (images.fav を減算してから行を消す) #257
+        db_exec(
+            'UPDATE images SET fav=MAX(fav-1, 0) WHERE image_id IN ' .
+                '(SELECT image_id FROM image_likes WHERE user_id=?)',
+            [$user_id]
+        );
+        db_exec('DELETE FROM image_likes WHERE user_id=?', [$user_id]);
         // ユーザーの変更
         $pw = generatePassword();
         $email = generatePassword();
