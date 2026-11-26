@@ -87,6 +87,32 @@ function n3s_web_admin()
         }
         $notice = '審査待ちコメントを反映しました（承認 ' . $ok_count . ' 件、NG ' . $ng_count . ' 件）';
     }
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mode']) && $_POST['mode'] === 'run_comment_audit') {
+        // 管理画面からAI審査バッチと同じ処理を実行する (#290)
+        if (!n3s_checkEditToken()) {
+            n3s_error('操作エラー', 'トークンが一致しません。');
+            return;
+        }
+        require_once __DIR__ . '/../comment_audit_run.inc.php';
+        ob_start();
+        try {
+            $audit = n3s_comment_audit_run();
+        } finally {
+            ob_end_clean();
+        }
+        if ($audit['locked']) {
+            $notice = 'AI審査は既に実行中です。しばらく待ってから再度お試しください。';
+        } else {
+            $admin_id = n3s_get_user_id();
+            $audit_msg = 'AI審査を手動実行 (対象 ' . $audit['total'] . ' 件、承認 ' . $audit['approved'] . ' 件、NG ' . $audit['ng'] . ' 件、保留 ' . $audit['errors'] . ' 件, 実施者 user_id=' . $admin_id . ')';
+            n3s_log($audit_msg, 'admin_run_comment_audit', 1);
+            if ($audit['total'] === 0) {
+                $notice = 'AI審査を実行しました。審査待ちのコメントはありませんでした。';
+            } else {
+                $notice = 'AI審査を実行しました（対象 ' . $audit['total'] . ' 件: 承認 ' . $audit['approved'] . ' 件、NG ' . $audit['ng'] . ' 件、保留 ' . $audit['errors'] . ' 件）';
+            }
+        }
+    }
     if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mode']) && $_POST['mode'] === 'replace_comment_body') {
         // 公開中コメントの本文を削除文に置き換える (#290)
         if (!n3s_checkEditToken()) {

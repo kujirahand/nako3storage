@@ -69,6 +69,7 @@
 
 - **バッチスクリプト**: `scripts/comment_audit.php`
 - **実行コマンド**: `just comment-audit`（内部で `php scripts/comment_audit.php` を実行）
+- **管理画面からの実行**: 管理画面（`index.php?action=admin`）の「AI審査を実行」ボタンからも同じ審査を今すぐ実行できます。審査本体は共通関数 `n3s_comment_audit_run()`（`app/comment_audit_run.inc.php`）で、CLI と管理画面の両方から呼ばれます（多重起動はロックで防止）。
 - **審査仕様**:
   - `status = 'pending'` のコメントを取得し、OpenRouter API を使って誹謗中傷やスパムなどを審査します。
   - **モデル**: 既定値は `~typesafe/jev-latest`。Jev は OpenRouter Decisions API の選択結果で判定します。`comment_audit_model` に Gemma などを指定した場合は従来の Chat Completions API を使います。

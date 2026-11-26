@@ -7,6 +7,20 @@ declare(strict_types=1);
 
 require_once N3S_TEST_ROOT . '/app/action/admin.inc.php';
 
+// 外部APIを呼ばないスタブ (CommentTest.php と同じ)
+if (!function_exists('check_comment_with_openrouter')) {
+    function check_comment_with_openrouter($body, $api_key, $model)
+    {
+        if ($api_key === 'trigger-error') {
+            return 'error';
+        }
+        if ($api_key === 'trigger-ng') {
+            return 'ng';
+        }
+        return 'approved';
+    }
+}
+
 function n3s_test_admin_review_login(): int
 {
     $admin_id = n3s_test_add_legacy_user('admin@example.com', 'password123', '管理者');
@@ -150,4 +164,67 @@ test('replace_comment_body は公開中コメントの本文だけを置き換�
     $row = db_get1('SELECT body, status FROM comments WHERE comment_id = ?', [$pending], 'main');
     expect($row['body'])->toBe('審査待ちの本文');
     expect($row['status'])->toBe('pending');
+});
+
+function n3s_test_admin_run_audit(string $api_key, bool $auto_approve = false, ?string $token = null): string
+{
+    global $n3s_config;
+    $n3s_config['openrouter_api_key'] = $api_key;
+    $n3s_config['comment_audit_auto_approve'] = $auto_approve;
+    return n3s_test_admin_review_post([
+        'mode' => 'run_comment_audit',
+        'edit_token' => $token ?? n3s_getEditToken(),
+    ]);
+}
+
+test('管理画面に「AI審査を実行」ボタンが表示される', function () {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_GET = [];
+    $_POST = [];
+    $_REQUEST = [];
+    $html = n3s_test_capture(fn() => n3s_web_admin());
+    expect($html)->toContain('AI審査を実行');
+    expect($html)->toContain('value="run_comment_audit"');
+});
+
+test('run_comment_audit で pending が approved になり comment_count が増える', function () {
+    $c = n3s_test_admin_review_comment($this->poster_id, '普通のコメント', 'pending');
+    n3s_test_admin_run_audit('test-key');
+    expect(n3s_test_admin_review_status($c))->toBe('approved');
+    expect(n3s_test_admin_review_count())->toBe(1);
+});
+
+test('run_comment_audit でNG判定なら ng になり投稿者の ng_count が1になる', function () {
+    $c = n3s_test_admin_review_comment($this->poster_id, '悪いコメント', 'pending');
+    n3s_test_admin_run_audit('trigger-ng');
+    expect(n3s_test_admin_review_status($c))->toBe('ng');
+    $block = db_get1('SELECT ng_count FROM comment_user_blocks WHERE user_id = ?', [$this->poster_id], 'main');
+    expect((int)$block['ng_count'])->toBe(1);
+});
+
+test('run_comment_audit でAPIエラーなら pending のまま', function () {
+    $c = n3s_test_admin_review_comment($this->poster_id, '保留コメント', 'pending');
+    n3s_test_admin_run_audit('trigger-error');
+    expect(n3s_test_admin_review_status($c))->toBe('pending');
+});
+
+test('run_comment_audit は edit_token が不正なら実行されない', function () {
+    $c = n3s_test_admin_review_comment($this->poster_id, '未審査コメント', 'pending');
+    n3s_test_admin_run_audit('test-key', false, 'invalid-token');
+    expect(n3s_test_admin_review_status($c))->toBe('pending');
+});
+
+test('run_comment_audit は審査バッチ実行中 (ロック取得中) は実行されない', function () {
+    $c = n3s_test_admin_review_comment($this->poster_id, '未審査コメント', 'pending');
+    $lock = n3s_cli_batch_lock('comment_audit');
+    expect($lock)->not->toBeFalse();
+    try {
+        $html = n3s_test_admin_run_audit('test-key', false);
+        expect(n3s_test_admin_review_status($c))->toBe('pending');
+        expect($html)->toContain('既に実行中');
+    } finally {
+        if (is_resource($lock)) {
+            fclose($lock);
+        }
+    }
 });

@@ -22,6 +22,12 @@
         {{endfor}}
         </tbody>
     </table>
+    <form method="post" action="index.php?action=admin" onsubmit="return confirm('AI審査を実行しますか？審査待ちの件数によっては時間がかかります。');">
+        <input type="hidden" name="mode" value="run_comment_audit">
+        <input type="hidden" name="edit_token" value="{{$edit_token}}">
+        <button type="submit" class="pure-button">AI審査を実行</button>
+        <span>cronの自動審査バッチと同じ審査を今すぐ実行します。</span>
+    </form>
     <h2>審査待ちコメント（スパムテスト前・最大100件）</h2>
     {{if $pending_comments}}
     <form method="post" action="index.php?action=admin">
