@@ -2447,7 +2447,7 @@ function n3s_list_setIcon(&$list)
 {
     foreach ($list as &$i) {
         $nakotype = isset($i['nakotype']) ? $i['nakotype'] : '';
-        $i['icon'] = ($nakotype === 'wnako' || $nakotype === 'cnako')
+        $i['icon'] = in_array($nakotype, ['wnako', 'cnako', 'gonako', 'lnako', 'vnako'], true)
             ? 'https://n3s.nadesi.com/image.php?f=727.png'
             : 'https://n3s.nadesi.com/image.php?f=729.png';
     }

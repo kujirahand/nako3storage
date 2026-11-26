@@ -45,6 +45,9 @@ function n3s_library_get()
         switch ($i['nakotype']) {
             case 'wnako': $i['ext'] = '.nako3'; break;
             case 'cnako': $i['ext'] = '.nako3'; break;
+            case 'gonako': $i['ext'] = '.nako3'; break;
+            case 'lnako': $i['ext'] = '.nako3'; break;
+            case 'vnako': $i['ext'] = '.nako'; break;
             case 'sh': $i['ext'] = '.sh'; break;
             case 'js': $i['ext'] = '.js'; break;
             default: break;

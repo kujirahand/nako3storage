@@ -274,7 +274,12 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     switch ($a['nakotype']) {
         case 'wnako':
         case 'cnako':
+        case 'gonako':
+        case 'lnako':
             $a['ext'] = '.nako3';
+            break;
+        case 'vnako':
+            $a['ext'] = '.nako';
             break;
         case 'text':
             $a['ext'] = '.txt';
@@ -293,7 +298,7 @@ function n3s_show_get($action, $agent, $useEditor = true, $readonly = true)
     // ライブラリとして公開されている作品(app_nameあり)は、プログラム本文の代わりに
     // 関数一覧を表示する (#276)
     $a['func_list'] = [];
-    if (!empty($a['app_name']) && in_array($a['nakotype'], ['wnako', 'cnako'], true)) {
+    if (!empty($a['app_name']) && in_array($a['nakotype'], ['wnako', 'cnako', 'gonako', 'lnako'], true)) {
         $a['func_list'] = n3s_parse_nako3_functions($a['body']);
     }
     return $a;
