@@ -527,7 +527,7 @@ test('バッチ・その他: ロック組み込みと審査ガード、プロン
     $cdn = file_get_contents(N3S_TEST_ROOT . '/scripts/cdn_download_count.php');
     expect($cdn)->toContain('n3s_batch_cdn_download_count.lock');
 
-    $audit = file_get_contents(N3S_TEST_ROOT . '/scripts/comment_audit.php');
+    $audit = file_get_contents(N3S_TEST_ROOT . '/app/comment_audit_run.inc.php');
     expect($audit)->toContain("AND status = 'pending'");
 
     $llm = file_get_contents(N3S_TEST_ROOT . '/app/comment_audit_openrouter.inc.php');
