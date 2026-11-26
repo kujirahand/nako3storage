@@ -67,7 +67,10 @@
           <span>プログラムの形式</span>
           <select id="nakotype" name="nakotype">
             <option value="wnako"{{ $nakotype == 'wnako' ? ' selected' : '' }}>なでしこ (Web版)</option>
-            <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>なでしこ (cnako)</option>
+            <option value="cnako"{{ $nakotype == 'cnako' ? ' selected' : '' }}>PC版 (cnako3)</option>
+            <option value="gonako"{{ $nakotype == 'gonako' ? ' selected' : '' }}>PC版 (gonako)</option>
+            <option value="lnako"{{ $nakotype == 'lnako' ? ' selected' : '' }}>PC版 (lnako)</option>
+            <option value="vnako"{{ $nakotype == 'vnako' ? ' selected' : '' }}>旧PC版 (vnako.exe)</option>
             <option value="js"{{ $nakotype == 'js' ? ' selected' : '' }}>JavaScript</option>
             <option value="json"{{ $nakotype == 'json' ? ' selected' : '' }}>JSON形式</option>
             <option value="csv"{{ $nakotype == 'csv' ? ' selected' : '' }}>CSV形式</option>
@@ -371,7 +374,7 @@ function checkSubmit() {
     alert('お手数おかけします。\n利用規約に同意のチェックをいれてください。同意しないと書き込めません。')
     return false
   }
-  if (fmt != 'wnako' && fmt != 'cnako' && fmt != 'text' && fmt != 'json' &&
+  if (fmt != 'wnako' && fmt != 'cnako' && fmt != 'gonako' && fmt != 'lnako' && fmt != 'vnako' && fmt != 'text' && fmt != 'json' &&
       fmt != 'css' && fmt != 'html' && fmt != 'csv' && fmt != 'js' && fmt != 'sh' && fmt != 'bat') {
     alert('データ形式にwnako3やcnako3,json,csvなどを指定してください。')
     return false

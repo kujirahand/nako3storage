@@ -5,6 +5,9 @@ test('一覧カードの形式アイコンはなでしことその他で分け�
     $list = [
         ['nakotype' => 'wnako'],
         ['nakotype' => 'cnako'],
+        ['nakotype' => 'gonako'],
+        ['nakotype' => 'lnako'],
+        ['nakotype' => 'vnako'],
         ['nakotype' => 'js'],
         ['nakotype' => 'dncl'],
     ];
@@ -13,6 +16,9 @@ test('一覧カードの形式アイコンはなでしことその他で分け�
 
     expect($list[0]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=727.png')
         ->and($list[1]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=727.png')
-        ->and($list[2]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=729.png')
-        ->and($list[3]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=729.png');
+        ->and($list[2]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=727.png')
+        ->and($list[3]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=727.png')
+        ->and($list[4]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=727.png')
+        ->and($list[5]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=729.png')
+        ->and($list[6]['icon'])->toBe('https://n3s.nadesi.com/image.php?f=729.png');
 });

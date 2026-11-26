@@ -63,7 +63,7 @@ function n3s_web_plain()
 // text/plain に落とす。安全と分かっている型のみそのまま通す (todo-security.md #2)。
 function n3s_plain_safe_content_type($nakotype)
 {
-    if ($nakotype === 'wnako' || $nakotype === 'cnako') {
+    if (in_array($nakotype, ['wnako', 'cnako', 'gonako', 'lnako', 'vnako'], true)) {
         return 'text/plain; charset=utf-8';
     }
     $mime = n3s_get_mime($nakotype);

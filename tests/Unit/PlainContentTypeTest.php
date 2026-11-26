@@ -24,6 +24,12 @@ test('wnako/cnako は text/plain で配信される', function () {
     expect(n3s_plain_safe_content_type('cnako'))->toBe('text/plain; charset=utf-8');
 });
 
+test('PC版(gonako/lnako/vnako)は text/plain で配信される', function () {
+    foreach (['gonako', 'lnako', 'vnako'] as $type) {
+        expect(n3s_plain_safe_content_type($type))->toBe('text/plain; charset=utf-8');
+    }
+});
+
 test('安全と分かっている型(csv/tsv/json)は本来のMIMEを保持する', function () {
     expect(n3s_plain_safe_content_type('csv'))->toBe('text/csv; charset=utf-8');
     expect(n3s_plain_safe_content_type('tsv'))->toBe('text/tsv; charset=utf-8');
