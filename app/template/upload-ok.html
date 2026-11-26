@@ -31,6 +31,12 @@
         <div><dt>提供者</dt><dd><a target="new" href="{{$link_user}}">{{$user.name}}</a></dd></div>
         <div><dt>ライセンス</dt><dd>{{$copyright}}</dd></div>
         <div><dt>アクセス数</dt><dd>👀 {{$view}}</dd></div>
+        <div><dt>いいね</dt><dd class="n3s-image-stats">
+          <span>❤️ <span class="n3s-image-fav-count" data-image-id="{{$image_id}}">{{$fav}}</span></span>
+          {{if $is_login && $can_fav}}
+          <button type="button" class="n3s-image-fav-btn{{if $liked}} fav-active active{{endif}}" data-image-id="{{$image_id}}" data-edit-token="{{$edit_token}}" data-fav-url="{{$fav_url}}" aria-label="いいね">{{if $liked}}♥{{else}}♡{{endif}}</button>
+          {{endif}}
+        </dd></div>
         <div><dt>説明</dt><dd class="n3s-upload-description-text">{{ if $description !== '' }}{{$description}}{{ else }}(説明はありません){{ endif }}</dd></div>
         {{ if $image_name !== '' }}
         <div><dt>ファイル名</dt><dd>{{$image_name}}</dd></div>
@@ -85,5 +91,7 @@
   </details>
   {{ endif }}
 </main>
+
+{{ include parts_image_fav_script.html }}
 
 {{ include parts_html_footer.html }}
